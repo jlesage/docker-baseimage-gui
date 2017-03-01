@@ -1,8 +1,4 @@
 #!/bin/bash
-#
-# Set the SKIP_BUILD variable, which indicates if the current build needs to be
-# skipped or not.
-#
 
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
     echo "${BASH_SOURCE[0]} can only be sourced."
@@ -25,10 +21,8 @@ build_needed() {
     docker rmi $BASEIMAGE
 
     if [[ "$IMAGE_LAYERS" =~ "$BASEIMAGE_LAYERS" ]]; then
-        return false
-        echo "Build not needed: Latest baseimage already in use."
+        BUILD_NEEDED_RESULT=false
     else
-        return true
-        echo "Build needed: Baseimage update needed."
+        BUILD_NEEDED_RESULT=true
     fi
 }
