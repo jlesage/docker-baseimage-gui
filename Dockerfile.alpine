@@ -1,0 +1,135 @@
+#
+# baseimage-gui Dockerfile
+#
+# https://github.com/jlesage/docker-baseimage-gui
+#
+
+# Pull base image.
+FROM ${BASEIMAGE}
+
+# Define software versions.
+ARG LIBVNCSERVER_VERSION=0.9.11
+ARG X11VNC_VERSION=0.9.14
+ARG NOVNC_VERSION=0.6.2
+ARG S6_OVERLAY_VERSION=1.19.1.1
+
+# Define software download URLs.
+ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}-base64-compat.tar.gz
+ARG X11VNC_URL=https://github.com/LibVNC/x11vnc/archive/${X11VNC_VERSION}.tar.gz
+ARG NOVNC_URL=https://github.com/novnc/novnc/archive/v${NOVNC_VERSION}.tar.gz
+ARG S6_OVERLAY_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz
+
+# Define working directory.
+WORKDIR /tmp
+
+# Install s6 overlay.
+RUN \
+    apk --no-cache add --virtual build-dependencies curl && \
+    curl -sS -L ${S6_OVERLAY_URL} | tar -xz -C / && \
+    # Cleanup
+    apk --no-cache del build-dependencies
+
+# Install system packages.
+RUN \
+    apk --no-cache add \
+        # For timezone support
+        tzdata \
+        # For 'groupmod' command
+        shadow
+
+# Compile x11vnc.
+RUN \
+    apk --no-cache add --virtual build-dependencies \
+            curl \
+            build-base \
+            autoconf \
+            automake \
+            libtool \
+            libx11-dev \
+            libxtst-dev \
+            libjpeg-turbo-dev \
+            libpng-dev  \
+            openssl-dev && \
+    # Download sources
+    curl -sS -L ${LIBVNCSERVER_URL} | tar -xz && \
+    curl -sS -L ${X11VNC_URL} | tar -xz && \
+    # Compile libvncserver
+    cd libvncserver-${LIBVNCSERVER_VERSION}-base64-compat && \
+    ./autogen.sh --prefix=/tmp/install && \
+    make install && \
+    cd .. && \
+    # Compile x11vnc
+    cd x11vnc-${X11VNC_VERSION} && \
+    autoreconf -v --install && \
+    PKG_CONFIG_PATH=/tmp/install/lib/pkgconfig/ ./configure --prefix=/tmp/install --with-websockets && \
+    make install && \
+    cd .. && \
+    # Install libraries
+    cp -P install/lib/libvncserver.so* /usr/lib/ && \
+    cp -P install/lib/libvncclient.so* /usr/lib/ && \
+    # Install binaries
+    cp install/bin/x11vnc /usr/bin/ && \
+    # Cleanup
+    apk --no-cache del build-dependencies && \
+    rm -rf /tmp/*
+
+# Install packages.
+RUN \
+    apk --no-cache add \
+        # x11vnc dependencies
+        libssl1.0 \
+        libxtst \
+        libxi \
+        libjpeg-turbo \
+        # X virtual framebuffer display server
+        xvfb \
+        # Openbox window manager
+        openbox \
+        xsetroot \
+        font-bitstream-100dpi
+
+# Install noVNC.
+RUN \
+    apk --no-cache add --virtual build-dependencies curl && \
+    curl -sS -L ${NOVNC_URL} | tar -xz && \
+    mkdir -p /opt/novnc && \
+    cp -R noVNC-${NOVNC_VERSION}/favicon.ico \
+          noVNC-${NOVNC_VERSION}/images \
+          noVNC-${NOVNC_VERSION}/include \
+          /opt/novnc/ && \
+    # Cleanup
+    apk --no-cache del build-dependencies && \
+    rm -rf /tmp/*
+
+# Add files.
+COPY rootfs/ /
+
+# Set environment variables.
+ENV HOME=/home/guiapp \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=3 \
+    USER_ID=1000 \
+    GROUP_ID=1000 \
+    APP_NAME=DockerApp \
+    DISPLAY=:0 \
+    DISPLAY_WIDTH=1024 \
+    DISPLAY_HEIGHT=768
+
+# Define mountable directories.
+VOLUME ["/config"]
+
+# Expose ports.
+#   - 5800: VNC web interface
+#   - 9500: VNC
+EXPOSE 5800 9500
+
+# Define default command.
+# Use S6 overlay init system.
+CMD ["/init"]
+
+# Metadata.
+ARG BUILD_DATE
+LABEL org.label-schema.build-date=${BUILD_DATE:-unknown} \
+      org.label-schema.name="baseimage-gui" \
+      org.label-schema.description="A minimal docker baseimage to ease creation of X graphical application containers" \
+      org.label-schema.vcs-url="https://github.com/jlesage/docker-baseimage-gui" \
+      org.label-schema.schema-version="1.0"

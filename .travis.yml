@@ -1,0 +1,42 @@
+#
+# Travis CI recipe to build, test and push docker images to the Docker Hub.
+#
+
+sudo: required
+
+language: generic
+
+services:
+  - docker
+
+env:
+  global:
+  - DOCKER_REPO=jlesage/baseimage-gui
+  matrix:
+  - DOCKERFILE=Dockerfile.alpine
+    TAG=alpine-3.5
+    BASEIMAGE=alpine:3.5
+  - DOCKERFILE=Dockerfile.debian
+    TAG=debian-stretch
+    BASEIMAGE=debian:stetch-slim
+  - DOCKERFILE=Dockerfile.debian
+    TAG=ubuntu-16.04
+    BASEIMAGE=ubuntu:16.04
+
+before_install:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y bats
+
+before_script:
+  - ./travis/set_skip_build.sh
+  - [ "$TRAVIS_SKIP_BUILD" = 1 ] || ./travis/before_script.sh
+
+script:
+  - [ "$TRAVIS_SKIP_BUILD" = 1 ] || ./travis/script.sh
+
+deploy:
+  - provider: script
+    script: travis/deploy.sh
+    on:
+      branch: master
+      condition: "$TRAVIS_SKIP_BUILD = 0"

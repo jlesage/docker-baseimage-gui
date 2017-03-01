@@ -1,0 +1,33 @@
+#!/usr/bin/with-contenv sh
+
+set -u # Treat unset variables as an error.
+
+# Make sure openbox is running.
+s6-svok /var/run/s6/services/openbox || exit 1
+UPTIME=$( s6-svstat /var/run/s6/services/openbox | grep "^up " | cut -d' ' -f4 )
+if [ -z "$UPTIME" ] || [ "$UPTIME" -lt 1 ] ; then
+    exit 1
+fi
+
+echo "Starting "${APP_NAME:-X application}"..."
+if [ -e /startapp.sh ]; then 
+    2>&1 s6-setuidgid $USER_ID:$GROUP_ID /startapp.sh
+    S6_CMD_EXITED=$?
+else
+    echo ""
+    echo "/!\\ No application to start: /startapp.sh is missing. /!\\"
+    echo ""
+    # Make sure the container exits with an error code.
+    S6_CMD_EXITED=5
+fi
+
+# App terminated: Bring container down if needed.
+if [ "${KEEP_GUIAPP_RUNNING-0}" -eq "0" ]; then
+    # Use the forced exit code if needed.
+    S6_CMD_EXITED=${FORCE_GUIAPP_EXIT_CODE-$S6_CMD_EXITED}
+
+    echo $S6_CMD_EXITED > /var/run/s6/env-stage3/S6_CMD_EXITED
+    s6-svscanctl -t /var/run/s6/services
+fi
+
+# vim: set ft=sh :

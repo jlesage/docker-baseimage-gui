@@ -1,0 +1,114 @@
+#
+# baseimage-gui Dockerfile
+#
+# https://github.com/jlesage/docker-baseimage-gui
+#
+
+# Pull base image.
+FROM ${BASEIMAGE}
+
+# Define software versions.
+ARG NOVNC_VERSION=0.6.2
+ARG S6_OVERLAY_VERSION=1.19.1.1
+
+# Define software download URLs.
+ARG NOVNC_URL=https://github.com/novnc/novnc/archive/v${NOVNC_VERSION}.tar.gz
+ARG S6_OVERLAY_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz
+
+# Variables needed for package installation via APT.
+ARG DEBIAN_FRONTEND=noninteractive
+ARG TERM=xterm
+
+# Define working directory.
+WORKDIR /tmp
+
+# Install s6 overlay.
+RUN \
+    BUILD_PACKAGES="curl ca-certificates" && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        $BUILD_PACKAGES && \
+    curl -sS -L -o s6-overlay.tar.gz ${S6_OVERLAY_URL} && \
+    # Workaround for some distro where '/bin' being a symlink to '/usr/bin':
+    # extract the tarball in two steps.
+    if [ -L /bin ]; then \
+        tar xzf s6-overlay.tar.gz -C / --exclude="./bin" && \
+        tar xzf /tmp/s6-overlay.tar.gz -C /usr ./bin; \
+    else \
+        tar xzf s6-overlay.tar.gz -C /; \
+    fi && \
+    # Cleanup
+    apt-get clean && \
+    apt-get purge -y $BUILD_PACKAGES && \
+    apt-get --purge autoremove -y && \
+    rm -rf /var/lib/apt/lists/* \
+           /var/tmp/* \
+           /tmp/*
+
+# Install packages.
+RUN \
+    apt-get update && apt-get install -y --no-install-recommends \
+        # X11 VNC server
+        x11vnc \
+        # X virtual framebuffer display server
+        xvfb \
+        # Openbox window manager
+        openbox \ 
+        && \
+    # Cleanup
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* \
+           /var/tmp/* \
+           /tmp/*
+
+# Install noVNC.
+RUN \
+    BUILD_PACKAGES="curl ca-certificates" && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        $BUILD_PACKAGES && \
+    curl -sS -L ${NOVNC_URL} | tar -xz && \
+    mkdir -p /opt/novnc && \
+    cp -R noVNC-${NOVNC_VERSION}/favicon.ico \
+          noVNC-${NOVNC_VERSION}/images \
+          noVNC-${NOVNC_VERSION}/include \
+          /opt/novnc/ && \
+    # Cleanup
+    apt-get clean && \
+    apt-get purge -y $BUILD_PACKAGES && \
+    apt-get --purge autoremove -y && \
+    rm -rf /var/lib/apt/lists/* \
+           /var/tmp/* \
+           /tmp/*
+
+# Add files.
+COPY rootfs/ /
+
+# Set environment variables.
+ENV HOME=/home/guiapp \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=3 \
+    USER_ID=1000 \
+    GROUP_ID=1000 \
+    APP_NAME=DockerApp \
+    DISPLAY=:0 \
+    DISPLAY_WIDTH=1024 \
+    DISPLAY_HEIGHT=768
+
+# Define mountable directories.
+VOLUME ["/config"]
+
+# Expose ports.
+#   - 5800: VNC web interface
+#   - 9500: VNC
+EXPOSE 5800 9500
+
+# Define default command.
+# Use S6 overlay init system.
+CMD ["/init"]
+
+# Metadata.
+ARG BUILD_DATE
+ARG TEST
+LABEL org.label-schema.build-date=${BUILD_DATE:-unknown} \
+      org.label-schema.name="baseimage-gui" \
+      org.label-schema.description="A minimal docker baseimage to ease creation of X graphical application containers" \
+      org.label-schema.vcs-url="https://github.com/jlesage/docker-baseimage-gui" \
+      org.label-schema.schema-version="1.0"

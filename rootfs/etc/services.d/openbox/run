@@ -1,0 +1,15 @@
+#!/usr/bin/with-contenv sh
+
+set -u # Treat unset variables as an error.
+
+# Make sure xvfb is running.
+s6-svok /var/run/s6/services/xvfb || exit 1
+UPTIME=$( s6-svstat /var/run/s6/services/xvfb | grep "^up " | cut -d' ' -f4 )
+if [ -z "$UPTIME" ] || [ "$UPTIME" -lt 1 ] ; then
+    exit 1
+fi
+
+echo Starting openbox service...
+exec 2>&1 s6-setuidgid $USER_ID:$GROUP_ID /usr/bin/openbox-session
+
+# vim: set ft=sh :
