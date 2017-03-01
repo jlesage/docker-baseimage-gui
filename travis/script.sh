@@ -3,7 +3,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-if [ "$USE_DOCKER_BUILD_CACHE" -eq 1 ]; then
+if [ "${USE_DOCKER_BUILD_CACHE-:0}" -eq 1 ]; then
     DOCKER_BUILD_CACHE_OPTS=
 else
     DOCKER_BUILD_CACHE_OPTS="--no-cache --pull"
