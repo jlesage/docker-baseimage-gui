@@ -18,7 +18,7 @@ env:
     BASEIMAGE=alpine:3.5
   - DOCKERFILE=Dockerfile.debian
     TAG=debian-stretch
-    BASEIMAGE=debian:stetch-slim
+    BASEIMAGE=debian:stretch-slim
   - DOCKERFILE=Dockerfile.debian
     TAG=ubuntu-16.04
     BASEIMAGE=ubuntu:16.04
