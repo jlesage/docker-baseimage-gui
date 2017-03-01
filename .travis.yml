@@ -29,15 +29,16 @@ before_install:
   - sudo apt-get install -y bats
 
 before_script:
-  - ./travis/set_skip_build.sh
-  - test "$TRAVIS_SKIP_BUILD" -eq 1 || ./travis/before_script.sh
+  - travis/set_skip_build.sh
+  - source travis/custom_env && rm travis/custom_env
+  - test "$SKIP_BUILD" -eq 1 || travis/before_script.sh
 
 script:
-  - test "$TRAVIS_SKIP_BUILD" -eq 1 || ./travis/script.sh
+  - test "$SKIP_BUILD" -eq 1 || travis/script.sh
 
 deploy:
   - provider: script
     script: travis/deploy.sh
     on:
       branch: master
-      condition: "$TRAVIS_SKIP_BUILD = 0"
+      condition: "$SKIP_BUILD = 0"

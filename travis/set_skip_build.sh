@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-# Set the TRAVIS_SKIP_BUILD variable, which indicates if the current
-# build needs to be skipped or not.
+# Set the SKIP_BUILD variable, which indicates if the current build needs to be
+# skipped or not.
 #
 
 set -e          # Exit immediately if a command exits with a non-zero status.
@@ -43,10 +43,10 @@ if [ "$TRAVIS_EVENT_TYPE" == "cron" ] ; then
 
     if [[ "$IMAGE_LAYERS" =~ "$BASEIMAGE_LAYERS" ]]; then
         echo "Skipping cron build: Latest baseimage already in use.";
-        export TRAVIS_SKIP_BUILD=1
+        SKIP_BUILD=1
     else
         echo "Proceeding with cron build: Baseimage update needed.";
     fi
 fi
 
-export TRAVIS_SKIP_BUILD=${TRAVIS_SKIP_BUILD:-0}
+echo "export SKIP_BUILD=${SKIP_BUILD:-0}" >> travis/custom_env
