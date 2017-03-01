@@ -4,7 +4,7 @@ set -e          # Exit immediately if a command exits with a non-zero status.
 set -u          # Treat unset variables as an error.
 set -o pipefail # Pipeline exits immediately if a command exits with a non-zero status.
 
-CHECKS="$( find travis -type f -name 'build_needed_check_*.sh' )"
+CHECKS="$( find travis -type f -name 'build_needed_check_*.sh' | sort )"
 
 BUILD_NEEDED=0
 
