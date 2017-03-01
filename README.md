@@ -1,4 +1,6 @@
 # A minimal docker baseimage to ease creation of X graphical application containers
+[![Build Status](https://travis-ci.org/jlesage/docker-baseimage-gui.svg?branch=master)](https://travis-ci.org/jlesage/docker-baseimage-gui)
+
 This is a docker baseimage that can be used to create containers able to run any
 X application on a headless server very easily.  The application's GUI is
 accessed through a modern web browser (no installation or configuration needed
@@ -130,7 +132,7 @@ to the `docker run` command.
   ID of the user the X application run as.  Default is `1000`.  See
   [User/Group IDs](#usergroup-ids) to better understand when this should be set.
 - **GROUP_ID**
-  ID of the group the X application run as.  Default`1000`.  See
+  ID of the group the X application run as.  Default is `1000`.  See
   [User/Group IDs](#usergroup-ids) to better understand when this should be set.
 
 ## Config Directory
@@ -165,7 +167,7 @@ user owning the data volume on the host:
 
 Which gives an output like this one:
 ```
-uid=1000(myuser) gid=1000(myuser) groups=1000(myuser),4(adm),24(cdrom),27(sudo),30(dip),46(plugdev),113(lpadmin),128(sambashare),999(docker)
+uid=1000(myuser) gid=1000(myuser) groups=1000(myuser),4(adm),24(cdrom),27(sudo),46(plugdev),113(lpadmin)
 ```
 
 The value of `uid` (user ID) and `gid` (group ID) are the ones that you should
