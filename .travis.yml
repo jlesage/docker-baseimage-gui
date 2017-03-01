@@ -29,10 +29,10 @@ before_install:
 
 before_script:
   - ./travis/set_skip_build.sh
-  - [ "$TRAVIS_SKIP_BUILD" = 1 ] || ./travis/before_script.sh
+  - test "$TRAVIS_SKIP_BUILD" -eq 1 || ./travis/before_script.sh
 
 script:
-  - [ "$TRAVIS_SKIP_BUILD" = 1 ] || ./travis/script.sh
+  - test "$TRAVIS_SKIP_BUILD" -eq 1 || ./travis/script.sh
 
 deploy:
   - provider: script
