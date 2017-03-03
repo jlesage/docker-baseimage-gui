@@ -6,18 +6,27 @@ set -u # Treat unset variables as an error.
 TARGET_BRANCH=deploy-$TAG
 REPO=$(git config remote.origin.url)
 
-# Update refspec and fetch.
+# Adjust git configuration.
 git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+git config user.name "Travis CI"
+git config user.email "$COMMIT_AUTHOR_EMAIL"
+
+# Update repository to get all remote branches.
+echo "Updating repository..."
 git fetch
 
 # Switch to proper branch and sync it with master.
+echo "Checking out branch $TARGET_BRANCH..."
 if git branch -a | grep -w -q $TARGET_BRANCH; then
     git checkout --track origin/$TARGET_BRANCH
 else
     git branch $TARGET_BRANCH
     git checkout $TARGET_BRANCH
 fi
-git rebase master
+
+# Merge the master branch.
+echo "Merging master in $TARGET_BRANCH..."
+git merge --no-edit master
 
 # Generate and validate the Dockerfile.
 echo "Generating and validating the Dockerfile..."
