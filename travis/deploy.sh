@@ -14,17 +14,16 @@ git rebase master
 echo "Generating and validating the Dockerfile..."
 travis/before_script.sh
 
-echo "The following change will be pushed to branch $TARGET_BRANCH:"
-git diff -u Dockerfile
-
 # Add and commit the Dockerfile.
 git add Dockerfile
-git commit
-    -m "Automatic Dockerfile deployment from Travis CI (build $TRAVIS_BUILD_NUMBER)."
+git commit \
+    -m "Automatic Dockerfile deployment from Travis CI (build $TRAVIS_BUILD_NUMBER)." \
     --author="Travis CI <$COMMIT_AUTHOR_EMAIL>"
 
-# Push the change.
-echo "Pushing change to repository..."
+# Push changes.
+echo "The following changes will be pushed to branch $TARGET_BRANCH:"
+git diff -u --cached
+echo "Pushing changes to repository..."
 REPO=$(git config remote.origin.url)
 REPO=${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@}
 git push $REPO $TAG
