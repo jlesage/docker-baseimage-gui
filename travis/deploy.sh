@@ -11,7 +11,7 @@ git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
 git fetch
 
 # Switch to proper branch and sync it with master.
-if [ git branch -a | grep -w -q $TARGET_BRANCH ]; then
+if git branch -a | grep -w -q $TARGET_BRANCH; then
     git checkout --track origin/$TARGET_BRANCH
 else
     git branch $TARGET_BRANCH
