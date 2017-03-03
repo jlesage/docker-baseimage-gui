@@ -3,7 +3,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-TARGET_BRANCH=$TAG
+TARGET_BRANCH=deploy-$TAG
 REPO=$(git config remote.origin.url)
 
 # Update refspec and fetch.
@@ -34,4 +34,4 @@ git commit \
 echo "The following commit will be pushed to branch $TARGET_BRANCH:"
 git show
 echo "Pushing changes to repository..."
-git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} $TAG
+git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} $TARGET_BRANCH

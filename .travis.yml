@@ -9,6 +9,10 @@ language: generic
 services:
   - docker
 
+branches:
+  except:
+  - /^deploy-.*$/
+
 env:
   global:
   - DOCKER_REPO=jlesage/baseimage-gui
