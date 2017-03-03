@@ -127,8 +127,7 @@ EXPOSE 5800 9500
 CMD ["/init"]
 
 # Metadata.
-ARG BUILD_DATE
-LABEL org.label-schema.build-date=${BUILD_DATE:-unknown} \
+LABEL \
       org.label-schema.name="baseimage-gui" \
       org.label-schema.description="A minimal docker baseimage to ease creation of X graphical application containers" \
       org.label-schema.vcs-url="https://github.com/jlesage/docker-baseimage-gui" \

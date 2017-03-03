@@ -11,7 +11,6 @@ fi
 
 echo "Starting build of Docker image $DOCKER_REPO:$TRAVIS_JOB_ID..."
 docker build $DOCKER_BUILD_CACHE_OPTS \
-             --build-arg BUILD_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ") \
              -t $DOCKER_REPO:$TRAVIS_JOB_ID .
 docker tag $DOCKER_REPO:$TRAVIS_JOB_ID $DOCKER_REPO:$TAG
 
