@@ -4,10 +4,19 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 TARGET_BRANCH=$TAG
+REPO=$(git config remote.origin.url)
+
+# Update refspec and fetch.
+git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
+git fetch
 
 # Switch to proper branch and sync it with master.
-git branch | grep -w -q $TARGET_BRANCH || git branch $TARGET_BRANCH
-git checkout $TARGET_BRANCH
+if [ git branch -a | grep -w -q $TARGET_BRANCH ]; then
+    git checkout --track origin/$TARGET_BRANCH
+else
+    git branch $TARGET_BRANCH
+    git checkout $TARGET_BRANCH
+fi
 git rebase master
 
 # Generate and validate the Dockerfile.
@@ -25,6 +34,4 @@ git commit \
 echo "The following commit will be pushed to branch $TARGET_BRANCH:"
 git show
 echo "Pushing changes to repository..."
-REPO=$(git config remote.origin.url)
-REPO=${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@}
-git push $REPO $TAG
+git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} $TAG
