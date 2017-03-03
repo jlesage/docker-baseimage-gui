@@ -21,8 +21,8 @@ git commit \
     --author="Travis CI <$COMMIT_AUTHOR_EMAIL>"
 
 # Push changes.
-echo "The following changes will be pushed to branch $TARGET_BRANCH:"
-git diff -u --cached
+echo "The following commit will be pushed to branch $TARGET_BRANCH:"
+git show
 echo "Pushing changes to repository..."
 REPO=$(git config remote.origin.url)
 REPO=${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@}
