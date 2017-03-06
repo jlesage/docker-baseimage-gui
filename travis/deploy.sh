@@ -38,6 +38,7 @@ git add Dockerfile
 git commit \
     --allow-empty \
     -m "Automatic Dockerfile deployment from Travis CI (build $TRAVIS_BUILD_NUMBER)." \
+    -m "Build reason: $BUILD_NEEDED_REASON." \
     --author="Travis CI <$COMMIT_AUTHOR_EMAIL>"
 
 # Push changes.
