@@ -28,7 +28,7 @@ done
 echo "export BUILD_NEEDED=$BUILD_NEEDED" >> travis/env
 if [ "$BUILD_NEEDED" -eq 1 ]; then
     echo "Build will be performed."
-    echo "export BUILD_NEEDED_REASON=$BUILD_NEEDED_REASON" >> travis/env
+    echo "export BUILD_NEEDED_REASON=\"$BUILD_NEEDED_REASON\"" >> travis/env
 else
     echo "Build will be skipped."
 fi
