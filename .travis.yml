@@ -20,6 +20,9 @@ env:
   - DOCKERFILE=Dockerfile.alpine
     TAG=alpine-3.5
     BASEIMAGE=alpine:3.5
+  - DOCKERFILE=Dockerfile.alpine-glibc
+    TAG=alpine-3.5-glibc
+    BASEIMAGE=alpine:3.5
   - DOCKERFILE=Dockerfile.debian
     TAG=debian-stretch
     BASEIMAGE=debian:stretch-slim
