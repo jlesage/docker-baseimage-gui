@@ -12,6 +12,7 @@ Different docker images are available:
 | Base distribution  | Tag            | Size |
 |--------------------|----------------|------|
 | [Alpine 3.5]       | alpine-3.5     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5 "Get your own image badge on microbadger.com") |
+| [Alpine 3.5]       | alpine-3.5-glibc     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5-glibc "Get your own image badge on microbadger.com") |
 | [Debian stretch]   | debian-stretch | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-stretch.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-stretch "Get your own image badge on microbadger.com") |
 | [Ubuntu 16.04 LTS] | ubuntu-16.04   | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-16.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-16.04 "Get your own image badge on microbadger.com") |
 
@@ -24,8 +25,10 @@ to integrate your application (especially third party ones without source code),
 because:
  1. Packages repository may not be as complete as `Ubuntu`/`Debian`.
  2. Third party applications may not support `Alpine`.
- 3. This distribution implements the [musl] C standard library instead of
+ 3. The `Alpine` distribution uses the [musl] C standard library instead of
  GNU C library ([glibc]).
+  * NOTE: Using the `Alpine` image with glibc integrated (`alpine-3.5-glibc`
+    tag) may ease integration of applications.
 
 The next choice is to use the `Debian` image.  It provides a great compatibility
 and its size is smaller than the `Ubuntu` one.  However, because of the required
