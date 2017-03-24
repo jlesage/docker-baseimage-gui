@@ -377,6 +377,7 @@
 
 <applications>
   <application type="normal">
+    <decor>no</decor>
     <maximized>true</maximized>
   </application>
 </applications>
