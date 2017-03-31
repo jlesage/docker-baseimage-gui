@@ -20,6 +20,9 @@ echo Starting x11vnc service...
 exec 2>&1 /usr/bin/x11vnc  \
                     -display $DISPLAY \
                     -rfbport 5900 \
+                    -rfbportv6 0 \
+                    -no6 \
+                    -noipv6 \
                     -forever \
                     -desktop "${APP_NAME}" \
                     -shared \
