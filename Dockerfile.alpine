@@ -55,6 +55,8 @@ RUN \
     curl -sS -L ${X11VNC_URL} | tar -xz && \
     # Compile libvncserver
     cd libvncserver-${LIBVNCSERVER_VERSION}-base64-compat && \
+    # Fix for crash when host doesn't support IPv6.
+    sed -i 's/FD_ISSET(rfbScreen->httpListen6Sock, &fds)/(rfbScreen->httpListen6Sock > -1 \&\& FD_ISSET(rfbScreen->httpListen6Sock, \&fds))/' libvncserver/httpd.c && \
     ./autogen.sh --prefix=/tmp/install && \
     make install && \
     cd .. && \
