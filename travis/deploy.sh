@@ -12,17 +12,24 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-# Sanity checks.  Deployment should be done only when a tag is applied to the
-# commit, on the master branch.
-if [ "$TRAVIS_BRANCH" != "master" ]; then
-    echo "ERROR: Branch '$TRAVIS_BRANCH' not supported."
-    exit 1
-elif [ -z "$TRAVIS_TAG" ]; then
+# Sanity check: Deployment should be done only when a tag is applied to the
+# commit.
+if [ -z "$TRAVIS_TAG" ]; then
     echo "ERROR: No git tag."
     exit 1
 fi
 
+# Deployment should be done only on the master branch.  Exit now if it's not
+# the case.
+# NOTE: Cannot use TRAVIS_BRANCH, which is set to TRAVIS_TAG.
+GIT_BRANCH="$(git branch --contains tags/$TRAVIS_TAG  | tr -d '* ')"
+if [ "$GIT_BRANCH" != "master" ]; then
+    echo "Skipping deployment because tag '$TRAVIS_TAG' is on the '$GIT_BRANCH' branch."
+    exit 0
+fi
+
 echo "TRAVIS_TAG=$TRAVIS_TAG"
+echo "GIT_TAG='$GIT_BRANCH'"
 
 TARGET_BRANCH=deploy-$DOCKERTAG
 REPO=$(git config remote.origin.url)
