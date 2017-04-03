@@ -77,6 +77,7 @@
 
         var rfb;
         var resizeTimeout;
+        var tryFallbackPort = false;
 
         function UIresize() {
             if (WebUtil.getConfigVar('resize', false)) {
@@ -128,6 +129,17 @@
                 sb.setAttribute("class", "noVNC_status_" + level);
                 s.textContent = msg;
             }
+
+            if (state === "connected") {
+                // We were able to connect.  No need to try the fallback port.
+                tryFallbackPort = false;
+            }
+            else if (tryFallbackPort === true && oldstate == "failed" && state == "disconnected") {
+                // Failed to connect.  Try the fallback port.
+                console.info("RFB connection failure.  Attempting to connect using fallback port %s (current: %s).", $PORT, rfb._rfb_port);
+                tryFallbackPort = false;
+                rfb.connect(rfb._rfb_host, $PORT, rfb._rfb_password, rfb._rfb_path);
+            }
         }
 
         window.onresize = function () {
@@ -152,7 +164,6 @@
 
             // Get VNC server host.  By default, use the host of server that served this file.
             host = WebUtil.getConfigVar('host', window.location.hostname);
-            var host = document.location.hostname;
             // If there are at least two colons in there, it is likely an IPv6 address. Check for square brackets and add them if missing.
             if(host.search(/^.*:.*:.*$/) != -1) {
                 if(host.charAt(0) != "[")
@@ -162,9 +173,23 @@
             }
 
             // Get VNC server port.
-            port = WebUtil.getConfigVar('port', $PORT);
+            port = WebUtil.getConfigVar('port', '');
+            if (!port) {
+                // No VNC port specified.  Since we don't have the VNC port used
+                // on the host, use the HTTP port of the server that served this
+                // file + 100.  This comes from the x11vnc, where, by default:
+                //     HTTP_PORT = VNC_PORT - 100
+                // If the connection fails, then use the port x11vnc is
+                // listening on (i.e. the port inside the container). See the
+                // updateState() function.
+                port = Number(window.location.port) + 100;
+                tryFallbackPort = true;
+            }
 
+            // Get the VNC password.
             password = WebUtil.getConfigVar('password', '');
+
+            // Get the path.
             path = WebUtil.getConfigVar('path', 'websockify');
 
             // If a token variable is passed in, set the parameter in a cookie.

@@ -151,6 +151,17 @@ this directory.
 
 [Wikipedia]: http://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
+## Ports
+
+Here is the list of ports used by container.  They can be mapped to the host
+via the `-p <HOST_PORT>:<CONTAINER_PORT>` parameter.  The port number inside the
+container cannot be changed, but you are free to use any port on the host side.
+
+| Port | Mapping to host | Description |
+|------|-----------------|-------------|
+| 5800 | Mandatory  | Port used to access to the application's GUI via the web interface. |
+| 5900 | Mandatory  | Port used to access to the application's GUI via the VNC protocol.  |
+
 ## User/Group IDs
 
 When using data volumes (`-v` flags), permissions issues can occur between the
@@ -178,7 +189,9 @@ be given the container.
 
 ## Accessing the GUI
 
-The graphical interface of the application can be accessed via:
+Assuming the host is mapped to the same ports as the container, the graphical
+interface of the application can be accessed via:
+
   * A web browser:
 ```
 http://<HOST IP ADDR>:5800
@@ -188,6 +201,17 @@ http://<HOST IP ADDR>:5800
 ```
 <HOST IP ADDR>:5900
 ```
+
+If different ports are mapped to the host, make sure they respect the
+following formula:
+
+    VNC_PORT = HTTP_PORT + 100
+
+This is to make sure accessing the GUI with a web browser can be done without
+specifying the VNC port manually.  If this is not possible, then specify
+explicitly the VNC port like this:
+
+    http://<HOST IP ADDR>:5800/?port=<VNC PORT>
 
 ## VNC Password
 To restrict access to your application, a password can be specified.  This can
