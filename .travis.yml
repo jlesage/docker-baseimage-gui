@@ -18,16 +18,16 @@ env:
   - DOCKER_REPO=jlesage/baseimage-gui
   matrix:
   - DOCKERFILE=Dockerfile.alpine
-    TAG=alpine-3.5
+    DOCKERTAG=alpine-3.5
     BASEIMAGE=alpine:3.5
   - DOCKERFILE=Dockerfile.alpine-glibc
-    TAG=alpine-3.5-glibc
+    DOCKERTAG=alpine-3.5-glibc
     BASEIMAGE=alpine:3.5
   - DOCKERFILE=Dockerfile.debian
-    TAG=debian-stretch
+    DOCKERTAG=debian-stretch
     BASEIMAGE=debian:stretch-slim
   - DOCKERFILE=Dockerfile.debian
-    TAG=ubuntu-16.04
+    DOCKERTAG=ubuntu-16.04
     BASEIMAGE=ubuntu:16.04
 
 before_install:
@@ -36,16 +36,14 @@ before_install:
   - sudo apt-get install -y bats
 
 before_script:
-  - travis/setenv_build_needed.sh
-  - source travis/env && rm travis/env
-  - test "$BUILD_NEEDED" -eq 0 || travis/before_script.sh
+  - travis/before_script.sh
 
 script:
-  - test "$BUILD_NEEDED" -eq 0 || travis/script.sh
+  - travis/script.sh
 
 deploy:
   - provider: script
     script: travis/deploy.sh
     on:
-      branch: master
-      condition: "$BUILD_NEEDED = 1"
+      tags: true
+      condition: "$TRAVIS_BRANCH = master"

@@ -1,9 +1,30 @@
 #!/bin/bash
+#
+# This is the deployment script for Travis CI.
+#
+# The deployment consists in:
+#   * Checkout the branch associated to the current docker tag.
+#   * Generate the Dockerfile for the current Docker tag.
+#   * Commit the generated Dockerfile.
+#   * Apply the same git tag that triggered the build.
+#   * Push the changes.
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-TARGET_BRANCH=deploy-$TAG
+# Sanity checks.  Deployment should be done only when a tag is applied to the
+# commit, on the master branch.
+if [ "$TRAVIS_BRANCH" != "master" ]; then
+    echo "ERROR: Branch '$TRAVIS_BRANCH' not supported."
+    exit 1
+elif [ -z "$TRAVIS_TAG" ]; then
+    echo "ERROR: No git tag."
+    exit 1
+fi
+
+echo "TRAVIS_TAG=$TRAVIS_TAG"
+
+TARGET_BRANCH=deploy-$DOCKERTAG
 REPO=$(git config remote.origin.url)
 
 # Adjust git configuration.
@@ -38,11 +59,13 @@ git add Dockerfile
 git commit \
     --allow-empty \
     -m "Automatic Dockerfile deployment from Travis CI (build $TRAVIS_BUILD_NUMBER)." \
-    -m "Build reason: $BUILD_NEEDED_REASON." \
     --author="Travis CI <$COMMIT_AUTHOR_EMAIL>"
 
+# Create the git tag.
+git tag "${DOCKERTAG}-${TRAVIS_TAG}"
+
 # Push changes.
-echo "The following commit will be pushed to branch $TARGET_BRANCH:"
+echo "The following commit, with tag '${DOCKERTAG}-${TRAVIS_TAG}', will be pushed to branch $TARGET_BRANCH:"
 git show
 echo "Pushing changes to repository..."
 git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} $TARGET_BRANCH

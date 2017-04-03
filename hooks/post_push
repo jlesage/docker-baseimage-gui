@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+# Post push hook for Docker Automated Build.
+#
+# This hook simply adds the 'latest' tag to the image.
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+echo "Image built:
+    IMAGE_NAME=$IMAGE_NAME
+    DOCKER_REPO=$DOCKER_REPO
+    DOCKER_TAG=$DOCKER_TAG
+"
+
+if [ "$DOCKER_TAG" != "latest" ]; then
+    echo "Adding tag 'latest' to image..."
+    docker tag $IMAGE_NAME ${DOCKER_REPO}:latest
+    echo "Pushing image..."
+    docker push ${DOCKER_REPO}:latest
+else
+   echo "Image already have the 'latest' tag."
+fi
+
+echo "post_push hook terminated successfully."
