@@ -54,7 +54,7 @@ fi
 
 # Merge the master branch.
 echo "Merging master in $TARGET_BRANCH..."
-git merge --no-edit orgin/master
+git merge --no-edit origin/master
 
 # Generate and validate the Dockerfile.
 echo "Generating and validating the Dockerfile..."
