@@ -19,21 +19,6 @@ if [ -z "$TRAVIS_TAG" ]; then
     exit 1
 fi
 
-# Deployment should be done only on the master branch.  Exit now if it's not
-# the case.
-# NOTE: Cannot use TRAVIS_BRANCH, which is set to TRAVIS_TAG.
-GIT_BRANCH="$(git branch --contains tags/$TRAVIS_TAG  | tr -d '* ')"
-if [ "$GIT_BRANCH" != "master" ]; then
-    echo "Skipping deployment because tag '$TRAVIS_TAG' is on the '$GIT_BRANCH' branch."
-    exit 0
-fi
-
-echo "TRAVIS_TAG=$TRAVIS_TAG"
-echo "GIT_TAG='$GIT_BRANCH'"
-
-TARGET_BRANCH=deploy-$DOCKERTAG
-REPO=$(git config remote.origin.url)
-
 # Adjust git configuration.
 git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
 git config user.name "Travis CI"
@@ -42,6 +27,21 @@ git config user.email "$COMMIT_AUTHOR_EMAIL"
 # Update repository to get all remote branches.
 echo "Updating repository..."
 git fetch
+
+# Deployment should be done only on the master branch.  Exit now if it's not
+# the case.
+# NOTE: Cannot use TRAVIS_BRANCH, which is set to TRAVIS_TAG.
+GIT_BRANCH="$(git branch -r --contains tags/$TRAVIS_TAG  | cut -d'/' -f2)"
+if [ "$GIT_BRANCH" != "master" ]; then
+    echo "Skipping deployment because tag '$TRAVIS_TAG' is on the '$GIT_BRANCH' branch."
+    exit 0
+fi
+
+echo "TRAVIS_TAG=$TRAVIS_TAG"
+echo "GIT_BRANCH='$GIT_BRANCH'"
+
+TARGET_BRANCH=deploy-$DOCKERTAG
+REPO=$(git config remote.origin.url)
 
 # Switch to proper branch and sync it with master.
 echo "Checking out branch $TARGET_BRANCH..."
