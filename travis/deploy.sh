@@ -21,24 +21,23 @@ fi
 
 echo "TRAVIS_TAG=$TRAVIS_TAG"
 
-# Adjust git configuration.
-git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
-git config user.name "Travis CI"
-git config user.email "$COMMIT_AUTHOR_EMAIL"
+echo "Cloning repository..."
+git clone https://$GIT_PERSONAL_ACCESS_TOKEN@github.com/$TRAVIS_REPO_SLUG.git repo_clone
 
-# Update repository to get all remote branches.
-echo "Updating repository..."
-git fetch
+cd repo_clone
+
+# Adjust git configuration.
+git config --local user.name "Travis CI"
+git config --local user.email "$COMMIT_AUTHOR_EMAIL"
 
 # Make sure the tag exists on the master branch.
 # NOTE: Cannot use TRAVIS_BRANCH, which is set to TRAVIS_TAG.
-if ! git branch -r --contains tags/$TRAVIS_TAG | grep -q -w master; then
+if ! git branch --contains tags/$TRAVIS_TAG | grep -q -w master; then
     echo "Skipping deployment because tag '$TRAVIS_TAG' is not on the master branch."
     exit 0
 fi
 
 TARGET_BRANCH=deploy-$DOCKERTAG
-REPO=$(git config remote.origin.url)
 
 # Switch to proper branch and sync it with master.
 echo "Checking out branch $TARGET_BRANCH..."
@@ -72,5 +71,9 @@ git tag "${DOCKERTAG}-${TRAVIS_TAG}"
 echo "The following commit, with tag '${DOCKERTAG}-${TRAVIS_TAG}', will be pushed to branch $TARGET_BRANCH:"
 git show
 echo "Pushing changes to repository..."
-git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} $TARGET_BRANCH
-git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} "${DOCKERTAG}-${TRAVIS_TAG}"
+git push origin $TARGET_BRANCH
+git push origin "${DOCKERTAG}-${TRAVIS_TAG}"
+
+# Cleanup.
+cd ..
+rm -rf repo_clone
