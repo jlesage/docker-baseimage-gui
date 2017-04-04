@@ -6,7 +6,7 @@
 #   * Checkout the branch associated to the current docker tag.
 #   * Generate the Dockerfile for the current Docker tag.
 #   * Commit the generated Dockerfile.
-#   * Apply the same git tag that triggered the build.
+#   * Add a git tag based on the one that triggered the build.
 #   * Push the changes.
 
 set -e # Exit immediately if a command exits with a non-zero status.
@@ -19,6 +19,8 @@ if [ -z "$TRAVIS_TAG" ]; then
     exit 1
 fi
 
+echo "TRAVIS_TAG=$TRAVIS_TAG"
+
 # Adjust git configuration.
 git config remote.origin.fetch +refs/heads/*:refs/remotes/origin/*
 git config user.name "Travis CI"
@@ -28,17 +30,12 @@ git config user.email "$COMMIT_AUTHOR_EMAIL"
 echo "Updating repository..."
 git fetch
 
-# Deployment should be done only on the master branch.  Exit now if it's not
-# the case.
+# Make sure the tag exists on the master branch.
 # NOTE: Cannot use TRAVIS_BRANCH, which is set to TRAVIS_TAG.
-GIT_BRANCH="$(git branch -r --contains tags/$TRAVIS_TAG  | cut -d'/' -f2)"
-if [ "$GIT_BRANCH" != "master" ]; then
-    echo "Skipping deployment because tag '$TRAVIS_TAG' is on the '$GIT_BRANCH' branch."
+if ! git branch -r --contains tags/$TRAVIS_TAG | grep -q -w master; then
+    echo "Skipping deployment because tag '$TRAVIS_TAG' is not on the master branch."
     exit 0
 fi
-
-echo "TRAVIS_TAG=$TRAVIS_TAG"
-echo "GIT_BRANCH='$GIT_BRANCH'"
 
 TARGET_BRANCH=deploy-$DOCKERTAG
 REPO=$(git config remote.origin.url)
@@ -76,3 +73,4 @@ echo "The following commit, with tag '${DOCKERTAG}-${TRAVIS_TAG}', will be pushe
 git show
 echo "Pushing changes to repository..."
 git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} $TARGET_BRANCH
+git push ${REPO/https:\/\//https:\/\/$GIT_PERSONAL_ACCESS_TOKEN@} "${DOCKERTAG}-${TRAVIS_TAG}"

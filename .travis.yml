@@ -12,6 +12,7 @@ services:
 branches:
   except:
   - /^deploy-.*$/
+  - /^.+-v[0-9.]+$/
 
 env:
   global:
@@ -45,7 +46,5 @@ deploy:
   - provider: script
     script: travis/deploy.sh
     on:
-      # The deployment script will skip deployment if tag is not on the
-      # master branch.
       tags: true
       condition: "$TRAVIS_TAG =~ ^v.[0-9.]+$"
