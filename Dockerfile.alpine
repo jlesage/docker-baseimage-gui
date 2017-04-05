@@ -132,5 +132,6 @@ CMD ["/init"]
 LABEL \
       org.label-schema.name="baseimage-gui" \
       org.label-schema.description="A minimal docker baseimage to ease creation of X graphical application containers" \
+      org.label-schema.version="unknown" \
       org.label-schema.vcs-url="https://github.com/jlesage/docker-baseimage-gui" \
       org.label-schema.schema-version="1.0"
