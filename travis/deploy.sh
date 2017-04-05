@@ -77,3 +77,5 @@ git push origin "${DOCKERTAG}-${TRAVIS_TAG}"
 # Cleanup.
 cd ..
 rm -rf repo_clone
+
+echo "Deployment terminated successfully."
