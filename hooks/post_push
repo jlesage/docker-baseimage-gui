@@ -14,7 +14,7 @@ echo "Image built:
 "
 
 # Strip the version from the actual tag (e.g. alpine-3.5-v1.0.0 --> alpine-3.5).
-DOCKER_NEWTAG=${DOCKER_TAG//-v+([0-9.])/}
+DOCKER_NEWTAG="$(echo $DOCKER_TAG | sed 's/-v[0-9.]\+$//')"
 
 if [ "$DOCKER_TAG" != "$DOCKER_NEWTAG" ]; then
     echo "Adding tag '$DOCKER_NEWTAG' to image..."
