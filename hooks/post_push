@@ -13,13 +13,16 @@ echo "Image built:
     DOCKER_TAG=$DOCKER_TAG
 "
 
-if [ "$DOCKER_TAG" != "latest" ]; then
-    echo "Adding tag 'latest' to image..."
-    docker tag $IMAGE_NAME ${DOCKER_REPO}:latest
+# Strip the version from the actual tag (e.g. alpine-3.5-v1.0.0 --> alpine-3.5).
+DOCKER_NEWTAG=${DOCKER_TAG//-v+([0-9.])/}
+
+if [ "$DOCKER_TAG" != "$DOCKER_NEWTAG" ]; then
+    echo "Adding tag '$DOCKER_NEWTAG' to image..."
+    docker tag $IMAGE_NAME ${DOCKER_REPO}:$DOCKER_NEWTAG
     echo "Pushing image..."
-    docker push ${DOCKER_REPO}:latest
+    docker push ${DOCKER_REPO}:$DOCKER_NEWTAG
 else
-   echo "Image already have the 'latest' tag."
+   echo "Image already have the '$DOCKER_NEWTAG' tag."
 fi
 
 echo "post_push hook terminated successfully."
