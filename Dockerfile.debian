@@ -62,7 +62,7 @@ RUN \
 
 # Install noVNC.
 RUN \
-    BUILD_PACKAGES="curl ca-certificates" && \
+    BUILD_PACKAGES="curl ca-certificates patch" && \
     apt-get update && apt-get install -y --no-install-recommends \
         $BUILD_PACKAGES && \
     curl -sS -L ${NOVNC_URL} | tar -xz && \
@@ -71,6 +71,10 @@ RUN \
           noVNC-${NOVNC_VERSION}/images \
           noVNC-${NOVNC_VERSION}/include \
           /opt/novnc/ && \
+    CURDIR="$(pwd)" && cd / && \
+    # Apply patch: register mouse click events even if touch is available.
+    curl -sS -L https://gist.githubusercontent.com/jlesage/e30c298dbb2c4dd3fe086cdf8aad6ed1/raw/1cef9daf07730a3ae0635fe3532dd8883e3a5610/input.js.patch | patch -p0 && \
+    cd "$CURDIR" && \
     # Cleanup
     apt-get clean && \
     apt-get purge -y $BUILD_PACKAGES && \
