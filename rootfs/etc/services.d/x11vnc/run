@@ -30,6 +30,7 @@ exec 2>&1 /usr/bin/x11vnc  \
                     $IPV6 \
                     -forever \
                     -desktop "${APP_NAME}" \
+                    -cursor arrow \
                     -shared \
                     -httpdir /opt/novnc/ \
                     $VNC_SECURITY
