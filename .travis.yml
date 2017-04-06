@@ -4,6 +4,8 @@
 
 sudo: required
 
+dist: xenial
+
 language: generic
 
 services:
@@ -32,7 +34,6 @@ env:
     BASEIMAGE=ubuntu:16.04
 
 before_install:
-  - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo apt-get -qq update
   - sudo apt-get install -y bats
 
