@@ -49,6 +49,13 @@ RUN \
             libxtst-dev \
             libjpeg-turbo-dev \
             libpng-dev  \
+            libxinerama-dev \
+            libxdamage-dev \
+            libxcomposite-dev \
+            libxcursor-dev \
+            libxrandr-dev \
+            libxfixes-dev \
+            libice-dev \
             openssl-dev && \
     # Download sources
     curl -sS -L ${LIBVNCSERVER_URL} | tar -xz && \
@@ -83,6 +90,7 @@ RUN \
         libxtst \
         libxi \
         libjpeg-turbo \
+        libxcomposite \
         # X virtual framebuffer display server
         xvfb \
         # Openbox window manager
