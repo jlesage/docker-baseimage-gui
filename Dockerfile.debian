@@ -113,6 +113,8 @@ RUN \
         xvfb \
         # Openbox window manager
         openbox \ 
+        # For ifconfig
+        net-tools \
         && \
     # Cleanup
     apt-get clean && \
