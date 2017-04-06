@@ -14,7 +14,7 @@ ARG NOVNC_VERSION=0.6.2
 ARG S6_OVERLAY_VERSION=1.19.1.1
 
 # Define software download URLs.
-ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}-base64-compat.tar.gz
+ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/LibVNCServer-${LIBVNCSERVER_VERSION}-fixes.tar.gz
 ARG X11VNC_URL=https://github.com/LibVNC/x11vnc/archive/${X11VNC_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/novnc/novnc/archive/v${NOVNC_VERSION}.tar.gz
 ARG S6_OVERLAY_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz
@@ -97,7 +97,7 @@ RUN \
     curl -sS -L ${LIBVNCSERVER_URL} | tar -xz && \
     curl -sS -L ${X11VNC_URL} | tar -xz && \
     # Compile libvncserver
-    cd libvncserver-${LIBVNCSERVER_VERSION}-base64-compat && \
+    cd libvncserver-LibVNCServer-${LIBVNCSERVER_VERSION}-fixes && \
     ./autogen.sh --prefix=/tmp/install && \
     make install && \
     cd .. && \

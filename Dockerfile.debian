@@ -8,10 +8,14 @@
 FROM ${BASEIMAGE}
 
 # Define software versions.
+ARG LIBVNCSERVER_VERSION=0.9.11
+ARG X11VNC_VERSION=0.9.14
 ARG NOVNC_VERSION=0.6.2
 ARG S6_OVERLAY_VERSION=1.19.1.1
 
 # Define software download URLs.
+ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/LibVNCServer-${LIBVNCSERVER_VERSION}-fixes.tar.gz
+ARG X11VNC_URL=https://github.com/LibVNC/x11vnc/archive/${X11VNC_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/novnc/novnc/archive/v${NOVNC_VERSION}.tar.gz
 ARG S6_OVERLAY_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz
 
@@ -44,11 +48,67 @@ RUN \
            /var/tmp/* \
            /tmp/*
 
+# Compile x11vnc.
+RUN \
+    BUILD_PACKAGES="curl \
+                    ca-certificates \
+                    build-essential \
+                    autoconf \
+                    automake \
+                    libtool \
+                    pkg-config \
+                    libjpeg8-dev \
+                    libpng16-dev \
+                    zlib1g-dev \
+                    libssl-dev \
+                    libx11-dev \
+                    libxtst-dev \
+                    libxext-dev \
+                    libxdamage-dev \
+                    libxinerama-dev \
+                    libxfixes-dev \
+                    libxcomposite-dev \
+                    libxcursor-dev \
+                    libxrandr-dev \
+                    libice-dev \
+                   " && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        $BUILD_PACKAGES && \
+    # Download sources
+    curl -sS -L ${LIBVNCSERVER_URL} | tar -xz && \
+    curl -sS -L ${X11VNC_URL} | tar -xz && \
+    # Compile libvncserver
+    cd libvncserver-LibVNCServer-${LIBVNCSERVER_VERSION}-fixes && \
+    ./autogen.sh --prefix=/tmp/install && \
+    make install && \
+    cd .. && \
+    # Compile x11vnc
+    cd x11vnc-${X11VNC_VERSION} && \
+    autoreconf -v --install && \
+    PKG_CONFIG_PATH=/tmp/install/lib/pkgconfig/ ./configure --prefix=/tmp/install --with-websockets && \
+    make install && \
+    cd .. && \
+    # Install libraries
+    cp -P install/lib/libvncserver.so* /usr/lib/ && \
+    cp -P install/lib/libvncclient.so* /usr/lib/ && \
+    # Install binaries
+    cp install/bin/x11vnc /usr/bin/ && \
+    # Cleanup
+    apt-get clean && \
+    apt-get purge -y $BUILD_PACKAGES && \
+    apt-get --purge autoremove -y && \
+    rm -rf /var/lib/apt/lists/* \
+           /var/tmp/* \
+           /tmp/*
+
 # Install packages.
 RUN \
     apt-get update && apt-get install -y --no-install-recommends \
-        # X11 VNC server
-        x11vnc \
+        # X11 VNC server dependencies
+        libssl1.0.0 \
+        libxtst6 \
+        libxcomposite1 \
+        libpng16-16 \
         # X virtual framebuffer display server
         xvfb \
         # Openbox window manager
