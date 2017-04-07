@@ -13,11 +13,11 @@ Different docker images are available:
 |--------------------|----------------|------|
 | [Alpine 3.5]       | alpine-3.5     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5 "Get your own image badge on microbadger.com") |
 | [Alpine 3.5]       | alpine-3.5-glibc     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5-glibc "Get your own image badge on microbadger.com") |
-| [Debian stretch]   | debian-stretch | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-stretch.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-stretch "Get your own image badge on microbadger.com") |
+| [Debian 8]         | debian-8       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-8/ "Get your own image badge on microbadger.com") |
 | [Ubuntu 16.04 LTS] | ubuntu-16.04   | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-16.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-16.04 "Get your own image badge on microbadger.com") |
 
 [Alpine 3.5]: https://alpinelinux.org
-[Debian stretch]: https://www.debian.org/releases/stretch/
+[Debian 8]: https://www.debian.org/releases/jessie/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
 
 Due to its size, the `Alpine` image is recommended.  However, it may be harder
@@ -31,10 +31,9 @@ because:
     tag) may ease integration of applications.
 
 The next choice is to use the `Debian` image.  It provides a great compatibility
-and its size is smaller than the `Ubuntu` one.  However, because of the required
-X11 VNC server version, the `stretch` release is needed.  This release is not
-stable yet and for this reason you may prefer to use the `Ubuntu` image, which
-is based on the stable `16.04 LTS` version.
+and its size is smaller than the `Ubuntu` one.  Finally, if for anuy reason you
+prefer an `Ubuntu` image, one based on the stable `16.04 LTS` version. is
+provided.
 
 [musl]: https://www.musl-libc.org/
 [glibc]: https://www.gnu.org/software/libc/

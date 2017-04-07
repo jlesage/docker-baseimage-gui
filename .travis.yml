@@ -25,7 +25,7 @@ env:
     DOCKERTAG=alpine-3.5-glibc
     BASEIMAGE=alpine:3.5
   - DOCKERFILE=Dockerfile.debian
-    DOCKERTAG=debian-stretch
+    DOCKERTAG=debian-8
     BASEIMAGE=debian:stretch-slim
   - DOCKERFILE=Dockerfile.debian
     DOCKERTAG=ubuntu-16.04
