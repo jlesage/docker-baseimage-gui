@@ -26,7 +26,7 @@ env:
     BASEIMAGE=alpine:3.5
   - DOCKERFILE=Dockerfile.debian
     DOCKERTAG=debian-8
-    BASEIMAGE=debian:stretch-slim
+    BASEIMAGE=debian:jessie-slim
   - DOCKERFILE=Dockerfile.debian
     DOCKERTAG=ubuntu-16.04
     BASEIMAGE=ubuntu:xenial
