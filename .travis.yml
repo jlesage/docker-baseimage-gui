@@ -29,7 +29,7 @@ env:
     BASEIMAGE=debian:stretch-slim
   - DOCKERFILE=Dockerfile.debian
     DOCKERTAG=ubuntu-16.04
-    BASEIMAGE=ubuntu:16.04
+    BASEIMAGE=ubuntu:xenial
 
 before_install:
   - sudo add-apt-repository ppa:duggan/bats --yes
