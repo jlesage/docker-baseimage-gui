@@ -57,8 +57,8 @@ RUN \
                     automake \
                     libtool \
                     pkg-config \
-                    libjpeg8-dev \
-                    libpng16-dev \
+                    libjpeg-dev \
+                    libpng-dev \
                     zlib1g-dev \
                     libssl-dev \
                     libx11-dev \
@@ -108,7 +108,7 @@ RUN \
         libssl1.0.0 \
         libxtst6 \
         libxcomposite1 \
-        libpng16-16 \
+        libpng12-0 \
         # X virtual framebuffer display server
         xvfb \
         # Openbox window manager
