@@ -31,8 +31,8 @@ because:
     tag) may ease integration of applications.
 
 The next choice is to use the `Debian` image.  It provides a great compatibility
-and its size is smaller than the `Ubuntu` one.  Finally, if for anuy reason you
-prefer an `Ubuntu` image, one based on the stable `16.04 LTS` version. is
+and its size is smaller than the `Ubuntu` one.  Finally, if for any reason you
+prefer an `Ubuntu` image, one based on the stable `16.04 LTS` version is
 provided.
 
 [musl]: https://www.musl-libc.org/
