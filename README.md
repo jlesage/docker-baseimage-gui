@@ -1,5 +1,5 @@
 # A minimal docker baseimage to ease creation of X graphical application containers
-[![Build Status](https://travis-ci.org/jlesage/docker-baseimage-gui.svg?branch=master)](https://travis-ci.org/jlesage/docker-baseimage-gui)
+[![Docker Automated build](https://img.shields.io/docker/automated/jlesage/baseimage-gui.svg)](https://hub.docker.com/r/jlesage/baseimage-gui/) [![Build Status](https://travis-ci.org/jlesage/docker-baseimage-gui.svg?branch=master)](https://travis-ci.org/jlesage/docker-baseimage-gui)
 
 This is a docker baseimage that can be used to create containers able to run any
 X application on a headless server very easily.  The application's GUI is
