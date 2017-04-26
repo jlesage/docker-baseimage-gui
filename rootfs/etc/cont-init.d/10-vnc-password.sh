@@ -19,6 +19,8 @@ if [ -f /config/.vncpass ]; then
     cp /config/.vncpass /root/.vncpass
 elif [ "${VNC_PASSWORD:-UNSET}" != "UNSET" ]; then
     /usr/bin/x11vnc -storepasswd "$VNC_PASSWORD" /root/.vncpass
+else
+    rm -f /root/.vncpass
 fi
 
 # Adjust ownership and permissions of password files.
