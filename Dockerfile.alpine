@@ -9,13 +9,13 @@ FROM ${BASEIMAGE}
 
 # Define software versions.
 ARG LIBVNCSERVER_VERSION=0.9.11
-ARG X11VNC_VERSION=0.9.14
+ARG X11VNC_VERSION=0.9.14-fixes
 ARG NOVNC_VERSION=0.6.2-fixes
 ARG S6_OVERLAY_VERSION=1.19.1.1
 
 # Define software download URLs.
 ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/LibVNCServer-${LIBVNCSERVER_VERSION}-fixes.tar.gz
-ARG X11VNC_URL=https://github.com/LibVNC/x11vnc/archive/${X11VNC_VERSION}.tar.gz
+ARG X11VNC_URL=https://github.com/jlesage/x11vnc/archive/${X11VNC_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/v${NOVNC_VERSION}.tar.gz
 ARG S6_OVERLAY_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz
 
