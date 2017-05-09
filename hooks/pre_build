@@ -13,7 +13,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # The git tag is stored in the SOURCE_BRANCH environment variable.
-GIT_TAG="$SOURCE_BRANCH"
+export GIT_TAG="$SOURCE_BRANCH"
 
 # Make sure the git tag has a format like:
 #     v1.0.0
