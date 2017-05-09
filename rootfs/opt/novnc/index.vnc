@@ -1,234 +1,205 @@
-<!-- index.vnc - default html page for Java VNC viewer applet.  On any file
-     ending in .vnc, the HTTP server embedded in Xvnc will substitute the
-     following variables when preceded by a dollar: USER, DESKTOP, DISPLAY,
-     APPLETWIDTH, APPLETHEIGHT, WIDTH, HEIGHT, PORT, PARAMS.  Use two dollar
-     signs ($$) to get a dollar sign in the generated html. -->
+<!-- index.vnc - default html page for HTML VNC client.  On any file ending in
+     .vnc, the HTTP server embedded in Xvnc will substitute the following
+     variables when preceded by a dollar: USER, DESKTOP, DISPLAY, APPLETWIDTH,
+     APPLETHEIGHT, WIDTH, HEIGHT, PORT, PARAMS.  Use two dollar signs ($$) to
+     get a dollar sign in the generated html. -->
 
 <!DOCTYPE html>
 <html>
 <head>
+  <!--
+    This UI for noVNC is optimized to access the Graphical User Interface (GUI)
+    of a single running application.  This is perfect for applications running
+    inside a Docker container.
 
-    <!--
-    noVNC example: simple example using default UI
-    Copyright (C) 2012 Joel Martin
-    Copyright (C) 2013 Samuel Mannehed for Cendio AB
-    noVNC is licensed under the MPL 2.0 (see LICENSE.txt)
-    This file is licensed under the 2-Clause BSD license (see LICENSE.txt).
-
-    Connect parameters are provided in query string:
+    Connect parameters are determined automatically.  However, they can, like
+    all supported parameters, be overwritten with a query string:
         http://example.com/?host=HOST&port=PORT&encrypt=1&true_color=1
-    or the fragment:
-        http://example.com/#host=HOST&port=PORT&encrypt=1&true_color=1
-    -->
-    <title>$DESKTOP - noVNC</title>
+  -->
 
-    <meta charset="utf-8" />
+  <title>$DESKTOP</title>
 
-    <!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
-                Remove this if you use the .htaccess -->
-    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta charset="utf-8" />
 
-    <!-- Apple iOS Safari settings -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <!-- App Start Icon  -->
-    <link rel="apple-touch-startup-image" href="images/screen_320x460.png" />
-    <!-- For iOS devices set the icon to use if user bookmarks app on their homescreen -->
-    <link rel="apple-touch-icon" href="images/screen_57x57.png" />
-    <!--
-    <link rel="apple-touch-icon-precomposed" href="images/screen_57x57.png" />
-    -->
+  <!-- Always force latest IE rendering engine -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="include/base.css" title="plain">
+  <!-- Apple iOS - Hide Safari User Interface Components -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <!-- Apple iOS - Status Bar Appearance -->
+  <!--<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />-->
 
-    <!--
-    <script type='text/javascript'
-        src='http://getfirebug.com/releases/lite/1.2/firebug-lite-compressed.js'></script>
-    -->
-        <script src="include/util.js"></script>
+  <!-- BEGIN Favicons -->
+  <!-- END Favicons -->
+
+  <!-- JQuery -->
+  <script src="js/jquery.min.js?v=UNIQUE_VERSION"></script>
+  <script src="js/jquery-ui.custom.js?v=UNIQUE_VERSION"></script>
+  <script src="js/jquery.ui.touch-punch.min.js?v=UNIQUE_VERSION"></script>
+
+  <!-- Bootstrap JS -->
+  <script src="js/bootstrap.min.js?v=UNIQUE_VERSION"></script>
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="css/bootstrap.min.css?v=UNIQUE_VERSION">
+  <link rel="stylesheet" href="css/bootstrap.custom.css?v=UNIQUE_VERSION">
+  <link rel="stylesheet" href="css/font-awesome.min.css?v=UNIQUE_VERSION">
+
+  <!-- noVNC -->
+  <script src="js/novnc-core.min.js?v=UNIQUE_VERSION"></script>
+  <script src="js/novnc-ui.min.js?v=UNIQUE_VERSION"></script>
+  <script>
+    $(document).ready(function() { UI.start(); });
+  </script>
+
 </head>
 
-<body style="margin: 0px;">
-    <div id="noVNC_container">
-            <div id="noVNC_status_bar" class="noVNC_status_bar" style="margin-top: 0px;">
-                <table border=0 width="100%"><tr>
-                    <td><div id="noVNC_status" style="position: relative; height: auto;">
-                        Loading
-                    </div></td>
-                </tr></table>
-            </div>
-            <canvas id="noVNC_canvas" width="640px" height="20px">
-                Canvas not supported.
-            </canvas>
+<body>
+  <!-- Fixed, transparent area at the top used to show the navbar when hidden. -->
+  <!--<div id="topArea" style="top:0;position:fixed;height:2px;width:100%;background:none;"></div>-->
+
+  <!-- Hidden textbox to trigger virtual keyboard and catch it inputs. -->
+  <textarea style="width:1px;height:1px;background-color:#fff;color:#fff;border:0;position:absolute;left:-40px;z-index:-1;ime-mode: disabled;"
+            id="virtualKeyboardInput" autocapitalize="off"
+            autocorrect="off" autocomplete="off" spellcheck="false"
+            mozactionhint="Enter"></textarea>
+
+  <!-- Navigation bar -->
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container-fluid">
+      <!-- App name and status icon -->
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#myNavbar">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <img class="img-responsive pull-left" style="height:40px;margin-top:+6px;padding-right:10px;" src="/images/icons/master_icon.png" alt="$DESKTOP" />
+        <div class="navbar-brand">
+          <span id="appName">$DESKTOP</span>
+          <span>&nbsp;</span>
+          <i id="statusIcon" class="fa fa-spinner fa-spin fa-lg text-primary" data-toggle="tooltip" data-placement="bottom" title="Loading..."></i>
+          <span id="statusIconSR" class="sr-only">Loading...</span>
         </div>
+      </div>
+      <!-- Buttons -->
+      <div class="collapse navbar-collapse" id="myNavbar">
+        <ul class="nav navbar-nav navbar-right">
+          <!-- Hideable navbar -->
+          <li id="navbarHideableNavbarButton" class="hide">
+            <button id="hideableNavbarToggleButton" class="btn btn-default navbar-btn" title="Make the navigation bar hideable">
+              <i class="fa fa-chevron-up fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Hideable Navbar</span>
+            </button>
+          </li>
+          <!-- Auto-hide navbar -->
+          <li id="navbarDynamicNavbarButton" class="hide">
+            <button id="dynamicNavbarToggleButton" class="btn btn-default navbar-btn" title="Automatically hide the navigation bar">
+              <i class="fa fa-chevron-up fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Auto Hide Navbar</span>
+            </button>
+          </li>
+          <!-- Drag -->
+          <li id="navbarClippingViewportDragButton" class="hide">
+            <button id="clippingViewportDragToggleButton" class="btn btn-default navbar-btn" title="Drag the application's display">
+              <i class="fa fa-hand-rock-o fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Drag</span>
+            </button>
+          </li>
+          <!-- Fullscreen -->
+          <li id="navbarFullscreenButton" class="hide">
+            <button id="fullscreenToggleButton" class="btn btn-default navbar-btn" title="Toggle browser's fullscreen display">
+              <i class="fa fa-arrows-alt fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Fullscreen</span>
+            </button>
+          </li>
+          <!-- Auto scale -->
+          <li id="navbarAutoScalingButton" class="hide">
+            <button id="autoScalingToggleButton" class="btn btn-default navbar-btn" title="Toggle automatic downscaling of the application's display">
+              <i class="fa fa-expand fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Auto Scale</span>
+            </button>
+          </li>
+          <!-- Clipboard -->
+          <li id="navbarClipboardButton" class="hide">
+            <button id="clipboardModalButton" class="btn btn-default navbar-btn" data-toggle="modal" data-target="#clipboardModal" title="Open the application's clipboard">
+              <i class="fa fa-clipboard fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Clipboard</span>
+            </button>
+          </li>
+          <!-- Virtual keyboard -->
+          <li id="navbarVirtualKeyboardButton" class="hide">
+            <button id="virtualKeyboardToggleButton" class="btn btn-default navbar-btn" title="Toggle the virtual keyboard">
+              <i class="fa fa-keyboard-o fa-fw" aria-hidden="true"></i>
+              <span class="hidden-sm">&nbsp;Keyboard</span>
+            </button>
+          </li>
+          <!-- Example without a button:
+          <li>
+            <a href="#" data-toggle="modal" data-target="#clipboardModal">
+              <span class="glyphicon glyphicon-paperclip"></span>
+              <span class="hidden-sm"> Clipboard</span>
+            </a>
+          </li>
+          -->
+        </ul>
+      </div>
+    </div>
+  </nav>
 
-        <script>
-        /*jslint white: false */
-        /*global window, $, Util, RFB, */
-        "use strict";
+  <!-- Navigation bar visibility toggle button -->
+  <div id="navbarVisibilityToggleButton" class="hide" style="top:50px;position:fixed;margin-left:-26px;left:50%;cursor:pointer;">
+   <i id="navbarVisibilityToggleButtonIcon" class="fa fa-border fa-chevron-up" aria-hidden="true" style="padding-left:20px;padding-right:20px;background-color:white;cursor:pointer;"></i>
+  </div>
 
-        // Load supporting scripts
-        Util.load_scripts(["webutil.js", "base64.js", "websock.js", "des.js",
-                           "keysymdef.js", "keyboard.js", "input.js", "display.js",
-                           "inflator.js", "rfb.js", "keysym.js"]);
+  <!--
+    Canvas for the Remote Frame Buffer (RFB).
+    The top margin is needed to make the canvas appear below the navbar.  This
+    margin is removed when navbar is hideable.
+  -->
+  <canvas id="rfbScreen" class="center-block" style="margin-top:51px;">
+    Canvas not supported.
+  </canvas>
 
-        var rfb;
-        var resizeTimeout;
-        var tryFallbackPort = false;
+  <!-- Password Modal -->
+  <div class="modal fade" id="passwordModal" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Password required</h4>
+        </div>
+        <div class="modal-body">
+            <input type="password" class="form-control" id="vnc_password" name="password" placeholder="Password"/>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-default" id="SubmitPasswordButton">Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-        function UIresize() {
-            if (WebUtil.getConfigVar('resize', false)) {
-                var innerW = window.innerWidth;
-                var innerH = window.innerHeight;
-                var controlbarH = $D('noVNC_status_bar').offsetHeight;
-                var padding = 5;
-                if (innerW !== undefined && innerH !== undefined)
-                    rfb.requestDesktopSize(innerW, innerH - controlbarH - padding);
-            }
-        }
-        function FBUComplete(rfb, fbu) {
-            UIresize();
-            rfb.set_onFBUComplete(function() { });
-        }
-        function passwordRequired(rfb) {
-            var msg;
-            msg = '<form onsubmit="return setPassword();"';
-            msg += '  style="margin-bottom: 0px">';
-            msg += 'Password Required: ';
-            msg += '<input type=password size=10 id="password_input" class="noVNC_status">';
-            msg += '<\/form>';
-            $D('noVNC_status_bar').setAttribute("class", "noVNC_status_warn");
-            $D('noVNC_status').innerHTML = msg;
-        }
-        function setPassword() {
-            rfb.sendPassword($D('password_input').value);
-            return false;
-        }
-        function updateState(rfb, state, oldstate, msg) {
-            var s, sb, level;
-            s = $D('noVNC_status');
-            sb = $D('noVNC_status_bar');
-            switch (state) {
-                case 'failed':       level = "error";  break;
-                case 'fatal':        level = "error";  break;
-                case 'normal':       level = "normal"; break;
-                case 'disconnected': level = "normal"; break;
-                case 'loaded':       level = "normal"; break;
-                default:             level = "warn";   break;
-            }
+  <!-- Clipboard Modal -->
+  <div class="modal fade" id="clipboardModal" role="dialog">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Clipboard</h4>
+        </div>
+        <div class="modal-body">
+          <p>This is the content of the clipboard of the remote application.</p>
+          <textarea rows="5" class="form-control" id="clipboard_content"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-primary" id="SubmitClipboardButton">Submit</button>
+          <button class="btn btn-default" id="ClearClipboardButton">Clear</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            if (state === "normal") {
-            } else {
-                xvpInit(0);
-            }
-
-            if (typeof(msg) !== 'undefined') {
-                sb.setAttribute("class", "noVNC_status_" + level);
-                s.textContent = msg;
-            }
-
-            if (state === "connected") {
-                // We were able to connect.  No need to try the fallback port.
-                tryFallbackPort = false;
-            }
-            else if (tryFallbackPort === true && oldstate == "failed" && state == "disconnected") {
-                // Failed to connect.  Try the fallback port.
-                console.info("RFB connection failure.  Attempting to connect using fallback port %s (current: %s).", $PORT, rfb._rfb_port);
-                tryFallbackPort = false;
-                rfb.connect(rfb._rfb_host, $PORT, rfb._rfb_password, rfb._rfb_path);
-            }
-        }
-
-        window.onresize = function () {
-            // When the window has been resized, wait until the size remains
-            // the same for 0.5 seconds before sending the request for changing
-            // the resolution of the session
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(function(){
-                UIresize();
-            }, 500);
-        };
-
-        function xvpInit(ver) {
-            // Nothing to do.
-        }
-
-        window.onscriptsload = function () {
-            var host, port, password, path, token;
-
-            WebUtil.init_logging(WebUtil.getConfigVar('logging', 'warn'));
-            //document.title = unescape(WebUtil.getConfigVar('title', 'noVNC'));
-
-            // Get VNC server host.  By default, use the host of server that served this file.
-            host = WebUtil.getConfigVar('host', window.location.hostname);
-            // If there are at least two colons in there, it is likely an IPv6 address. Check for square brackets and add them if missing.
-            if(host.search(/^.*:.*:.*$/) != -1) {
-                if(host.charAt(0) != "[")
-                    host = "[" + host;
-                if(host.charAt(host.length-1) != "]")
-                    host = host + "]";
-            }
-
-            // Get VNC server port.
-            port = WebUtil.getConfigVar('port', '');
-            if (!port) {
-                // No VNC port specified.  Since we don't have the VNC port used
-                // on the host, use the HTTP port of the server that served this
-                // file + 100.  This comes from the x11vnc, where, by default:
-                //     HTTP_PORT = VNC_PORT - 100
-                // If the connection fails, then use the port x11vnc is
-                // listening on (i.e. the port inside the container). See the
-                // updateState() function.
-                port = Number(window.location.port) + 100;
-                tryFallbackPort = true;
-            }
-
-            // Get the VNC password.
-            password = WebUtil.getConfigVar('password', '');
-
-            // Get the path.
-            path = WebUtil.getConfigVar('path', 'websockify');
-
-            // If a token variable is passed in, set the parameter in a cookie.
-            // This is used by nova-novncproxy.
-            token = WebUtil.getConfigVar('token', null);
-            if (token) {
-
-                // if token is already present in the path we should use it
-                path = WebUtil.injectParamIfMissing(path, "token", token);
-
-                WebUtil.createCookie('token', token, 1)
-            }
-
-            if ((!host) || (!port)) {
-                updateState(null, 'fatal', null, 'Must specify host and port in URL');
-                return;
-            }
-
-            try {
-                rfb = new RFB({'target':       $D('noVNC_canvas'),
-                               'encrypt':      WebUtil.getConfigVar('encrypt',
-                                        (window.location.protocol === "https:")),
-                               'repeaterID':   WebUtil.getConfigVar('repeaterID', ''),
-                               'true_color':   WebUtil.getConfigVar('true_color', true),
-                               'local_cursor': WebUtil.getConfigVar('cursor', true),
-                               'shared':       WebUtil.getConfigVar('shared', true),
-                               'view_only':    WebUtil.getConfigVar('view_only', false),
-                               'onUpdateState':  updateState,
-                               'onXvpInit':    xvpInit,
-                               'onPasswordRequired':  passwordRequired,
-                               'onFBUComplete': FBUComplete});
-            } catch (exc) {
-                updateState(null, 'fatal', null, 'Unable to create RFB client -- ' + exc);
-                return; // don't continue trying to connect
-            }
-
-            rfb.connect(host, port, password, path);
-        };
-        </script>
-
-    </body>
+</body>
 </html>
