@@ -2,27 +2,25 @@
 #
 # Post push hook for Docker Automated Build.
 #
-# This hook simply adds the 'latest' tag to the image.
+# This hook adds a tag that includes the image version.
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-echo "Image built:
+echo "Environment variables:
     IMAGE_NAME=$IMAGE_NAME
     DOCKER_REPO=$DOCKER_REPO
     DOCKER_TAG=$DOCKER_TAG
+    SOURCE_BRANCH=$SOURCE_BRANCH
+    GIT_TAG=$GIT_TAG
+    IMAGE_VERSION=$IMAGE_VERSION
 "
 
-# Strip the version from the actual tag (e.g. alpine-3.5-v1.0.0 --> alpine-3.5).
-DOCKER_NEWTAG="$(echo $DOCKER_TAG | sed 's/-v[0-9.]\+$//')"
+DOCKER_NEWTAG="${DOCKER_TAG}-${GIT_TAG}"
 
-if [ "$DOCKER_TAG" != "$DOCKER_NEWTAG" ]; then
-    echo "Adding tag '$DOCKER_NEWTAG' to image..."
-    docker tag $IMAGE_NAME ${DOCKER_REPO}:$DOCKER_NEWTAG
-    echo "Pushing image..."
-    docker push ${DOCKER_REPO}:$DOCKER_NEWTAG
-else
-   echo "Image already have the '$DOCKER_NEWTAG' tag."
-fi
+echo "Adding tag '$DOCKER_NEWTAG' to image..."
+docker tag $IMAGE_NAME ${DOCKER_REPO}:$DOCKER_NEWTAG
+echo "Pushing image..."
+docker push ${DOCKER_REPO}:$DOCKER_NEWTAG
 
 echo "post_push hook terminated successfully."

@@ -9,27 +9,19 @@ language: generic
 services:
   - docker
 
-branches:
-  except:
-  - /^deploy-.*$/
-  - /^.+-v[0-9.]+$/
-
 env:
   global:
   - DOCKER_REPO=jlesage/baseimage-gui
+  - SOURCE_BRANCH=dev
   matrix:
-  - DOCKERFILE=Dockerfile.alpine
-    DOCKERTAG=alpine-3.5
-    BASEIMAGE=alpine:3.5
-  - DOCKERFILE=Dockerfile.alpine-glibc
-    DOCKERTAG=alpine-3.5-glibc
-    BASEIMAGE=alpine:3.5
-  - DOCKERFILE=Dockerfile.debian
-    DOCKERTAG=debian-8
-    BASEIMAGE=debian:jessie-slim
-  - DOCKERFILE=Dockerfile.debian
-    DOCKERTAG=ubuntu-16.04
-    BASEIMAGE=ubuntu:xenial
+  - DOCKER_TAG=alpine-3.5
+    IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
+  - DOCKER_TAG=alpine-3.5-glibc
+    IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
+  - DOCKER_TAG=debian-8
+    IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
+  - DOCKER_TAG=ubuntu-16.04
+    IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
 
 before_install:
   - sudo add-apt-repository ppa:duggan/bats --yes
@@ -37,14 +29,7 @@ before_install:
   - sudo apt-get install -y bats
 
 before_script:
-  - travis/before_script.sh
+  - hooks/pre_build
 
 script:
   - travis/script.sh
-
-deploy:
-  - provider: script
-    script: travis/deploy.sh
-    on:
-      tags: true
-      condition: "$TRAVIS_TAG =~ ^v.[0-9.]+$"
