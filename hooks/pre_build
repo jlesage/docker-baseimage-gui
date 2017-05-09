@@ -69,6 +69,6 @@ sed -i "s/\${BASEIMAGE}/${BASEIMAGE//\//\\/}/g" Dockerfile
 sed -i "s/org.label-schema.version=\"unknown\"/org.label-schema.version=\"$IMAGE_VERSION\"/" Dockerfile
 
 echo "Validating Dockerfile..."
-docker run -it --rm -v "$(pwd)/Dockerfile:/Dockerfile:ro" redcoolbeans/dockerlint
+docker run --rm -v "$(pwd)/Dockerfile:/Dockerfile:ro" redcoolbeans/dockerlint
 
 echo "pre_build hook terminated successfully."
