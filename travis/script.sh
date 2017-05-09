@@ -12,7 +12,7 @@ fi
 echo "Starting build of Docker image $DOCKER_REPO:$TRAVIS_JOB_ID..."
 docker build $DOCKER_BUILD_CACHE_OPTS \
              -t $DOCKER_REPO:$TRAVIS_JOB_ID .
-docker tag $DOCKER_REPO:$TRAVIS_JOB_ID $DOCKER_REPO:$DOCKERTAG
+docker tag $DOCKER_REPO:$TRAVIS_JOB_ID $DOCKER_REPO:$DOCKER_TAG
 
 echo "Starting tests of Docker image $DOCKER_REPO:$TRAVIS_JOB_ID..."
 bats travis/tests
