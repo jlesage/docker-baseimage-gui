@@ -13,7 +13,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # The git tag is stored in the SOURCE_BRANCH environment variable.
-export GIT_TAG="$SOURCE_BRANCH"
+GIT_TAG="$SOURCE_BRANCH"
 
 # Make sure the git tag has a format like:
 #     v1.0.0
@@ -22,15 +22,18 @@ export GIT_TAG="$SOURCE_BRANCH"
 #     v2.0.0-rc2
 if [[ "$GIT_TAG" =~ ^v[0-9\.]+(-(alpha|beta|rc)[0-9]*)?$ ]]; then
     # The image version is the git tag minus the leading 'v'.
-    export IMAGE_VERSION="${GIT_TAG:1}"
+    IMAGE_VERSION="${GIT_TAG:1}"
 elif  [[ "$GIT_TAG" = "dev" ]]; then
     # Special case for Travis/development builds.
-    export IMAGE_VERSION="$GIT_TAG"
+    IMAGE_VERSION="$GIT_TAG"
 else
     echo "Unsupported git tag: $GIT_TAG"
     exit 1
 fi
 
+# Export our custom variables.
+echo "GIT_TAG=\"$SOURCE_BRANCH\"" >> custom_hook_env
+echo "IMAGE_VERSION=\"$IMAGE_VERSION\"" >> custom_hook_env
 
 echo "Environment variables:
     IMAGE_NAME=$IMAGE_NAME
