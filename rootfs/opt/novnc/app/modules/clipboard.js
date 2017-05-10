@@ -88,7 +88,7 @@ var ClipboardModule = {
 
   handleModalClosed: function() {
     UI.rfbDisplayFocus();
-    $('#clipboard_content').val(UI.clipboardContent);
+    $('#clipboard_content').val(ClipboardModule.clipboardContent);
   },
 };
 
