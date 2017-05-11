@@ -28,7 +28,7 @@ var ClippingModule = {
   activate: function() {
     // Add event handlers.
     $(window).on('resize', this.updateDisplay);
-    $(document).on('UIModule:DynamicNavbar', this.handleUIModuleChange);
+    $(document).on('UIModule:HideableNavbar', this.handleUIModuleChange);
     // Add RFB callback.
     UI.rfbFBUCompleteCallbacks.add(this.updateDisplay);
     // Enable clipping.
@@ -41,7 +41,7 @@ var ClippingModule = {
   deactivate: function() {
     // Remove event handlers.
     $(window).off('resize', this.updateDisplay);
-    $(document).off('UIModule:DynamicNavbar', this.handleUIModuleChange);
+    $(document).off('UIModule:HideableNavbar', this.handleUIModuleChange);
     // Remove RFB callback.
     UI.rfbFBUCompleteCallbacks.remove(this.updateDisplay);
     // Disable clipping.

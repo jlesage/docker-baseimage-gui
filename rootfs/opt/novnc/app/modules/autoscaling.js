@@ -33,7 +33,7 @@ var AutoScalingModule = {
   activate: function() {
     // Add event handlers.
     $(window).on('resize', this.handleWindowResize);
-    $(document).on('UIModule:DynamicNavbar', this.handleNavbarChange);
+    $(document).on('UIModule:HideableNavbar', this.handleNavbarChange);
     // Add RFB callback.
     UI.rfbFBUCompleteCallbacks.add(this.handleFBUComplete);
     // Apply autoscaling.
@@ -47,7 +47,7 @@ var AutoScalingModule = {
   deactivate: function() {
     // Remove event handlers.
     $(window).off('resize', this.handleWindowResize);
-    $(document).off('UIModule:DynamicNavbar', this.handleNavbarChange);
+    $(document).off('UIModule:HideableNavbar', this.handleNavbarChange);
     // Remove RFB callback.
     UI.rfbFBUCompleteCallbacks.remove(this.handleFBUComplete);
     // Apply auto scaling.
