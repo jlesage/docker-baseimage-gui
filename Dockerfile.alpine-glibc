@@ -236,7 +236,7 @@ ENV HOME=/home/guiapp \
     GROUP_ID=1000 \
     APP_NAME=DockerApp \
     DISPLAY=:0 \
-    DISPLAY_WIDTH=1024 \
+    DISPLAY_WIDTH=1280 \
     DISPLAY_HEIGHT=768
 
 # Define mountable directories.
