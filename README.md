@@ -140,6 +140,9 @@ to the `docker run` command.
   Priority at which the X application should run.  A niceness value of −20 is
   the highest priority and 19 is the lowest priority.  By default, niceness is
   not set, meaning that the default niceness of 0 is used.
+  **NOTE**: A negative niceness (priority increase) usually requires additional
+  permissions.  In this case, the container should be run with the docker option
+  `--cap-add=SYS_NICE`.
 
 ## Config Directory
 Inside the container, the application's configuration should be stored in the
