@@ -11,7 +11,7 @@ get_init_script_exit_code() {
         fi
     done
 
-    echo "ERROR: No exit code found for init script '$script'."
+    echo "ERROR: No exit code found for init script '$script'." >&2
     return 1
 }
 
