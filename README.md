@@ -136,6 +136,10 @@ to the `docker run` command.
 - **GROUP_ID**
   ID of the group the X application run as.  Default is `1000`.  See
   [User/Group IDs](#usergroup-ids) to better understand when this should be set.
+- **APP_NICENESS**
+  Priority at which the X application should run.  A niceness value of −20 is
+  the highest priority and 19 is the lowest priority.  By default, niceness is
+  not set, meaning that the default niceness of 0 is used.
 
 ## Config Directory
 Inside the container, the application's configuration should be stored in the

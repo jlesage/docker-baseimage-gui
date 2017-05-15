@@ -11,7 +11,7 @@ fi
 
 echo "Starting "${APP_NAME:-X application}"..."
 if [ -e /startapp.sh ]; then 
-    2>&1 s6-setuidgid $USER_ID:$GROUP_ID /startapp.sh
+    2>&1 $APP_NICE_CMD s6-setuidgid $USER_ID:$GROUP_ID /startapp.sh
     S6_CMD_EXITED=$?
 else
     echo ""
