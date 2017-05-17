@@ -103,7 +103,8 @@ RUN \
         # Openbox window manager
         openbox \
         xsetroot \
-        font-bitstream-100dpi
+        # Font
+        ttf-dejavu
 
 # Install noVNC.
 RUN \
