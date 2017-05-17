@@ -67,13 +67,11 @@ terminal.
 In ``Dockerfile``:
 ```
 # Pull base image.
-FROM jlesage/docker-baseimage-gui:debian-8
+FROM jlesage/baseimage-gui:alpine-3.5
 
 # Install xterm.
-RUN apt-get update apt-get install -y --no-install-recommends \
-        xterm && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /var/tmp/* /tmp/*
+RUN apk --no-cache add xterm && \
+    rm -rf /tmp/*
 
 # Copy the start script.
 COPY startapp.sh /startapp.sh
@@ -84,7 +82,7 @@ ENV APP_NAME="Xterm"
 
 In `startapp.sh`:
 ```
-#!/bin/bash
+#!/bin/sh
 exec /usr/bin/xterm
 ```
 
