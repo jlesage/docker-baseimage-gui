@@ -140,7 +140,7 @@ RUN \
         openbox \
         xsetroot \
         # Font
-        ttf-dejavu
+        font-croscore
 
 # Install noVNC.
 RUN \
