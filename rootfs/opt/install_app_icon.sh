@@ -35,11 +35,11 @@ Options:
 }
 
 install_build_dependencies_alpine() {
-    apk --no-cache add --virtual build-dependencies curl nodejs git jq sed
+    apk --no-cache add --virtual build-dependencies curl nodejs jq sed
 }
 
 install_build_dependencies_debian() {
-    BUILD_PACKAGES="curl ca-certificates npm nodejs-legacy git jq"
+    BUILD_PACKAGES="curl ca-certificates jq nodejs"
     apt-get update
     apt-get install -y --no-install-recommends $BUILD_PACKAGES
 }
@@ -98,20 +98,20 @@ curl -sS -L -o "$ICONSDIR/master_icon.png" "$APP_ICON_URL"
 echo "$APP_ICON_DESC" > faviconDescription.json
 sed -i "s/ICON_VERSION/$(date | md5sum | cut -c1-10)/" faviconDescription.json
 
-echo "Downloading Real Favicon Generator..."
-git clone https://github.com/RealFaviconGenerator/cli-real-favicon.git
-
 echo "Installing Real Favicon Generator..."
+mkdir cli-real-favicon
 cd cli-real-favicon
-npm install
+npm install --production https://github.com/RealFaviconGenerator/cli-real-favicon/archive/master.tar.gz
 cd ..
 
 echo "Generating favicons..." && \
-./cli-real-favicon/real-favicon.js generate faviconDescription.json faviconData.json $ICONSDIR && \
+./cli-real-favicon/node_modules/cli-real-favicon/real-favicon.js generate faviconDescription.json faviconData.json $ICONSDIR && \
 
 echo "Adjusting HTML page..."
 jq -r '.favicon.html_code' faviconData.json > htmlCode
 sed -i -ne '/<!-- BEGIN Favicons -->/ {p; r htmlCode' -e ':a; n; /<!-- END Favicons -->/ {p; b}; ba}; p' /opt/novnc/index.vnc
+
+npm uninstall cli-real-favicon
 
 echo "Removing dependencies..."
 uninstall_build_dependencies
