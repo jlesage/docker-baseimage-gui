@@ -55,7 +55,6 @@ var PasswordModule = {
     if (typeof msg === 'undefined') {
       msg = "Password is required";
     }
-    UI.updateState(null, 'password', null, msg);
     $('#passwordModal').modal('show');
   },
 
