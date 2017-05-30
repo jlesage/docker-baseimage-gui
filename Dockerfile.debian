@@ -56,6 +56,36 @@ RUN \
            /var/tmp/* \
            /tmp/*
 
+# Make sure VERSION_CODENAME is set in /etc/os-release.
+RUN \
+    if ! grep -q "^VERSION_CODENAME=" /etc/os-release; then \
+        apt-get update && apt-get install -y --no-install-recommends lsb-release && \
+        echo "VERSION_CODENAME=$(lsb_release -c -s)" >> /etc/os-release && \
+        apt-get clean && \
+        apt-get purge -y lsb-release && \
+        apt-get --purge autoremove -y && \
+        rm -rf /var/lib/apt/lists/* \
+             /var/tmp/* \
+             /tmp/*; \
+    fi
+
+# Install the nodejs PPA.
+RUN \
+    BUILD_PACKAGES="curl ca-certificates" && \
+    apt-get update && apt-get install -y --no-install-recommends \
+        $BUILD_PACKAGES && \
+    . /etc/os-release && \
+    curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key --keyring /etc/apt/trusted.gpg.d/nodesource.gpg add - && \
+    echo "deb http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb-src http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" >> /etc/apt/sources.list.d/nodesource.list && \
+    # Cleanup
+    apt-get clean && \
+    apt-get purge -y $BUILD_PACKAGES && \
+    apt-get --purge autoremove -y && \
+    rm -rf /var/lib/apt/lists/* \
+           /var/tmp/* \
+           /tmp/*
+
 # Compile x11vnc.
 RUN \
     BUILD_PACKAGES=" \
@@ -134,7 +164,7 @@ RUN \
 
 # Install noVNC.
 RUN \
-    BUILD_PACKAGES="curl ca-certificates unzip npm nodejs-legacy" && \
+    BUILD_PACKAGES="curl ca-certificates unzip nodejs" && \
     apt-get update && apt-get install -y --no-install-recommends \
         $BUILD_PACKAGES && \
     mkdir noVNC && \
@@ -162,7 +192,7 @@ RUN \
     ./node_modules/uglify-js/bin/uglifyjs \
         --compress --mangle --source-map \
         --output /opt/novnc/js/novnc-core.min.js -- $NOVNC_CORE && \
-    npm uninstall uglify-js && \
+    npm uninstall uglify-js source-map && \
     sed -i "s/noVNC-${NOVNC_VERSION}//g" /opt/novnc/js/novnc-core.min.js.map && \
     echo -e "\n//# sourceMappingURL=/js/novnc-core.min.js.map" >> /opt/novnc/js/novnc-core.min.js && \
     # Install Bootstrap
@@ -194,7 +224,7 @@ RUN sed -i "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.v
 
 # Minify noVNC UI JS files
 RUN \
-    BUILD_PACKAGES="npm nodejs-legacy" && \
+    BUILD_PACKAGES="nodejs" && \
     apt-get update && apt-get install -y --no-install-recommends \
         $BUILD_PACKAGES && \
     NOVNC_UI="\
