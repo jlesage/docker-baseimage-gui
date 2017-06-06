@@ -35,7 +35,11 @@ Options:
 }
 
 install_build_dependencies_alpine() {
-    apk --no-cache add --virtual build-dependencies curl nodejs jq sed
+    # In alpine 3.5, npm is in nodejs package, while in alpine 3.6 it's in
+    # nodejs-npm.
+    NODEJS_NPM=$(apk -q --no-cache search nodejs-npm)
+    NODEJS_NPM=${NODEJS_NPM:-nodejs}
+    apk --no-cache add --virtual build-dependencies curl $NODEJS_NPM jq sed
 }
 
 install_build_dependencies_debian() {

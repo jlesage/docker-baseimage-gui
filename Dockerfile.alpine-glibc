@@ -152,7 +152,8 @@ RUN \
 
 # Install noVNC.
 RUN \
-    apk --no-cache add --virtual build-dependencies curl nodejs && \
+    NODEJS_NPM=$(apk -q --no-cache search nodejs-npm) && \
+    apk --no-cache add --virtual build-dependencies curl ${NODEJS_NPM:-nodejs} && \
     mkdir noVNC && \
     curl -sS -L ${NOVNC_URL} | tar -xz --strip 1 -C noVNC && \
     mkdir -p /opt/novnc/include && \
@@ -178,7 +179,7 @@ RUN \
     ./node_modules/uglify-js/bin/uglifyjs \
         --compress --mangle --source-map \
         --output /opt/novnc/js/novnc-core.min.js -- $NOVNC_CORE && \
-    npm uninstall uglify-js && \
+    npm uninstall uglify-js source-map && \
     sed -i "s/noVNC-${NOVNC_VERSION}//g" /opt/novnc/js/novnc-core.min.js.map && \
     echo -e "\n//# sourceMappingURL=/js/novnc-core.min.js.map" >> /opt/novnc/js/novnc-core.min.js && \
     # Install Bootstrap
@@ -206,7 +207,8 @@ RUN sed -i "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.v
 
 # Minify noVNC UI JS files
 RUN \
-    apk --no-cache add --virtual build-dependencies nodejs && \
+    NODEJS_NPM=$(apk -q --no-cache search nodejs-npm) && \
+    apk --no-cache add --virtual build-dependencies ${NODEJS_NPM:-nodejs} && \
     NOVNC_UI="\
         /opt/novnc/app/modulemgr.js \
         /opt/novnc/app/ui.js \
