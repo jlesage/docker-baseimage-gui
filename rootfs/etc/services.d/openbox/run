@@ -9,7 +9,7 @@ if [ -z "$UPTIME" ] || [ "$UPTIME" -lt 1 ] ; then
     exit 1
 fi
 
-echo Starting openbox service...
+echo "[service.d] openbox: starting..."
 exec 2>&1 s6-setuidgid $USER_ID:$GROUP_ID /usr/bin/openbox-session
 
 # vim: set ft=sh :
