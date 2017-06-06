@@ -1,0 +1,16 @@
+#!/usr/bin/with-contenv sh
+
+set -u # Treat unset variables as an error.
+
+APP_RC="$1"
+
+# App terminated: Bring container down if needed.
+if [ "${KEEP_GUIAPP_RUNNING:-0}" -eq "0" ]; then
+    # Use the forced exit code if needed.
+    S6_CMD_EXITED=${FORCE_GUIAPP_EXIT_CODE:-$APP_RC}
+
+    echo $S6_CMD_EXITED > /var/run/s6/env-stage3/S6_CMD_EXITED
+    s6-svscanctl -t /var/run/s6/services
+fi
+
+# vim: set ft=sh :

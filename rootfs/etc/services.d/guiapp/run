@@ -11,23 +11,13 @@ done
 
 echo "[service.d] guiapp: starting "${APP_NAME:-X application}"..."
 if [ -e /startapp.sh ]; then 
-    2>&1 $APP_NICE_CMD s6-setuidgid $USER_ID:$GROUP_ID /startapp.sh
-    S6_CMD_EXITED=$?
+    exec 2>&1 $APP_NICE_CMD s6-setuidgid $USER_ID:$GROUP_ID /startapp.sh
 else
     echo ""
     echo "/!\\ No application to start: /startapp.sh is missing. /!\\"
     echo ""
     # Make sure the container exits with an error code.
-    S6_CMD_EXITED=5
-fi
-
-# App terminated: Bring container down if needed.
-if [ "${KEEP_GUIAPP_RUNNING-0}" -eq "0" ]; then
-    # Use the forced exit code if needed.
-    S6_CMD_EXITED=${FORCE_GUIAPP_EXIT_CODE-$S6_CMD_EXITED}
-
-    echo $S6_CMD_EXITED > /var/run/s6/env-stage3/S6_CMD_EXITED
-    s6-svscanctl -t /var/run/s6/services
+    exit 5
 fi
 
 # vim: set ft=sh :
