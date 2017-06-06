@@ -2,15 +2,21 @@
 
 set -u # Treat unset variables as an error.
 
+# Nothing to do if the container is shutting down.
+[ "${CONTAINER_SHUTTING_DOWN:-0}" -eq 0 ] || exit
+
 APP_RC="$1"
 
 # App terminated: Bring container down if needed.
 if [ "${KEEP_GUIAPP_RUNNING:-0}" -eq "0" ]; then
+    # Make sure we are not restarted.
+    s6-svc -d /var/run/s6/services/guiapp
+
     # Use the forced exit code if needed.
     S6_CMD_EXITED=${FORCE_GUIAPP_EXIT_CODE:-$APP_RC}
 
     echo $S6_CMD_EXITED > /var/run/s6/env-stage3/S6_CMD_EXITED
-    s6-svscanctl -t /var/run/s6/services
+    kill 1
 fi
 
 # vim: set ft=sh :

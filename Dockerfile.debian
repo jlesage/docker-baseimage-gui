@@ -48,6 +48,14 @@ RUN \
     else \
         tar xzf s6-overlay.tar.gz -C /; \
     fi && \
+    # Add the '-s' option to s6-svscan to use our signal handlers.
+    sed -i.bak 's|^s6-svscan -t0 /var/run/s6/services$|s6-svscan -s -t0 /var/run/s6/services|' /etc/s6/init-catchall/init-stage1 && \
+        rm /etc/s6/init-catchall/init-stage1.bak && \
+    sed -i.bak 's|^s6-svscan -t0 /var/run/s6/services$|s6-svscan -s -t0 /var/run/s6/services|' /etc/s6/init-no-catchall/init-stage1 && \
+        rm /etc/s6/init-no-catchall/init-stage1.bak && \
+    # Add support for pre-finish scripts.
+    sed -i.bak 's|forx i { "fix-attrs.d" "cont-init.d" "cont-finish.d" "services.d" }|forx i { "fix-attrs.d" "cont-init.d" "cont-finish.d" "cont-prefinish.d" "services.d" }|' /etc/s6/init/init-stage2 && \
+        rm /etc/s6/init/init-stage2.bak && \
     # Cleanup
     apt-get clean && \
     apt-get purge -y $BUILD_PACKAGES && \
