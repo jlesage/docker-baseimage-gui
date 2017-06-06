@@ -45,6 +45,14 @@ echo "Environment variables:
 "
 
 case "$DOCKER_TAG" in
+    alpine-3.6)
+        DOCKERFILE=Dockerfile.alpine
+        BASEIMAGE=alpine:3.6
+        ;;
+    alpine-3.6-glibc)
+        DOCKERFILE=Dockerfile.alpine-glibc
+        BASEIMAGE=alpine:3.6
+        ;;
     alpine-3.5)
         DOCKERFILE=Dockerfile.alpine
         BASEIMAGE=alpine:3.5
