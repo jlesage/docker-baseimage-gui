@@ -3,11 +3,11 @@
 set -u # Treat unset variables as an error.
 
 # Make sure xvfb is running.
-s6-svok /var/run/s6/services/xvfb || exit 1
-UPTIME=$( s6-svstat /var/run/s6/services/xvfb | grep "^up " | cut -d' ' -f4 )
-if [ -z "$UPTIME" ] || [ "$UPTIME" -lt 1 ] ; then
-    exit 1
-fi
+while ! s6-svrunning /var/run/s6/services/xvfb 1
+do
+    echo "[service.d] x11vnc: waiting for xvfb to be ready..."
+    sleep 2
+done
 
 # Handle the VNC password.
 if [ -f /root/.vncpass ] && [ -n "$( cat /root/.vncpass )" ]; then
