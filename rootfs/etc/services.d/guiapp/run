@@ -5,11 +5,11 @@ set -u # Treat unset variables as an error.
 # Make sure openbox is running.
 while ! s6-svrunning /var/run/s6/services/openbox 1
 do
-    echo "[service.d] guiapp: waiting for openbox to be ready..."
+    echo "[services.d] guiapp: waiting for openbox to be ready..."
     sleep 2
 done
 
-echo "[service.d] guiapp: starting "${APP_NAME:-X application}"..."
+echo "[services.d] guiapp: starting "${APP_NAME:-X application}"..."
 if [ -e /startapp.sh ]; then 
     exec 2>&1 $APP_NICE_CMD s6-setuidgid $USER_ID:$GROUP_ID /startapp.sh
 else

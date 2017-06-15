@@ -5,7 +5,7 @@ set -u # Treat unset variables as an error.
 # Make sure xvfb is running.
 while ! s6-svrunning /var/run/s6/services/xvfb 1
 do
-    echo "[service.d] x11vnc: waiting for xvfb to be ready..."
+    echo "[services.d] x11vnc: waiting for xvfb to be ready..."
     sleep 2
 done
 
@@ -23,7 +23,7 @@ else
     IPV6="-rfbportv6 -1 -no6 -noipv6 -httpportv6 -1"
 fi
 
-echo "[service.d] x11vnc: starting..."
+echo "[services.d] x11vnc: starting..."
 exec 2>&1 /usr/bin/x11vnc  \
                     -display $DISPLAY \
                     -rfbport 5900 \
