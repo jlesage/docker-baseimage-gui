@@ -76,7 +76,7 @@
           <span class="icon-bar"></span>
           <span class="icon-bar"></span>
         </button>
-        <img class="img-responsive pull-left" style="height:40px;margin-top:+6px;padding-right:10px;" src="/images/icons/master_icon.png" alt="$DESKTOP" />
+        <img class="img-responsive pull-left" style="height:40px;margin-top:+6px;padding-right:10px;" src="/images/icons/master_icon.png?v=UNIQUE_VERSION" alt="$DESKTOP" />
         <div class="navbar-brand">
           <span id="appName">$DESKTOP</span>
           <span>&nbsp;</span>
