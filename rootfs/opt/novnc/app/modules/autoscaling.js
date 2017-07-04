@@ -23,7 +23,7 @@ var AutoScalingModule = {
   load: function() {
     // Nothing to do.
     // Set initial state according to saved value.
-    return UI.getSetting('autoscaling', false);
+    return UI.getSetting('autoscaling', true);
   },
 
   unload: function() {
