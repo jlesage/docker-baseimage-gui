@@ -11,6 +11,9 @@ done
 
 echo "[services.d] guiapp: starting "${APP_NAME:-X application}"..."
 if [ -e /startapp.sh ]; then 
+    if [ "${UMASK:-UNSET}" != "UNSET" ]; then
+        umask "$UMASK"
+    fi
     if [ "${SUP_GROUP_IDS:-UNSET}" != "UNSET" ]; then
         exec 2>&1 $APP_NICE_CMD s6-applyuidgid -u $USER_ID -g $GROUP_ID -G $SUP_GROUP_IDS /startapp.sh
     else

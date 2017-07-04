@@ -137,6 +137,12 @@ to the `docker run` command.
 - **GROUP_ID**
   ID of the group the X application run as.  Default is `1000`.  See
   [User/Group IDs](#usergroup-ids) to better understand when this should be set.
+- ** UMASK **
+  Mask that controls how file permissions are set for newly created files. The
+  value of the mask is in octal notation.  By default, this variable is not set
+  and the default umask of `022` is used, meaning that newly created files are
+  readable by everyone, but only writable by the owner.
+  See the following online umask calculator: http://wintelguy.com/umask-calc.pl
 - **SUP_GROUP_IDS**
   Comma-separated list of supplementary group IDs of the X application.  By
   default, this variable is  not set.
