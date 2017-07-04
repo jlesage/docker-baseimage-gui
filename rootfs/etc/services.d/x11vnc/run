@@ -33,6 +33,7 @@ exec 2>&1 /usr/bin/x11vnc  \
                     -cursor arrow \
                     -shared \
                     -httpdir /opt/novnc/ \
-                    $VNC_SECURITY
+                    $VNC_SECURITY \
+                    ${X11VNC_EXTRA_OPTS:- }
 
 # vim: set ft=sh :

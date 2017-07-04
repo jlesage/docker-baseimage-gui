@@ -147,6 +147,12 @@ to the `docker run` command.
   **NOTE**: A negative niceness (priority increase) usually requires additional
   permissions.  In this case, the container should be run with the docker option
   `--cap-add=SYS_NICE`.
+- **X11VNC_EXTRA_OPTS**
+  Extra options to pass to the x11vnc server running in the Docker container.
+
+  **WARNING**: For advanced users. Do not use unless you know what you are
+  doing.
+
 
 ## Config Directory
 Inside the container, the application's configuration should be stored in the
