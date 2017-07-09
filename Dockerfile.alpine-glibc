@@ -240,12 +240,13 @@ RUN \
     /opt/install_app_icon.sh "$APP_ICON_URL"
 
 # Set environment variables.
-ENV HOME=/home/guiapp \
-    LANG=${ALPINE_GLIBC_LOCALE} \
+ENV LANG=${ALPINE_GLIBC_LOCALE} \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=3 \
     USER_ID=1000 \
     GROUP_ID=1000 \
     APP_NAME=DockerApp \
+    APP_USER=guiapp \
+    HOME=/home/${APP_USER}/ \
     DISPLAY=:0 \
     DISPLAY_WIDTH=1280 \
     DISPLAY_HEIGHT=768
