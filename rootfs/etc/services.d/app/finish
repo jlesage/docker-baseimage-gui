@@ -10,7 +10,7 @@ APP_RC="$1"
 # App terminated: Bring container down if needed.
 if [ "${KEEP_GUIAPP_RUNNING:-0}" -eq "0" ]; then
     # Make sure we are not restarted.
-    s6-svc -d /var/run/s6/services/guiapp
+    s6-svc -d /var/run/s6/services/app
 
     # Use the forced exit code if needed.
     S6_CMD_EXITED=${FORCE_GUIAPP_EXIT_CODE:-$APP_RC}
