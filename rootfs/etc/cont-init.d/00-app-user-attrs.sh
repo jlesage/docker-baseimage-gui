@@ -7,6 +7,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
+mkdir -p /home/$APP_USER
 chown -R $USER_ID:$GROUP_ID /home/$APP_USER
 chown -R $USER_ID:$GROUP_ID /config
 
