@@ -108,6 +108,7 @@ RUN \
         libxcomposite \
         # X virtual framebuffer display server
         xvfb \
+        xdpyinfo \
         # Openbox window manager
         openbox \
         xsetroot \

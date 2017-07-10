@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv sh
+
+#
+# Check whether or not xvfb is ready.
+#
+
+set -u # Treat unset variables as an error.
+
+xdpyinfo -display "$DISPLAY" &> /dev/null
+
+# vim: set ft=sh :

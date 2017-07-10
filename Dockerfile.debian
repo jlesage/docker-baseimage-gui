@@ -159,6 +159,7 @@ RUN \
         libpng12-0 \
         # X virtual framebuffer display server
         xvfb \
+        x11-utils \
         # Openbox window manager
         openbox \ 
         # For ifconfig

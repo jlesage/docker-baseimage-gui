@@ -2,12 +2,8 @@
 
 set -u # Treat unset variables as an error.
 
-# Make sure openbox is running.
-while ! s6-svrunning /var/run/s6/services/openbox 1
-do
-    echo "[services.d] app: waiting for openbox to be ready..."
-    sleep 2
-done
+# Wait for dependent services to be up and running.
+s6-waitdeps openbox
 
 echo "[services.d] app: starting "${APP_NAME:-Docker application}"..."
 if [ -e /startapp.sh ]; then 
