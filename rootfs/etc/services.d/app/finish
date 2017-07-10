@@ -13,7 +13,7 @@ if [ "${KEEP_GUIAPP_RUNNING:-0}" -eq "0" ]; then
     s6-svc -d /var/run/s6/services/app
 
     # Use the forced exit code if needed.
-    S6_CMD_EXITED=${FORCE_GUIAPP_EXIT_CODE:-$APP_RC}
+    S6_CMD_EXITED=${FORCE_APP_EXIT_CODE:-$APP_RC}
 
     echo $S6_CMD_EXITED > /var/run/s6/env-stage3/S6_CMD_EXITED
     kill 1
