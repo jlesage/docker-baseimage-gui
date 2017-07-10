@@ -117,7 +117,7 @@ to the `docker run` command.
   Width (in pixels) of the display/application's window.  Default is `1280`.
 - **DISPLAY_HEIGHT**
   Height (in pixels) of the display/application's window.  Default is `720`.
-- **KEEP_GUIAPP_RUNNING**
+- **KEEP_APP_RUNNING**
   When set to `0`, the container terminates when the application exits. When set
   to `1`, the X application is automatically restarted when it terminates.
   Default is `0`.
