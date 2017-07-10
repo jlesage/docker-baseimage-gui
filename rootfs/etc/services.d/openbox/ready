@@ -6,7 +6,7 @@
 
 set -u # Treat unset variables as an error.
 
-PSOUT="$(ps -o pid,etime,args | grep "/usr/bin/openbox" | grep -vw grep)"
+PSOUT="$(ps -A -o pid,etime,args | grep "/usr/bin/openbox" | grep -vw grep)"
 
 # Not ready if not running.
 [ "${PSOUT:-UNSET}" != "UNSET" ] || exit 1
