@@ -2,6 +2,9 @@
 
 set -u # Treat unset variables as an error.
 
+# Wait for dependent services to be up and running.
+s6-waitdeps
+
 echo "[services.d] xvfb: starting..."
 exec 2>&1 /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24
 
