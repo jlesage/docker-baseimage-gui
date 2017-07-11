@@ -11,7 +11,6 @@ FROM ${BASEIMAGE}
 ARG LIBVNCSERVER_VERSION=ac8b756
 ARG X11VNC_VERSION=29597a9
 ARG NOVNC_VERSION=fa559b3
-ARG S6_OVERLAY_VERSION=1.19.1.1
 ARG BOOTSTRAP_VERSION=3.3.7
 ARG FONTAWESOME_VERSION=4.7.0
 ARG JQUERY_VERSION=3.2.1
@@ -21,7 +20,6 @@ ARG JQUERY_UI_TOUCH_PUNCH_VERSION=4bc0091
 ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}.tar.gz
 ARG X11VNC_URL=https://github.com/jlesage/x11vnc/archive/${X11VNC_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/${NOVNC_VERSION}.tar.gz
-ARG S6_OVERLAY_URL=https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-amd64.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=http://fontawesome.io/assets/font-awesome-${FONTAWESOME_VERSION}.zip
 ARG JQUERY_URL=https://code.jquery.com/jquery-${JQUERY_VERSION}.min.js
@@ -29,29 +27,6 @@ ARG JQUERY_UI_TOUCH_PUNCH_URL=https://raw.github.com/furf/jquery-ui-touch-punch/
 
 # Define working directory.
 WORKDIR /tmp
-
-# Install s6 overlay.
-RUN \
-    apk --no-cache add --virtual build-dependencies curl && \
-    curl -sS -L ${S6_OVERLAY_URL} | tar -xz -C / && \
-    # Add the '-s' option to s6-svscan to use our signal handlers.
-    sed -i.bak 's|^s6-svscan -t0 /var/run/s6/services$|s6-svscan -s -t0 /var/run/s6/services|' /etc/s6/init-catchall/init-stage1 && \
-        rm /etc/s6/init-catchall/init-stage1.bak && \
-    sed -i.bak 's|^s6-svscan -t0 /var/run/s6/services$|s6-svscan -s -t0 /var/run/s6/services|' /etc/s6/init-no-catchall/init-stage1 && \
-        rm /etc/s6/init-no-catchall/init-stage1.bak && \
-    # Add support for pre-finish scripts.
-    sed -i.bak 's|forx i { "fix-attrs.d" "cont-init.d" "cont-finish.d" "services.d" }|forx i { "fix-attrs.d" "cont-init.d" "cont-finish.d" "cont-prefinish.d" "services.d" }|' /etc/s6/init/init-stage2 && \
-        rm /etc/s6/init/init-stage2.bak && \
-    # Cleanup
-    apk --no-cache del build-dependencies
-
-# Install system packages.
-RUN \
-    apk --no-cache add \
-        # For timezone support
-        tzdata \
-        # For 'groupmod' command
-        shadow
 
 # Compile x11vnc.
 RUN \
@@ -205,27 +180,14 @@ RUN \
     /opt/install_app_icon.sh "$APP_ICON_URL"
 
 # Set environment variables.
-ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=3 \
-    USER_ID=1000 \
-    GROUP_ID=1000 \
-    APP_NAME=DockerApp \
-    APP_USER=guiapp \
-    HOME=/home/${APP_USER}/ \
-    DISPLAY=:0 \
+ENV DISPLAY=:0 \
     DISPLAY_WIDTH=1280 \
     DISPLAY_HEIGHT=768
-
-# Define mountable directories.
-VOLUME ["/config"]
 
 # Expose ports.
 #   - 5800: VNC web interface
 #   - 9500: VNC
 EXPOSE 5800 9500
-
-# Define default command.
-# Use S6 overlay init system.
-CMD ["/init"]
 
 # Metadata.
 LABEL \

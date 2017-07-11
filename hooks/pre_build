@@ -45,34 +45,17 @@ echo "Environment variables:
 "
 
 case "$DOCKER_TAG" in
-    alpine-3.6)
+    alpine-3.6|alpine-3.6-glibc|alpine-3.5|alpine-3.5-glibc)
         DOCKERFILE=Dockerfile.alpine
-        BASEIMAGE=alpine:3.6
         ;;
-    alpine-3.6-glibc)
-        DOCKERFILE=Dockerfile.alpine-glibc
-        BASEIMAGE=alpine:3.6
-        ;;
-    alpine-3.5)
-        DOCKERFILE=Dockerfile.alpine
-        BASEIMAGE=alpine:3.5
-        ;;
-    alpine-3.5-glibc)
-        DOCKERFILE=Dockerfile.alpine-glibc
-        BASEIMAGE=alpine:3.5
-        ;;
-    debian-8)
+    debian-8|ubuntu-16.04)
         DOCKERFILE=Dockerfile.debian
-        BASEIMAGE=debian:jessie-slim
-        ;;
-    ubuntu-16.04)
-        DOCKERFILE=Dockerfile.debian
-        BASEIMAGE=ubuntu:xenial
         ;;
     *)
         echo "ERROR: Unsupported DOCKER_TAG"
         exit 1
 esac
+BASEIMAGE=jlesage/baseimage:$DOCKER_TAG
 
 echo "Generating Dockerfile from template $DOCKERFILE..."
 cp -v "$DOCKERFILE" Dockerfile
