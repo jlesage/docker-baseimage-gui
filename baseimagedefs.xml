@@ -111,6 +111,17 @@ RUN \
     <!-- Changelog. -->
     <history>
       <release>
+        <version>1.6.0</version>
+        <date>2017-07-11</date>
+        <change>This baseimage has been split to support applications that doesn't need a X GUI:</change>
+        <change level="2">All non-GUI related stuff are in jlesage/baseimage baseimage.</change>
+        <change level="2">All GUI related stuff are kept in this baseimage (jlesage/baseimage-gui).</change>
+        <change level="2">This baseimage now depends on jlesage/baseimage.</change>
+        <change></change>
+        <change level="2">The way a service is waiting for another one has been fixed.</change>
+        <change level="2">The home folder changed from /home/guiapp to /home/app.</change>
+      </release>
+      <release>
         <version>1.5.0</version>
         <date>2017-07-04</date>
         <change>Added the UMASK environment variable to control how file permissions are set for newly created files.</change>
