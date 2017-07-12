@@ -78,7 +78,6 @@ uninstall_build_dependencies() {
 
 cleanup() {
     rm -rf /tmp/*
-    rm -rf $HOME/.npm
 }
 
 APP_ICON_URL="${1:-UNSET}"
@@ -105,7 +104,7 @@ sed -i "s/ICON_VERSION/$(date | md5sum | cut -c1-10)/" faviconDescription.json
 echo "Installing Real Favicon Generator..."
 mkdir cli-real-favicon
 cd cli-real-favicon
-npm install --production https://github.com/RealFaviconGenerator/cli-real-favicon/archive/master.tar.gz
+env HOME=/tmp npm install --cache /tmp/.npm --production https://github.com/RealFaviconGenerator/cli-real-favicon/archive/master.tar.gz
 cd ..
 
 echo "Generating favicons..." && \
@@ -115,7 +114,7 @@ echo "Adjusting HTML page..."
 jq -r '.favicon.html_code' faviconData.json > htmlCode
 sed -i -ne '/<!-- BEGIN Favicons -->/ {p; r htmlCode' -e ':a; n; /<!-- END Favicons -->/ {p; b}; ba}; p' /opt/novnc/index.vnc
 
-npm uninstall cli-real-favicon
+env HOME=/tmp npm uninstall --cache /tmp/.npm cli-real-favicon
 
 echo "Removing dependencies..."
 uninstall_build_dependencies
