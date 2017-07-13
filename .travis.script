@@ -14,4 +14,4 @@ docker build $DOCKER_BUILD_CACHE_OPTS \
              -t $DOCKER_IMAGE .
 
 echo "Starting tests of Docker image $DOCKER_IMAGE..."
-bats travis/tests
+bats tests

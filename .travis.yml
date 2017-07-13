@@ -36,4 +36,4 @@ before_script:
   - hooks/pre_build
 
 script:
-  - travis/script.sh
+  - bash -e .travis.script
