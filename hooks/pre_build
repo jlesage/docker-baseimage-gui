@@ -36,7 +36,7 @@ echo "GIT_TAG=\"$SOURCE_BRANCH\"" >> custom_hook_env
 echo "IMAGE_VERSION=\"$IMAGE_VERSION\"" >> custom_hook_env
 
 echo "Environment variables:
-    DOCKER_IMAGE=$DOCKER_IMAGE
+    IMAGE_NAME=$IMAGE_NAME
     DOCKER_REPO=$DOCKER_REPO
     DOCKER_TAG=$DOCKER_TAG
     SOURCE_BRANCH=$SOURCE_BRANCH

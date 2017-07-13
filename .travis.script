@@ -9,9 +9,9 @@ else
     DOCKER_BUILD_CACHE_OPTS="--no-cache --pull"
 fi
 
-echo "Starting build of Docker image $DOCKER_IMAGE..."
+echo "Starting build of Docker image $IMAGE_NAME..."
 docker build $DOCKER_BUILD_CACHE_OPTS \
-             -t $DOCKER_IMAGE .
+             -t $IMAGE_NAME .
 
-echo "Starting tests of Docker image $DOCKER_IMAGE..."
-bats tests
+echo "Starting tests of Docker image $IMAGE_NAME..."
+env DOCKER_IMAGE="$IMAGE_NAME" bats tests
