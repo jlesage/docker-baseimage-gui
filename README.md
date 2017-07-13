@@ -30,8 +30,9 @@ because:
  2. Third party applications may not support `Alpine`.
  3. The `Alpine` distribution uses the [musl] C standard library instead of
  GNU C library ([glibc]).
-  * NOTE: Using the `Alpine` image with glibc integrated (`alpine-3.5-glibc`
-    tag) may ease integration of applications.
+
+Note that using the `Alpine` image with glibc integrated (`alpine-3.5-glibc`
+tag) may ease integration of applications.
 
 The next choice is to use the `Debian` image.  It provides a great compatibility
 and its size is smaller than the `Ubuntu` one.  Finally, if for any reason you
@@ -54,6 +55,25 @@ Here are the main components of the baseimage:
 [xvfb]: http://www.x.org/releases/X11R7.6/doc/man/man1/Xvfb.1.xhtml
 [openbox]: http://openbox.org
 [noVNC]: https://github.com/novnc/noVNC
+
+### Versioning
+
+Images are versioned.  Version number is in the form `MAJOR.MINOR.PATCH`, where
+an increment of the:
+  - MAJOR version indicates that a backwards-incompatible change has been done.
+  - MINOR version indicates that functionality has been added in a backwards-compatible manner.
+  - PATCH version indicates that a bug fix has been done in a backwards-compatible manner.
+
+### Tags
+
+For each distribution-specific image, multiple tags are available:
+
+| Tag | Description |
+|-----|-------------|
+| distro-vX.Y.Z | Exact version of the image. |
+| distro-vX.Y   | Latest version of a specific minor version of the image. |
+| distro-vX     | Latest version of a specific major version of the image. |
+| distro        | Latest version of the image. |
 
 ## Getting started
 The `Dockerfile` for your application can be very simple, as only three things
@@ -121,6 +141,7 @@ to the `docker run` command.
 |`TZ`| [TimeZone] of the container.  Timezone can also be set by mapping `/etc/localtime` between the host and the container. | `Etc/UTC` |
 |`KEEP_APP_RUNNING`| When set to `1`, the application will be automatically restarted if it crashes or if user quits it. | `0` |
 |`APP_NICENESS`| Priority at which the application should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority.  By default, niceness is not set, meaning that the default niceness of 0 is used.  **NOTE**: A negative niceness (priority increase) requires additional permissions.  In this case, the container should be run with the docker option `--cap-add=SYS_NICE`. | (unset) |
+|`TAKE_CONFIG_OWNERSHIP`| When set to `1`, owner and group of `/config` (including all its files and subfolders) are automatically set during container startup to `USER_ID` and `GROUP_ID` respectively. | `1` |
 |`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1280` |
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `768` |
 |`VNC_PASSWORD`| Password needed to connect to the application's GUI.  See the [VNC Pasword](#vnc-password) section for more details. | (unset) |
@@ -133,9 +154,11 @@ Inside the container, the application's configuration should be stored in the
 This directory is also used to store the VNC password.  See the
 [VNC Pasword](#vnc-password) section for more details.
 
-**NOTE**: During the container startup, the user which runs the application
-(i.e. user defined by `USER_ID`) will claim ownership of the entire content of
-this directory.
+**NOTE**: By default, during the container startup, the user which runs the
+application (i.e. user defined by `USER_ID`) will claim ownership of the
+entire content of this directory.  This behavior can be changed via the
+`TAKE_CONFIG_OWNERSHIP` environment variable.  See the
+[Environment Variables](#environment-variables) section for more details.
 
 ## Ports
 
@@ -224,7 +247,109 @@ be done via two methods:
 **NOTE**: This is a very basic way to restrict access to the application and it
 should not be considered as secure in any way.
 
-## Application Icon
+
+## Security
+TBD
+
+## Building A Container
+
+This section provides useful tips for building containers based on this
+baseimage.
+
+### Selecting Baseimage Tag
+
+Properly select the baseimage tag to use.  For a better control and prevent
+breaking your container, use a tag for an exact version of the baseimage
+(e.g. `alpine-3.6-v2.0.0`).  Using the latest version of the baseimage
+(`alpine-3.6`) is not recommended, since automatically upgrading between major
+versions will probably break your container build/execution.
+
+### Referencing Linux User/Group
+
+Reference the Linux user/group under which the application is running by its ID
+(`USER_ID`/`GROUP_ID`) instead of its name.  Name could change in different
+baseimage versions while the ID won't.
+
+### Default Configuration Files
+
+Default configuration files should be stored in `/defaults` in the container.
+
+### Modifying Baseimage Content
+
+Try to minimize modifications to files provided by the baseimage.  This
+minimizes to risk of breaking your container after using a new baseimage
+version.
+
+### Application's Data
+
+Applications often needs to write configuration, data, logs, etc.  Always
+make sure they are all written under `/config`.  This directory is a volume
+intended to be mapped to a folder on the host.  The goal is to write stuff
+outside the container and keep these data persistent.
+
+A lot of applications use the environment variables defined in the
+[XDG Base Directory Specification] to determine where to store
+various data.  The baseimage sets these variables so they all fall under
+`/config/`:
+
+  * XDG_DATA_HOME=/config/xdg/data
+  * XDG_CONFIG_HOME=/config/xdg/config
+  * XDG_CACHE_HOME=/config/xdg/cache
+
+[XDG Base Directory Specification]: https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+
+### $HOME Environment Variable
+
+The application is run under a user having its own UID.  This user can't be used
+to login with, has no password, no valid login shell and no home directory.  It
+is effectively a kind of user used by daemons.
+
+Thus, by default, the `$HOME` environment variable is not set.  While this
+should be fine in most case, some applications may expect the `$HOME`
+environment variable to be set (since normally the application is run by a
+logged user) and may not behave correctly otherwise.
+
+To make the application happy, the home directory can be set at the beginning
+of the `startapp.sh` script:
+```
+export HOME=/config
+```
+
+Adjust the location of the home directory to fit your needs.  However, if the
+application uses the home directory to write stuff, make sure it is done in a
+volume mapped to the host (e.g. `/config`),
+
+Note that the same technique can be used by services, by exporting the home
+directory into their `run` script.
+
+### Service Dependencies
+
+When running multiple services, service `srvB` may need to start only after
+service `SrvA`.
+
+This can be easily achieved by adding a call to `s6-waitdeps` at the beginning
+of the `run` script of the service.
+
+Dependencies are defined by touching file in the service's directory, its name
+being the name of the dependent service with the `.dep` extension.  For example,
+touching the file:
+
+    /etc/services.d/srvB/srvA.dep
+
+indicates that service `srvB` depends on service `srvA`.
+
+### Service Readiness
+
+By default, a service is considered as ready when it has been running for 1
+second (as determined by its supervisor).
+
+A custom way of determining service readiness can be implemented in a script
+placed in the service's directory (e.g. `/etc/services.d/myservice/`).  The
+script should be named `ready` and should have execution permission.
+
+Note that this is used only when service dependencies are used.
+
+### Application Icon
 
 A picture of your application can be added to the image.  This picture is
 displayed in the WEB interface's navigation bar.  Also, multiple favicons are
@@ -265,10 +390,48 @@ RUN \
 [RealFaviconGenerator]: https://realfavicongenerator.net/
 [JSON minifier]: http://www.cleancss.com/json-minify/
 
-## Security
-TBD
+### Maximizing Only the Main Window
 
-## Notes
+By default, the application's window is maximized and decorations are hidden.
+However, when the application has multiple windows, this behavior may need to
+be restricted only to the main one.
+
+This can be achieved by matching on more window parameters: class, name, role,
+title and type.  By default, only the `type` parameter is used and must equal to
+`normal`.
+
+To find all parameters of the main window:
+  - While the application is running and the main window is focused, login to
+    the container.
+```
+docker exec -ti [container name or id] sh
+```
+  - Execute `obxprop --root | grep "^_NET_ACTIVE_WINDOW"`.  The output will look
+    like:
+```
+_NET_ACTIVE_WINDOW(WINDOW) = 16777220
+```
+  - Using this ID, show the parameters by executing
+    `obxprop --id [MAIN WINDOW ID] | grep "^_OB_APP"`. The output will look
+    like:
+```
+_OB_APP_TYPE(UTF8_STRING) = "normal"
+_OB_APP_CLASS(UTF8_STRING) = "Google-chrome"
+_OB_APP_NAME(UTF8_STRING) = "google-chrome"
+_OB_APP_ROLE(UTF8_STRING) =
+_OB_APP_TITLE(UTF8_STRING) = "Google Chrome"
+```
+
+Finally, in the `Dockerfile` of your container, modify the configuration file of
+`openbox` (located at `/etc/xdg/openbox/rc.xml`) to apply window restriction.
+Usually, specifying the window's title is enough.
+
+```
+sed -i 's/<application type="normal">/<application type="normal" title="Google Chrome">/' /etc/xdg/openbox/rc.xml
+```
+
+See the openbox's documentation for more details: http://openbox.org/wiki/Help:Applications
+### S6 Overlay Documentation
 * Make sure to read the [S6 overlay documentation].  It contains information
 that can help building your image.  For example, the S6 overlay allows you to
 easily add initialization scripts and services.
