@@ -18,11 +18,37 @@ echo "Environment variables:
     IMAGE_VERSION=$IMAGE_VERSION
 "
 
-DOCKER_NEWTAG="${DOCKER_TAG}-${GIT_TAG}"
+# The git tag has a format like:
+#     v1.0.0
+#     v0.1.0-beta
+#     v2.0.0-rc
+#     v2.0.0-rc2
+#
+# For normal versions without a beta/rc suffix, we need to add 3 tags.  For
+# example, for a git tag of v2.1.5:
+#   - ${DOCKER_TAG}-v2.1.5 (exact version)
+#   - ${DOCKER_TAG}-v2.1   (latest minor version)
+#   - ${DOCKER_TAG}-v2     (latest major version)
 
-echo "Adding tag '$DOCKER_NEWTAG' to image..."
-docker tag $IMAGE_NAME ${DOCKER_REPO}:$DOCKER_NEWTAG
-echo "Pushing image..."
-docker push ${DOCKER_REPO}:$DOCKER_NEWTAG
+DOCKER_NEWTAG_EXACT="${DOCKER_TAG}-${GIT_TAG}"
+DOCKER_NEWTAG_LATEST_MINOR=UNSET
+DOCKER_NEWTAG_LATEST_MAJOR=UNSET
+
+if [[ "$GIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    MAJOR="$(echo "${GIT_TAG:1}" | cut -d'.' -f1)"
+    MINOR="$(echo "${GIT_TAG:1}" | cut -d'.' -f2)"
+
+    DOCKER_NEWTAG_LATEST_MINOR="${DOCKER_TAG}-v${MAJOR}.${MINOR}"
+    DOCKER_NEWTAG_LATEST_MAJOR="${DOCKER_TAG}-v${MAJOR}"
+fi
+
+for TAG in "$DOCKER_NEWTAG_EXACT" "$DOCKER_NEWTAG_LATEST_MINOR" "$DOCKER_NEWTAG_LATEST_MAJOR"
+do
+    [ "$TAG" != "UNSET" ] || continue
+    echo "Adding tag '$TAG' to image..."
+    docker tag $IMAGE_NAME ${DOCKER_REPO}:$TAG
+    echo "Pushing image..."
+    docker push ${DOCKER_REPO}:$TAG
+done
 
 echo "post_push hook terminated successfully."
