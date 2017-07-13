@@ -15,10 +15,7 @@ get_init_script_exit_code() {
     return 1
 }
 
-[ -n "$DOCKER_REPO" ]
-[ -n "$TRAVIS_JOB_ID" ]
-
-DOCKER_IMAGE="$DOCKER_REPO:$TRAVIS_JOB_ID"
+[ -n "$DOCKER_IMAGE" ]
 
 # Make sure the docker image exists.
 docker inspect "$DOCKER_IMAGE" > /dev/null

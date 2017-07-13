@@ -9,10 +9,9 @@ else
     DOCKER_BUILD_CACHE_OPTS="--no-cache --pull"
 fi
 
-echo "Starting build of Docker image $DOCKER_REPO:$TRAVIS_JOB_ID..."
+echo "Starting build of Docker image $DOCKER_IMAGE..."
 docker build $DOCKER_BUILD_CACHE_OPTS \
-             -t $DOCKER_REPO:$TRAVIS_JOB_ID .
-docker tag $DOCKER_REPO:$TRAVIS_JOB_ID $DOCKER_REPO:$DOCKER_TAG
+             -t $DOCKER_IMAGE .
 
-echo "Starting tests of Docker image $DOCKER_REPO:$TRAVIS_JOB_ID..."
+echo "Starting tests of Docker image $DOCKER_IMAGE..."
 bats travis/tests
