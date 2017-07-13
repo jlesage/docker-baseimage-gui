@@ -55,7 +55,7 @@ case "$DOCKER_TAG" in
         echo "ERROR: Unsupported DOCKER_TAG"
         exit 1
 esac
-BASEIMAGE=jlesage/baseimage:$DOCKER_TAG
+BASEIMAGE=jlesage/baseimage:${DOCKER_TAG}-v1.0.0
 
 echo "Generating Dockerfile from template $DOCKERFILE..."
 cp -v "$DOCKERFILE" Dockerfile
