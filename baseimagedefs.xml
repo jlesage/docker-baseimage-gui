@@ -64,7 +64,7 @@ should not be considered as secure in any way.
     <history>
       <release>
         <version>2.0.0</version>
-        <date>2017-07-12</date>
+        <date>2017-07-14</date>
         <change>Now using `jlesage/baseimage` as the baseimage.</change>
         <change>Removed all non-GUI related stuff that has been moved to `jlesage/baseimage`.</change>
         <change>[*] Configuration used by openbox is now located at `/etc/xdg/openboxrc.xml` (instead of `/home/guiapp/.config/openbox/rc.xml`).</change>
@@ -74,9 +74,10 @@ should not be considered as secure in any way.
         <change level="2">XDG_CONFIG_HOME=/config/xdg/config</change>
         <change level="2">XDG_CACHE_HOME=/config/xdg/cache</change>
         <change>Changes brought by the usage of the new baseimage:</change>
-        <change>[*] The name of the user running the application changed from `guiapp` to `app`.</change>
         <change level="2">Improved the way a service is waiting for another by adding a generic mechanism.</change>
         <change level="2">Taking ownership of `/config` can now be controlled via the environment variable `TAKE_CONFIG_OWNERSHIP`.</change>
+        <change level="2">Added helper to ease installation and removal of packages.</change>
+        <change level="2">[*] The name of the user running the application changed from `guiapp` to `app`.</change>
         <change level="2">[*] The `$HOME` environment variable is no longer set (defaults to `/root`).</change>
         <change level="2">[*] The `/home/guiapp` directory has been removed.</change>
         <change>Changes marked with `[*]` can break building and/or execution of containers based on v1.x of this baseimage.</change>
