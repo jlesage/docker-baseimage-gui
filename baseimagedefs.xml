@@ -68,7 +68,7 @@ should not be considered as secure in any way.
         <change>Now using `jlesage/baseimage` as the baseimage.</change>
         <change>Removed all non-GUI related stuff that has been moved to `jlesage/baseimage`.</change>
         <change>[*] Configuration used by openbox is now located at `/etc/xdg/openboxrc.xml` (instead of `/home/guiapp/.config/openbox/rc.xml`).</change>
-        <change>[*] Removed the application's icon install script from the container (`/opt/install_app_icon.sh`).  Should now be run from its URL.</change>
+        <change>[*] Moved the application's icon install script from `/opt/install_app_icon.sh` to `/usr/local/bin/install_app_icon.sh`.</change>
         <change>[*] The following XDG environment variables are now set, potentially affecting where the GUI application store its data/config:</change>
         <change level="2">XDG_DATA_HOME=/config/xdg/data</change>
         <change level="2">XDG_CONFIG_HOME=/config/xdg/config</change>
