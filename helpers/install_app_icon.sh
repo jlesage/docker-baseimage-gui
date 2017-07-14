@@ -39,13 +39,11 @@ install_build_dependencies_alpine() {
     # nodejs-npm.
     NODEJS_NPM=$(apk -q --no-cache search nodejs-npm)
     NODEJS_NPM=${NODEJS_NPM:-nodejs}
-    apk --no-cache add --virtual build-dependencies curl $NODEJS_NPM jq sed
+    add-pkg --virtual build-dependencies curl $NODEJS_NPM jq sed
 }
 
 install_build_dependencies_debian() {
-    BUILD_PACKAGES="curl ca-certificates jq nodejs"
-    apt-get update
-    apt-get install -y --no-install-recommends $BUILD_PACKAGES
+    add-pkg --virtual build-dependencies curl ca-certificates jq nodejs
 }
 
 install_build_dependencies() {
@@ -56,24 +54,8 @@ install_build_dependencies() {
     fi
 }
 
-uninstall_build_dependencies_alpine() {
-  apk --no-cache del build-dependencies
-}
-
-uninstall_build_dependencies_debian() {
-    apt-get clean
-    apt-get purge -y $BUILD_PACKAGES
-    apt-get --purge autoremove -y
-    rm -rf /var/lib/apt/lists/* \
-           /var/tmp/*
-}
-
 uninstall_build_dependencies() {
-    if [ -n "$(which apk)" ]; then
-        uninstall_build_dependencies_alpine
-    else
-        uninstall_build_dependencies_debian
-    fi
+  del-pkg build-dependencies
 }
 
 cleanup() {

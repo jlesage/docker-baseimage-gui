@@ -27,24 +27,18 @@ ARG JQUERY_UI_TOUCH_PUNCH_URL=https://raw.github.com/furf/jquery-ui-touch-punch/
 
 # Install the nodejs PPA.
 RUN \
-    BUILD_PACKAGES="curl ca-certificates" && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        $BUILD_PACKAGES && \
+    add-pkg --virtual build-dependencies curl ca-certificates && \
     . /etc/os-release && \
     curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key --keyring /etc/apt/trusted.gpg.d/nodesource.gpg add - && \
     echo "deb http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" >> /etc/apt/sources.list.d/nodesource.list && \
     # Cleanup
-    apt-get clean && \
-    apt-get purge -y $BUILD_PACKAGES && \
-    apt-get --purge autoremove -y && \
-    rm -rf /var/lib/apt/lists/* \
-           /var/tmp/* \
-           /tmp/*
+    del-pkg build-dependencies && \
+    rm -rf /tmp/*
 
 # Compile x11vnc.
 RUN \
-    BUILD_PACKAGES=" \
+    add-pkg --virtual build-dependencies \
             curl \
             ca-certificates \
             build-essential \
@@ -66,9 +60,7 @@ RUN \
             libxrandr-dev \
             libxfixes-dev \
             libice-dev \
-            " && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        $BUILD_PACKAGES && \
+            && \
     # Download sources
     mkdir libvncserver x11vnc && \
     curl -sS -L ${LIBVNCSERVER_URL} | tar -xz --strip 1 -C libvncserver && \
@@ -90,16 +82,12 @@ RUN \
     # Install binaries
     cp install/bin/x11vnc /usr/bin/ && \
     # Cleanup
-    apt-get clean && \
-    apt-get purge -y $BUILD_PACKAGES && \
-    apt-get --purge autoremove -y && \
-    rm -rf /var/lib/apt/lists/* \
-           /var/tmp/* \
-           /tmp/*
+    del-pkg build-dependencies && \
+    rm -rf /tmp/*
 
 # Install packages.
 RUN \
-    apt-get update && apt-get install -y --no-install-recommends \
+    add-pkg \
         # X11 VNC server dependencies
         libssl1.0.0 \
         libxtst6 \
@@ -111,19 +99,11 @@ RUN \
         # Openbox window manager
         openbox \ 
         # For ifconfig
-        net-tools \
-        && \
-    # Cleanup
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/* \
-           /var/tmp/* \
-           /tmp/*
+        net-tools
 
 # Install noVNC.
 RUN \
-    BUILD_PACKAGES="curl ca-certificates unzip nodejs" && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        $BUILD_PACKAGES && \
+    add-pkg --virtual build-dependencies curl ca-certificates unzip nodejs && \
     mkdir noVNC && \
     curl -sS -L ${NOVNC_URL} | tar -xz --strip 1 -C noVNC && \
     mkdir -p /opt/novnc/include && \
@@ -166,12 +146,8 @@ RUN \
     curl -sS -L -o /opt/novnc/js/jquery.min.js ${JQUERY_URL} && \
     curl -sS -L -o /opt/novnc/js/jquery.ui.touch-punch.min.js ${JQUERY_UI_TOUCH_PUNCH_URL} && \
     # Cleanup
-    apt-get clean && \
-    apt-get purge -y $BUILD_PACKAGES && \
-    apt-get --purge autoremove -y && \
-    rm -rf /var/lib/apt/lists/* \
-           /var/tmp/* \
-           /tmp/*
+    del-pkg build-dependencies && \
+    rm -rf /tmp/*
 
 # Add files.
 COPY rootfs/ /
@@ -181,9 +157,7 @@ RUN sed -i "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.v
 
 # Minify noVNC UI JS files
 RUN \
-    BUILD_PACKAGES="nodejs" && \
-    apt-get update && apt-get install -y --no-install-recommends \
-        $BUILD_PACKAGES && \
+    add-pkg --virtual build-dependencies nodejs && \
     NOVNC_UI="\
         /opt/novnc/app/modulemgr.js \
         /opt/novnc/app/ui.js \
@@ -206,20 +180,16 @@ RUN \
     echo -e "\n//# sourceMappingURL=/js/novnc-ui.min.js.map" >> /opt/novnc/js/novnc-ui.min.js && \
     sed -i 's/\/opt\/novnc//g' /opt/novnc/js/novnc-ui.min.js.map && \
     # Cleanup
-    apt-get clean && \
-    apt-get purge -y $BUILD_PACKAGES && \
-    apt-get --purge autoremove -y && \
-    rm -rf /var/lib/apt/lists/* \
-           /var/tmp/* \
-           /tmp/*
+    del-pkg build-dependencies && \
+    rm -rf /tmp/*
 
 # Generate and install favicons.
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
-    apk --no-cache add --virtual build-dependencies curl && \
+    add-pkg --virtual build-dependencies curl && \
     curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh | sh -s \
         "$APP_ICON_URL" && \
-    apk --no-cache del build-dependencies && \
+    del-pkg build-dependencies && \
     rm -rf /tmp/*
 
 # Set environment variables.
