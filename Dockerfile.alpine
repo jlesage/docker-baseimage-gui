@@ -178,7 +178,8 @@ RUN \
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
     add-pkg --virtual build-dependencies curl && \
-    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh | sh -s \
+    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh \
+        || echo "ERROR_FETCHING_INSTALL_APP_ICON_SCRIPT" | sh -s \
         "$APP_ICON_URL" && \
     del-pkg build-dependencies && \
     rm -rf /tmp/*
