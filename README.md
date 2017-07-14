@@ -388,8 +388,9 @@ at least 260x260 for optimal results.
 # Generate and install favicons.
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
-    add-pkg --virtual build-dependencies curl && \
-    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh | sh -s \
+    add-pkg --virtual build-dependencies curl ca-certificates && \
+    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh \
+        || echo "ERROR_FETCHING_INSTALL_APP_ICON_SCRIPT" | sh -s \
         "$APP_ICON_URL" && \
     del-pkg build-dependencies && \
     rm -rf /tmp/*
@@ -414,10 +415,11 @@ display with the following method:
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
     APP_ICON_DESC='{"masterPicture":"/opt/novnc/images/icons/master_icon.png","iconsPath":"/images/icons/","design":{"ios":{"pictureAspect":"backgroundAndMargin","backgroundColor":"#ffffff","margin":"14%","assets":{"ios6AndPriorIcons":false,"ios7AndLaterIcons":false,"precomposedIcons":false,"declareOnlyDefaultIcon":true}},"desktopBrowser":{},"windows":{"pictureAspect":"noChange","backgroundColor":"#2d89ef","onConflict":"override","assets":{"windows80Ie10Tile":false,"windows10Ie11EdgeTiles":{"small":false,"medium":true,"big":false,"rectangle":false}}},"androidChrome":{"pictureAspect":"noChange","themeColor":"#ffffff","manifest":{"display":"standalone","orientation":"notSet","onConflict":"override","declared":true},"assets":{"legacyIcon":false,"lowResolutionIcons":false}},"safariPinnedTab":{"pictureAspect":"silhouette","themeColor":"#5bbad5"}},"settings":{"scalingAlgorithm":"Mitchell","errorOnImageTooSmall":false},"versioning":{"paramName":"v","paramValue":"ICON_VERSION"}}' && \
-    apk --no-cache add --virtual build-dependencies curl && \
-    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh | sh -s \
+    add-pkg --virtual build-dependencies curl ca-certificates && \
+    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh \
+        || echo "ERROR_FETCHING_INSTALL_APP_ICON_SCRIPT" | sh -s \
         "$APP_ICON_URL" "$APP_ICON_DESC" && \
-    apk --no-cache del build-dependencies && \
+    del-pkg build-dependencies && \
     rm -rf /tmp/*
 ```
 
