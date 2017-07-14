@@ -93,8 +93,7 @@ In ``Dockerfile``:
 FROM jlesage/baseimage-gui:alpine-3.6
 
 # Install xterm.
-RUN apk --no-cache add xterm && \
-    rm -rf /tmp/*
+RUN add-pkg xterm
 
 # Copy the start script.
 COPY startapp.sh /startapp.sh
@@ -274,6 +273,33 @@ baseimage versions while the ID won't.
 
 Default configuration files should be stored in `/defaults` in the container.
 
+### Adding/Removing Packages
+
+To add or remove packages, use the helpers `add-pkg` and `del-pkg` provided by
+this baseimage.  To minimze the size of the container, these tools perform
+proper cleanup and make sure that no useless files are left after an addition
+or removal of packages.
+
+Also, when packages need to be added temporarily, use the `--virtual NAME`
+parameter.  This allows installing missing packages and then remove them
+easily using the provided `NAME` (no need to repeat given packages).  Note that
+if a specified package is already installed, it will be ignored and will not be
+removed automatically.
+
+Here is an example of a command that could be added to `Dockerfile` to compile
+a project:
+```
+RUN \
+    add-pkg --virtual build-dependencies build-base cmake git && \
+    # Compile your project here...
+    git clone https://myproject.com/myproject.git
+    ... && \
+    del-pkg build-dependencies
+```
+
+Supposing that, in the example above, `git` package is already installed,
+running `del-pkg build-dependencies` doesn't remove it.
+
 ### Modifying Baseimage Content
 
 Try to minimize modifications to files provided by the baseimage.  This
@@ -362,10 +388,10 @@ at least 260x260 for optimal results.
 # Generate and install favicons.
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
-    apk --no-cache add --virtual build-dependencies curl && \
+    add-pkg --virtual build-dependencies curl && \
     curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh | sh -s \
         "$APP_ICON_URL" && \
-    apk --no-cache del build-dependencies && \
+    del-pkg build-dependencies && \
     rm -rf /tmp/*
 ```
 
