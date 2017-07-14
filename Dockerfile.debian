@@ -216,7 +216,11 @@ RUN \
 # Generate and install favicons.
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
-    /opt/install_app_icon.sh "$APP_ICON_URL"
+    apk --no-cache add --virtual build-dependencies curl && \
+    curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh | sh -s \
+        "$APP_ICON_URL" && \
+    apk --no-cache del build-dependencies && \
+    rm -rf /tmp/*
 
 # Set environment variables.
 ENV DISPLAY=:0 \
