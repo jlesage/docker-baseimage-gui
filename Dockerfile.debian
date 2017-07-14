@@ -186,7 +186,7 @@ RUN \
 # Generate and install favicons.
 RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
-    add-pkg --virtual build-dependencies curl && \
+    add-pkg --virtual build-dependencies curl ca-certificates && \
     curl -s https://raw.githubusercontent.com/jlesage/docker-baseimage-gui/master/helpers/install_app_icon.sh \
         || echo "ERROR_FETCHING_INSTALL_APP_ICON_SCRIPT" | sh -s \
         "$APP_ICON_URL" && \
