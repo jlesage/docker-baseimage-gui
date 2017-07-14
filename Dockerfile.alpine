@@ -74,7 +74,7 @@ RUN \
 
 # Install packages.
 RUN \
-    add-pkg add \
+    add-pkg \
         # x11vnc dependencies
         libssl1.0 \
         libxtst \
