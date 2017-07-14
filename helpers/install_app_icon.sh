@@ -39,11 +39,11 @@ install_build_dependencies_alpine() {
     # nodejs-npm.
     NODEJS_NPM=$(apk -q --no-cache search nodejs-npm)
     NODEJS_NPM=${NODEJS_NPM:-nodejs}
-    add-pkg --virtual build-dependencies curl $NODEJS_NPM jq sed
+    add-pkg --virtual rfg-build-dependencies curl $NODEJS_NPM jq sed
 }
 
 install_build_dependencies_debian() {
-    add-pkg --virtual build-dependencies curl ca-certificates jq nodejs
+    add-pkg --virtual rfg-build-dependencies curl ca-certificates jq nodejs
 }
 
 install_build_dependencies() {
@@ -55,7 +55,7 @@ install_build_dependencies() {
 }
 
 uninstall_build_dependencies() {
-  del-pkg build-dependencies
+  del-pkg rfg-build-dependencies
 }
 
 cleanup() {
