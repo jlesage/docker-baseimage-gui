@@ -130,7 +130,7 @@ RUN \
         --compress --mangle --source-map \
         --output /opt/novnc/js/novnc-core.min.js -- $NOVNC_CORE && \
     env HOME=/tmp npm uninstall --cache /tmp/.npm uglify-js source-map && \
-    sed-patch "s/noVNC-${NOVNC_VERSION}//g" /opt/novnc/js/novnc-core.min.js.map && \
+    sed-patch 's|"noVNC/|"/|g' /opt/novnc/js/novnc-core.min.js.map && \
     echo -e "\n//# sourceMappingURL=/js/novnc-core.min.js.map" >> /opt/novnc/js/novnc-core.min.js && \
     # Install Bootstrap
     curl -sS -L -O ${BOOTSTRAP_URL} && \
