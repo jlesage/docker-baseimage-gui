@@ -120,7 +120,7 @@ RUN \
         --compress --mangle --source-map \
         --output /opt/novnc/js/novnc-core.min.js -- $NOVNC_CORE && \
     env HOME=/tmp npm uninstall --cache /tmp/.npm uglify-js source-map && \
-    sed -i "s/noVNC-${NOVNC_VERSION}//g" /opt/novnc/js/novnc-core.min.js.map && \
+    sed-patch "s/noVNC-${NOVNC_VERSION}//g" /opt/novnc/js/novnc-core.min.js.map && \
     echo -e "\n//# sourceMappingURL=/js/novnc-core.min.js.map" >> /opt/novnc/js/novnc-core.min.js && \
     # Install Bootstrap
     curl -sS -L -O ${BOOTSTRAP_URL} && \
@@ -143,7 +143,7 @@ RUN \
 COPY rootfs/ /
 
 # Set version to CSS and JavaScript file URLs.
-RUN sed -i "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.vnc
+RUN sed-patch "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.vnc
 
 # Minify noVNC UI JS files
 RUN \
@@ -169,7 +169,7 @@ RUN \
         --output /opt/novnc/js/novnc-ui.min.js -- $NOVNC_UI && \
     env HOME=/tmp npm uninstall --cache /tmp/.npm uglify-js && \
     echo -e "\n//# sourceMappingURL=/js/novnc-ui.min.js.map" >> /opt/novnc/js/novnc-ui.min.js && \
-    sed -i 's/\/opt\/novnc//g' /opt/novnc/js/novnc-ui.min.js.map && \
+    sed-patch 's/\/opt\/novnc//g' /opt/novnc/js/novnc-ui.min.js.map && \
     # Cleanup
     del-pkg build-dependencies && \
     rm -rf /tmp/*
