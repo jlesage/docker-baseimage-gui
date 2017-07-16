@@ -79,7 +79,7 @@ should not be considered as secure in any way.
         <change level="2">Added helper to ease installation and removal of packages.</change>
         <change level="2">Added helper to ease verification of modifications applied to files using `sed`.</change>
         <change level="2">[*] The name of the user running the application changed from `guiapp` to `app`.</change>
-        <change level="2">[*] The `$HOME` environment variable is no longer set (defaults to `/root`).</change>
+        <change level="2">[*] The `$HOME` environment variable is no longer set.</change>
         <change level="2">[*] The `/home/guiapp` directory has been removed.</change>
         <change>Changes marked with `[*]` can break building and/or execution of containers based on v1.x of this baseimage.</change>
       </release>
