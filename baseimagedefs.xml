@@ -64,7 +64,7 @@ should not be considered as secure in any way.
     <history>
       <release>
         <version>2.0.0</version>
-        <date>2017-07-14</date>
+        <date>2017-07-16</date>
         <change>Now using `jlesage/baseimage` as the baseimage.</change>
         <change>Removed all non-GUI related stuff that has been moved to `jlesage/baseimage`.</change>
         <change>[*] Configuration used by openbox is now located at `/etc/xdg/openboxrc.xml` (instead of `/home/guiapp/.config/openbox/rc.xml`).</change>
