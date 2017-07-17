@@ -184,10 +184,7 @@ RUN \
 # Set environment variables.
 ENV DISPLAY=:0 \
     DISPLAY_WIDTH=1280 \
-    DISPLAY_HEIGHT=768 \
-    XDG_DATA_HOME=/config/xdg/data \
-    XDG_CONFIG_HOME=/config/xdg/config \
-    XDG_CACHE_HOME=/config/xdg/cache
+    DISPLAY_HEIGHT=768
 
 # Expose ports.
 #   - 5800: VNC web interface
