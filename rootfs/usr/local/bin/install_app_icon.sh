@@ -59,7 +59,8 @@ uninstall_build_dependencies() {
 }
 
 cleanup() {
-    rm -rf /tmp/*
+    rm -rf /tmp/.npm \
+           /tmp/*
 }
 
 APP_ICON_URL="${1:-UNSET}"

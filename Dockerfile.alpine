@@ -137,7 +137,8 @@ RUN \
     curl -sS -L -o /opt/novnc/js/jquery.ui.touch-punch.min.js ${JQUERY_UI_TOUCH_PUNCH_URL} && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/*
+    rm -rf /tmp/.npm \
+           /tmp/*
 
 # Add files.
 COPY rootfs/ /
@@ -172,7 +173,8 @@ RUN \
     sed-patch 's/\/opt\/novnc//g' /opt/novnc/js/novnc-ui.min.js.map && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/*
+    rm -rf /tmp/.npm \
+           /tmp/*
 
 # Generate and install favicons.
 RUN \
