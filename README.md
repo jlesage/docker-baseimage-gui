@@ -49,6 +49,8 @@ Here are the main components of the baseimage:
   * [xvfb], a X virtual framebuffer display server.
   * [openbox], a windows manager.
   * [noVNC], a HTML5 VNC client.
+  * Useful tools to ease container building.
+  * Environment to better support dockerized applications.
 
 [S6-overlay]: https://github.com/just-containers/s6-overlay
 [x11vnc]: http://www.karlrunge.com/x11vnc/
