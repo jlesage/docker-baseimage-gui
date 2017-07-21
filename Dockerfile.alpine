@@ -188,8 +188,8 @@ ENV DISPLAY=:0 \
 
 # Expose ports.
 #   - 5800: VNC web interface
-#   - 9500: VNC
-EXPOSE 5800 9500
+#   - 5900: VNC
+EXPOSE 5800 5900
 
 # Metadata.
 LABEL \
