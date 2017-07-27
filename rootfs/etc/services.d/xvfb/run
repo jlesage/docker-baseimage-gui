@@ -5,6 +5,32 @@ set -u # Treat unset variables as an error.
 # Wait for dependent services to be up and running.
 s6-waitdeps
 
+get_xvfb_pid() {
+    PID="$(ps -A -o pid,args | \
+           grep -vw grep | \
+           grep -w '/usr/bin/Xvfb' | \
+           tr -s ' ' | \
+           cut -d' ' -f2)"
+    echo "${PID:-UNSET}"
+}
+
+# Make sure to kill any running instance of xvfb.
+# NOTE: The /tmp/.X0-lock will prevent xvfb's start in a single scenario:  when
+#       the saved PID is associated to another xvfb instance.  In other words,
+#       xvfb starts successfully even if /tmp/.X0-lock exists and contains the
+#       PID of an unexisting process or of another process.
+PID="$(get_xvfb_pid)"
+if [ "$PID" != "UNSET" ]; then
+    kill -s SIGTERM $PID
+    for i in $(seq 1 5); do
+        sleep 1
+        PID="$(get_xvfb_pid)"
+        [ "$PID" != "UNSET" ] || break
+    done
+    [ "$PID" = "UNSET" ] || kill -s SIGKILL $PID
+    rm -f /tmp/.X$(echo "$DISPLAY" | cut -d':' -f2)-lock
+fi
+
 echo "[services.d] xvfb: starting..."
 exec 2>&1 /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24
 
