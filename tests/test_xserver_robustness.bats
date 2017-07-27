@@ -55,5 +55,5 @@ docker_exec() {
     [ "$status" -eq 1 ]
 
     # Make sure the X server runs.
-    docker_exec "ps -A | grep -vw grep | grep -w '/usr/bin/Xvfb'"
+    docker_exec "ps -A -o pid,args | grep -vw grep | grep -w '/usr/bin/Xvfb'"
 }
