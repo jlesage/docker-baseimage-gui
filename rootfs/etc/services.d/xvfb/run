@@ -21,14 +21,18 @@ get_xvfb_pid() {
 #       PID of an unexisting process or of another process.
 PID="$(get_xvfb_pid)"
 if [ "$PID" != "UNSET" ]; then
-    kill -s SIGTERM $PID
+    echo "[services.d] xvfb: WARNING: an instance is already running?!  Terminating it..."
+    kill -15 $PID #SIGTERM
     for i in $(seq 1 5); do
         sleep 1
         PID="$(get_xvfb_pid)"
         [ "$PID" != "UNSET" ] || break
     done
-    [ "$PID" = "UNSET" ] || kill -s SIGKILL $PID
-    rm -f /tmp/.X$(echo "$DISPLAY" | cut -d':' -f2)-lock
+    if [ "$PID" != "UNSET" ]; then
+        echo "[services.d] xvfb: WARNING: previous instance still running after 5 seconds.  Killing it..."
+        kill -9 $PID #SIGKILL
+        sleep 1
+    fi
 fi
 
 echo "[services.d] xvfb: starting..."
