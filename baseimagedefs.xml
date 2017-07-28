@@ -63,6 +63,11 @@ should not be considered as secure in any way.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>2.0.4</version>
+        <date>2017-07-28</date>
+        <change>Make sure to remove the container shutdown indication during startup.  This fixes the behavior of `KEEP_APP_RUNNING` variable after a restart of the container.</change>
+      </release>
+      <release>
         <version>2.0.3</version>
         <date>2017-07-27</date>
         <change>Improved robustness of the X server starting process.</change>
