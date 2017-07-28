@@ -99,7 +99,8 @@ RUN \
         # Openbox window manager
         openbox \ 
         # For ifconfig
-        net-tools
+        net-tools && \
+    rm -rf /var/cache/fontconfig/*
 
 # Install noVNC.
 RUN \
