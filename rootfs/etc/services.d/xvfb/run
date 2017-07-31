@@ -15,10 +15,6 @@ get_xvfb_pid() {
 }
 
 # Make sure to kill any running instance of xvfb.
-# NOTE: The /tmp/.X0-lock will prevent xvfb's start in a single scenario:  when
-#       the saved PID is associated to another xvfb instance.  In other words,
-#       xvfb starts successfully even if /tmp/.X0-lock exists and contains the
-#       PID of an unexisting process or of another process.
 PID="$(get_xvfb_pid)"
 if [ "$PID" != "UNSET" ]; then
     echo "[services.d] xvfb: WARNING: an instance is already running?!  Terminating it..."
@@ -34,6 +30,9 @@ if [ "$PID" != "UNSET" ]; then
         sleep 1
     fi
 fi
+
+# Make sure to remove the X server's lock file.
+rm -f /tmp/.X$(echo $DISPLAY | cut -d':' -f2)-lock
 
 echo "[services.d] xvfb: starting..."
 exec 2>&1 /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24

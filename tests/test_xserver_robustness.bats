@@ -57,3 +57,18 @@ docker_exec() {
     # Make sure the X server runs.
     docker_exec "ps -A -o pid,args | grep -vw grep | grep -w '/usr/bin/Xvfb'"
 }
+
+@test "Checking that the X server can successfully starts if its lock file already exists..." {
+    [ -n "$CONTAINER_ID" ]
+
+    docker_exec "echo 1 > /tmp/.X0-lock"
+
+    # Start an instance of the X server.
+    docker_exec "echo /etc/services.d/xvfb/run | at now"
+    sleep 1
+
+    # Make sure the X server runs.
+    run docker_exec "cat /tmp/.X0-lock"
+    [ "$output" != "1" ]
+    docker_exec "ps -A -o pid,args | grep -vw grep | grep -w '/usr/bin/Xvfb'"
+}
