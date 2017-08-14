@@ -63,6 +63,12 @@ should not be considered as secure in any way.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>2.0.6</version>
+        <date>2017-08-13</date>
+        <change>Now using version 1.1.3 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Upgraded S6 overlay to version 1.20.0.0.</change>
+      </release>
+      <release>
         <version>2.0.5</version>
         <date>2017-07-31</date>
         <change>Now using version 1.1.2 of `jlesage/baseimage`, which brings the following changes:</change>
