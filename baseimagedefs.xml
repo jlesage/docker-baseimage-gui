@@ -63,6 +63,12 @@ should not be considered as secure in any way.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>2.0.9</version>
+        <date>2017-09-20</date>
+        <change>Now using version 1.1.6 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Restore default `/etc/shadow` during container startup.</change>
+      </release>
+      <release>
         <version>2.0.8</version>
         <date>2017-09-08</date>
         <change>Now using version 1.1.5 of `jlesage/baseimage`, which brings the following changes:</change>
