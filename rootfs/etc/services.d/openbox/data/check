@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv sh
+set -u # Treat dunset variables as an error.
+
+# Service considered ready if running for at least 2 seconds.
+/bin/s6-sleep 2
+
+# vim: set ft=sh :

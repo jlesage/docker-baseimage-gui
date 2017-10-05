@@ -15,6 +15,7 @@ setup() {
     docker exec "$CONTAINER_ID" sh -c "echo -n ':0' > /var/run/s6/container_environment/DISPLAY"
     docker exec "$CONTAINER_ID" sh -c "echo -n 1024 > /var/run/s6/container_environment/DISPLAY_WIDTH"
     docker exec "$CONTAINER_ID" sh -c "echo -n 768 > /var/run/s6/container_environment/DISPLAY_HEIGHT"
+    docker exec "$CONTAINER_ID" sh -c "sed-patch 's|/bin/s6-notifyoncheck||' /etc/services.d/xvfb/run"
 }
 
 teardown() {
