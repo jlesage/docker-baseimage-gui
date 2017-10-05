@@ -16,6 +16,11 @@ else
     IPV6="-rfbportv6 -1 -no6 -noipv6 -httpportv6 -1"
 fi
 
+# Handle connection encryption options.
+if [ "${SECURE_CONNECTION:-0}" -eq 1 ]; then
+    VNC_SECURITY="$VNC_SECURITY -stunnel /config/certs/vnc-server.pem"
+fi
+
 exec 2>&1 /usr/bin/x11vnc  \
                     -display $DISPLAY \
                     -rfbport 5900 \
@@ -24,7 +29,6 @@ exec 2>&1 /usr/bin/x11vnc  \
                     -desktop "${APP_NAME}" \
                     -cursor arrow \
                     -shared \
-                    -httpdir /opt/novnc/ \
                     $VNC_SECURITY \
                     ${X11VNC_EXTRA_OPTS:- }
 

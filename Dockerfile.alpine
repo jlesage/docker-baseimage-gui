@@ -8,7 +8,7 @@
 FROM ${BASEIMAGE}
 
 # Define software versions.
-ARG LIBVNCSERVER_VERSION=ac8b756
+ARG LIBVNCSERVER_VERSION=9029b86
 ARG X11VNC_VERSION=29597a9
 ARG NOVNC_VERSION=fa559b3
 ARG BOOTSTRAP_VERSION=3.3.7
@@ -47,7 +47,7 @@ RUN \
             libxrandr-dev \
             libxfixes-dev \
             libice-dev \
-            openssl-dev && \
+            && \
     # Download sources
     mkdir libvncserver x11vnc && \
     curl -sS -L ${LIBVNCSERVER_URL} | tar -xz --strip 1 -C libvncserver && \
@@ -70,17 +70,18 @@ RUN \
     cp install/bin/x11vnc /usr/bin/ && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Install packages.
 RUN \
     add-pkg \
-        # x11vnc dependencies
-        libssl1.0 \
+        # X11 VNC server dependencies
+        openssl \
         libxtst \
         libxi \
         libjpeg-turbo \
         libxcomposite \
+        stunnel \
         # X virtual framebuffer display server
         xvfb \
         xdpyinfo \
@@ -89,6 +90,10 @@ RUN \
         xsetroot \
         # Font
         font-croscore && \
+    # Remove some unneeded stuff.
+    userdel stunnel && \
+    rm /etc/init.d/stunnel && \
+    rm -r /var/lib/stunnel && \
     rm -rf /var/cache/fontconfig/*
 
 # Install noVNC.
@@ -138,8 +143,42 @@ RUN \
     curl -sS -L -o /opt/novnc/js/jquery.ui.touch-punch.min.js ${JQUERY_UI_TOUCH_PUNCH_URL} && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/.npm \
-           /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
+
+# Install nginx.
+RUN \
+    add-pkg nginx && \
+    rm /etc/nginx/nginx.conf \
+       /etc/init.d/nginx \
+       /etc/logrotate.d/nginx \
+       && \
+    rm -r /etc/nginx/conf.d \
+          /etc/nginx/modules \
+          /var/lib/nginx/* \
+          /var/tmp/nginx \
+          /var/log/nginx \
+          /var/www \
+          && \
+    ln -s /config/log/nginx /var/lib/nginx/logs && \
+    ln -s /tmp/nginx /var/tmp/nginx && \
+    # Adjust user under which nginx will run.
+    userdel nginx && \
+    groupdel www-data && \
+    useradd --system \
+            --home-dir /dev/null \
+            --no-create-home \
+            --shell /sbin/nologin \
+            nginx && \
+    # Users/groups changed, save them.
+    cp /etc/passwd /defaults/ && \
+    cp /etc/group /defaults && \
+    # Generate default DH params.
+    echo "Generating default DH parameters (2048 bits)..." && \
+    env HOME=/tmp openssl dhparam \
+        -out "/defaults/dhparam.pem" \
+        2048 \
+        > /dev/null 2>&1 && \
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Add files.
 COPY rootfs/ /
@@ -174,8 +213,7 @@ RUN \
     sed-patch 's/\/opt\/novnc//g' /opt/novnc/js/novnc-ui.min.js.map && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/.npm \
-           /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Generate and install favicons.
 RUN \

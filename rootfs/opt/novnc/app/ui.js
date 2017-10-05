@@ -12,10 +12,11 @@
  *   - app_name<string>
  *     Override the application's name.  Default: not set (no override).
  *   - host=<host>
- *     VNC server host.  Default:  Host of the server that served this file.
+ *     VNC server host to which a Websocket connection is established.  Default:
+ *     Host of the server that served this file.
  *   - port=<port>
- *     VNC server port.  Default: HTTP port of the server that served this file
- *     + 100.
+ *     VNC server port to which a Websocket connection is established.  Default:
+ *     Port of the server that served this file.
  *   - password=<string>
  *     VNC server password.  Default: not set.
  *   - path=<string>
@@ -111,8 +112,8 @@ var UI = {
   initConnectSettings: function() {
     Util.Debug(">> initConnectSettings");
 
-    // Get VNC server host.  By default, use the host of server that served this
-    // file.
+    // Get the VNC server host used to establish the Websocket connection.  By
+    // default, use the host of server that served this file.
     UI.host = WebUtil.getConfigVar('host', window.location.hostname);
     // If there are at least two colons in there, it is likely an IPv6
     // address. Check for square brackets and add them if missing.
@@ -123,11 +124,9 @@ var UI = {
             UI.host = UI.host + "]";
     }
 
-    // Get VNC server port.  By default, use the HTTP port of the server that
-    // served this file add increase it by 100.  This comes from x11vnc
-    // defaults, where:
-    //   HTTP_PORT = VNC_PORT - 100
-    UI.port = WebUtil.getConfigVar('port', Number(window.location.port) + 100);
+    // Get the VNC server port used to establish the Websocket connection.  By
+    // default, use the same HTTP port of the server that served this file.
+    UI.port = WebUtil.getConfigVar('port', Number(window.location.port));
 
     // Get the VNC password.
     UI.password = WebUtil.getConfigVar('password', '');

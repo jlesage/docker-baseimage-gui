@@ -8,7 +8,7 @@
 FROM ${BASEIMAGE}
 
 # Define software versions.
-ARG LIBVNCSERVER_VERSION=ac8b756
+ARG LIBVNCSERVER_VERSION=9029b86
 ARG X11VNC_VERSION=29597a9
 ARG NOVNC_VERSION=fa559b3
 ARG BOOTSTRAP_VERSION=3.3.7
@@ -25,6 +25,9 @@ ARG FONTAWESOME_URL=http://fontawesome.io/assets/font-awesome-${FONTAWESOME_VERS
 ARG JQUERY_URL=https://code.jquery.com/jquery-${JQUERY_VERSION}.min.js
 ARG JQUERY_UI_TOUCH_PUNCH_URL=https://raw.github.com/furf/jquery-ui-touch-punch/${JQUERY_UI_TOUCH_PUNCH_VERSION}/jquery.ui.touch-punch.min.js
 
+# Define working directory.
+WORKDIR /tmp
+
 # Install the nodejs PPA.
 RUN \
     add-pkg --virtual build-dependencies curl ca-certificates && \
@@ -34,7 +37,7 @@ RUN \
     echo "deb-src http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" >> /etc/apt/sources.list.d/nodesource.list && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Compile x11vnc.
 RUN \
@@ -47,7 +50,6 @@ RUN \
             libtool \
             pkg-config \
             zlib1g-dev \
-            libssl-dev \
             libx11-dev \
             libxtst-dev \
             libxext-dev \
@@ -83,16 +85,17 @@ RUN \
     cp install/bin/x11vnc /usr/bin/ && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Install packages.
 RUN \
     add-pkg \
         # X11 VNC server dependencies
-        libssl1.0.0 \
+        openssl \
         libxtst6 \
         libxcomposite1 \
         libpng12-0 \
+        stunnel \
         # X virtual framebuffer display server
         xvfb \
         x11-utils \
@@ -100,6 +103,11 @@ RUN \
         openbox \ 
         # For ifconfig
         net-tools && \
+    # Remove some unneeded stuff.
+    userdel stunnel4 && \
+    rm -r /var/run/stunnel4 \
+          /var/log/stunnel4 \
+          && \
     rm -rf /var/cache/fontconfig/*
 
 # Install noVNC.
@@ -148,8 +156,42 @@ RUN \
     curl -sS -L -o /opt/novnc/js/jquery.ui.touch-punch.min.js ${JQUERY_UI_TOUCH_PUNCH_URL} && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/.npm \
-           /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
+
+# Install nginx.
+RUN \
+    add-pkg nginx && \
+    rm /etc/nginx/nginx.conf \
+       /etc/init.d/nginx \
+       /etc/logrotate.d/nginx \
+       /etc/ufw/applications.d/nginx \
+       /etc/default/nginx \
+       && \
+    rm -r /etc/nginx/snippets \
+          /etc/nginx/sites-enabled \
+          /etc/nginx/sites-available \
+          /usr/share/nginx \
+          /usr/share/doc/nginx \
+          /var/log/nginx \
+          && \
+    ln -s /config/log/nginx /var/log/nginx && \
+    ln -s /tmp/nginx /var/lib/nginx && \
+    # Adjust user under which nginx will run.
+    useradd --system \
+            --home-dir /dev/null \
+            --no-create-home \
+            --shell /sbin/nologin \
+            nginx && \
+    # Users/groups changed, save them.
+    cp /etc/passwd /defaults/ && \
+    cp /etc/group /defaults && \
+    # Generate default DH params.
+    echo "Generating default DH parameters (2048 bits)..." && \
+    env HOME=/tmp openssl dhparam \
+        -out "/defaults/dhparam.pem" \
+        2048 \
+        > /dev/null 2>&1 && \
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Add files.
 COPY rootfs/ /
@@ -183,8 +225,7 @@ RUN \
     sed-patch 's/\/opt\/novnc//g' /opt/novnc/js/novnc-ui.min.js.map && \
     # Cleanup
     del-pkg build-dependencies && \
-    rm -rf /tmp/.npm \
-           /tmp/*
+    rm -rf /tmp/* /tmp/.[!.]*
 
 # Generate and install favicons.
 RUN \
