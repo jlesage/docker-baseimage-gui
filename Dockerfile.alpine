@@ -155,12 +155,18 @@ RUN \
     rm -r /etc/nginx/conf.d \
           /etc/nginx/modules \
           /var/lib/nginx/* \
-          /var/tmp/nginx \
           /var/log/nginx \
           /var/www \
           && \
     ln -s /config/log/nginx /var/lib/nginx/logs && \
-    ln -s /tmp/nginx /var/tmp/nginx && \
+    if [ -d /var/tmp/nginx ]; then \
+        # alpine 3.6
+        rm -r /var/tmp/nginx && \
+        ln -s /tmp/nginx /var/tmp/nginx; \
+    else \
+        # alpine 3.5
+        ln -s /tmp/nginx /var/lib/nginx/tmp; \
+    fi && \
     # Adjust user under which nginx will run.
     userdel nginx && \
     groupdel www-data && \
