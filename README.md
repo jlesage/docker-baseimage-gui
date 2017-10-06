@@ -49,6 +49,8 @@ Here are the main components of the baseimage:
   * [xvfb], a X virtual framebuffer display server.
   * [openbox], a windows manager.
   * [noVNC], a HTML5 VNC client.
+  * [NGINX], a high-performance HTTP server.
+  * [stunnel], a proxy encrypting arbitrary TCP connections with SSL/TLS.
   * Useful tools to ease container building.
   * Environment to better support dockerized applications.
 
@@ -57,6 +59,8 @@ Here are the main components of the baseimage:
 [xvfb]: http://www.x.org/releases/X11R7.6/doc/man/man1/Xvfb.1.xhtml
 [openbox]: http://openbox.org
 [noVNC]: https://github.com/novnc/noVNC
+[NGINX]: https://www.nginx.com
+[stunnel]: https://www.stunnel.org
 
 ### Versioning
 
@@ -146,7 +150,8 @@ to the `docker run` command.
 |`CLEAN_TMP_DIR`| When set to `1`, all files in the `/tmp` directory are delete during the container startup. | `1` |
 |`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1280` |
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `768` |
-|`VNC_PASSWORD`| Password needed to connect to the application's GUI.  See the [VNC Pasword](#vnc-password) section for more details. | (unset) |
+|`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via web browser or VNC client).  See the [Security](#security) section for more details. | `0` |
+|`VNC_PASSWORD`| Password needed to connect to the application's GUI.  See the [VNC Password](#vnc-password) section for more details. | (unset) |
 |`X11VNC_EXTRA_OPTS`| Extra options to pass to the x11vnc server running in the Docker container.  **WARNING**: For advanced users. Do not use unless you know what you are doing. | (unset) |
 
 ## Config Directory
@@ -171,7 +176,7 @@ container cannot be changed, but you are free to use any port on the host side.
 | Port | Mapping to host | Description |
 |------|-----------------|-------------|
 | 5800 | Mandatory | Port used to access the application's GUI via the web interface. |
-| 5900 | Mandatory | Port used to access the application's GUI via the VNC protocol. |
+| 5900 | Optional | Port used to access the application's GUI via the VNC protocol.  Optional if no VNC client is used. |
 
 ## User/Group IDs
 
@@ -213,8 +218,8 @@ See:
 
 ## Accessing the GUI
 
-Assuming the host is mapped to the same ports as the container, the graphical
-interface of the application can be accessed via:
+Assuming that container's ports are mapped to the same host's ports, the
+graphical interface of the application can be accessed via:
 
   * A web browser:
 ```
@@ -226,32 +231,82 @@ http://<HOST IP ADDR>:5800
 <HOST IP ADDR>:5900
 ```
 
-If different ports are mapped to the host, make sure they respect the
-following formula:
+## Security
 
-    VNC_PORT = HTTP_PORT + 100
+By default, access to the application's GUI is done over an unencrypted
+connection (HTTP or VNC).
 
-This is to make sure accessing the GUI with a web browser can be done without
-specifying the VNC port manually.  If this is not possible, then specify
-explicitly the VNC port like this:
+Secure connection can be enabled via the `SECURE_CONNECTION` environment
+variable.  See the [Environment Variables](#environment-variables) section for
+more details on how to set an environment variable.
 
-    http://<HOST IP ADDR>:5800/?port=<VNC PORT>
+When enabled, application's GUI is performed over an HTTPs connection when
+accessed with a browser.  All HTTP accesses are automatically redirected to
+HTTPs.
 
-## VNC Password
+When using a VNC client, the VNC connection is performed over SSL.  Note that
+few VNC clients support this method.  [SSVNC] is one of them.
+
+### Certificates
+
+Here are the certificate files needed by the container.  By default, when they
+are missing, self-signed certificates are generated and used.  All files have
+PEM encoded, x509 certificates.
+
+| Container Path                  | Purpose                    | Content |
+|---------------------------------|----------------------------|---------|
+|`/config/certs/vnc-server.pem`   |VNC connection encryption.  |VNC server's private key and certificate, bundled with any root and intermediate certificates.|
+|`/config/certs/web-privkey.pem`  |HTTPs connection encryption.|Web server's private key.|
+|`/config/certs/web-fullchain.pem`|HTTPs connection encryption.|Web server's certificate, bundled with any root and intermediate certificates.|
+
+**NOTE**: To prevent any certificate validity warnings/errors from the browser
+or VNC client, make sure to supply your own valid certificates.
+
+**NOTE**: Certificate files are monitored and relevant daemons are automatically
+restarted when changes are detected.
+
+### VNC Password
 
 To restrict access to your application, a password can be specified.  This can
 be done via two methods:
   * By using the `VNC_PASSWORD` environment variable.
   * By creating a `.vncpass_clear` file at the root of the `/config` volume.
-  This file should contains the password (in clear).  During the container
-  startup, content of the file is obfuscated and moved to `.vncpass`.
+    This file should contains the password in clear-text.  During the container
+    startup, content of the file is obfuscated and moved to `.vncpass`.
 
-**NOTE**: This is a very basic way to restrict access to the application and it
-should not be considered as secure in any way.
+The level of security provided by the VNC password depends on two things:
+  * The type of communication channel (encrypted/unencrypted).
+  * How secure access to the host is.
 
+When using a VNC password, it is highly desirable to enable the secure
+connection to prevent sending the password in clear over an unencrypted channel.
 
-## Security
-TBD
+Access to the host by unexpected users with sufficient privileges can be
+dangerous as they can retrieve the password with the following methods:
+  * By looking at the `VNC_PASSWORD` environment variable value via the
+    `docker inspect` command.  By defaut, the `docker` command can be run only
+    by the root user.  However, it is possible to configure the system to allow
+    the `docker` command to be run by any users part of a specific group.
+  * By decrypting the `/config/.vncpass` file.  This requires the user to have
+    the appropriate permission to read the file:  it has to be root or be the
+    user defined by the `USER_ID` environment variable.  Also, to be able to
+    retrieve the correct decryption key, one needs to know that the content of
+    the file was generated by `x11vnc`.
+
+### DH Parameters
+
+Diffie-Hellman (DH) parameters define how the [DH key-exchange] is performed.
+More details about this algorithm can be found on the [OpenSSL Wiki].
+
+DH Parameters are saved into the PEM encoded file located inside the container
+at `/config/certs/dhparam.pem`.  By default, when this file is missing, 2048
+bits DH parameters are automatically generated.  Note that this one-time
+operation takes some time to perform and increases the startup time of the
+container.
+
+[SSVNC]: http://www.karlrunge.com/x11vnc/ssvnc.html
+[DH key-exchange]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
+[OpenSSL Wiki]: https://wiki.openssl.org/index.php/Diffie_Hellman
 
 ## Building A Container
 
@@ -263,7 +318,7 @@ baseimage.
 Properly select the baseimage tag to use.  For a better control and prevent
 breaking your container, use a tag for an exact version of the baseimage
 (e.g. `alpine-3.6-v2.0.0`).  Using the latest version of the baseimage
-(`alpine-3.6`) is not recommended, since automatically upgrading between major
+(`alpine-3.6`) is not recommended, since automatic upgrades between major
 versions will probably break your container build/execution.
 
 ### Referencing Linux User/Group
@@ -300,8 +355,9 @@ RUN \
     del-pkg build-dependencies
 ```
 
-Supposing that, in the example above, `git` package is already installed,
-running `del-pkg build-dependencies` doesn't remove it.
+Supposing that, in the example above, the `git` package is already installed
+when the call to `add-pk` is performed, running `del-pkg build-dependencies`
+doesn't remove it.
 
 ### Modifying Files With Sed
 
@@ -383,12 +439,9 @@ directory into their `run` script.
 When running multiple services, service `srvB` may need to start only after
 service `SrvA`.
 
-This can be easily achieved by adding a call to `s6-waitdeps` at the beginning
-of the `run` script of the service.
-
-Dependencies are defined by touching file in the service's directory, its name
-being the name of the dependent service with the `.dep` extension.  For example,
-touching the file:
+Service dependencies are defined by creating a regular file in the service's
+directory, its name being the name of the dependent service with the `.dep`
+extension.  For example, touching the file:
 
     /etc/services.d/srvB/srvA.dep
 
@@ -396,14 +449,20 @@ indicates that service `srvB` depends on service `srvA`.
 
 ### Service Readiness
 
-By default, a service is considered as ready when it has been running for 1
-second (as determined by its supervisor).
+By default, a service is considered ready when the supervisor successfully
+forked and executed the daemon.  However, some daemons do a lot of
+initialization work before they're actually ready to serve.
 
-A custom way of determining service readiness can be implemented in a script
-placed in the service's directory (e.g. `/etc/services.d/myservice/`).  The
-script should be named `ready` and should have execution permission.
+Hopefully, the S6 supervisor supports [service startup notifications].  This is
+a simple mechanism allowing daemons to notify the supervisor when they are
+ready to serve.
 
-Note that this is used only when service dependencies are used.
+While support for this mechanism can be implemented natively in the daemon, the
+use of the [s6-notifyoncheck program] makes it possible for services to use the
+S6 notification mechanism with any daemon.
+
+[service startup notifications]: https://skarnet.org/software/s6/notifywhenup.html
+[s6-notifyoncheck program]: https://skarnet.org/software/s6/s6-notifyoncheck.html
 
 ### Application Icon
 
