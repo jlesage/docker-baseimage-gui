@@ -12,7 +12,7 @@ teardown() {
 }
 
 @test "Checking availability of HTTPs port 5800..." {
-    TIMEOUT=60
+    TIMEOUT=30
     while (( TIMEOUT > 0 )); do
         run curl --silent --insecure --connect-timeout 2 https://127.0.0.1:5800
         [ "$status" -eq 0 ] && break
@@ -23,7 +23,7 @@ teardown() {
 }
 
 @test "Checking availability of VNC SSL port 5900..." {
-    TIMEOUT=60
+    TIMEOUT=30
     while (( TIMEOUT > 0 )); do
         run timeout 2 ncat --ssl -n 127.0.0.1 5900
         [ "$output" == "RFB 003.008" ] && break
