@@ -5,12 +5,11 @@ set -u # Treat unset variables as an error.
 
 # Adjust nginx virtual server configuration.
 cp /defaults/default_site.conf /etc/nginx/
-if [ "${SECURE_CONNECTION:-0}" -eq 1 ]; then
-    sed-patch 's/$SECURE_CONNECTION/ssl/' /etc/nginx/default_site.conf
-else
-    sed-patch 's/$SECURE_CONNECTION//' /etc/nginx/default_site.conf
+if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
+    sed-patch 's/ssl default_server/default_server/g' /etc/nginx/default_site.conf
     sed-patch '/^[\t]ssl_certificate/d' /etc/nginx/default_site.conf
     sed-patch '/^[\t]ssl_dhparam/d' /etc/nginx/default_site.conf
+    sed-patch 's/:5950;/:5900;/' /etc/nginx/default_site.conf
 fi
 
 # Make sure required directories exist.
