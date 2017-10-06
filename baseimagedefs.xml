@@ -141,9 +141,9 @@ container.
         <change level="3">The following elements are no longer needed and have been removed:</change>
         <change level="4">`s6-svrunning` and `s6-waitdeps` programs.</change>
         <change level="4">Pre-stage3 with pre-finish scripts support.</change>
-        <change level="2">Added support for secure access to the application's GUI:</change>
-        <change level="3">Via HTTPs or VNC over SSL.</change>
-        <change level="3">Secure connection is enabled via the `SECURE_CONNECTION` environment variable.</change>
+        <change>Added support for secure access to the application's GUI:</change>
+        <change level="2">Via HTTPs or VNC over SSL.</change>
+        <change level="2">Secure connection is enabled via the `SECURE_CONNECTION` environment variable.</change>
         <change>Note that these changes can break building and/or execution of containers based on v2.x or earlier of this baseimage.</change>
       </release>
       <release>
