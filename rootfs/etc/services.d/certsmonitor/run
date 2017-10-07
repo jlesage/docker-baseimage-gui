@@ -34,6 +34,8 @@ if [ "${SECURE_CONNECTION:-0}" -ne 1 ]; then
     exit 0
 fi
 
+log "starting..."
+
 WEB_CERTS="/config/certs/web-privkey.pem /config/certs/web-fullchain.pem"
 VNC_CERTS="/config/certs/vnc-server.pem"
 DH_PARAMS="/config/certs/dhparam.pem"
