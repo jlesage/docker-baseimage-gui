@@ -21,7 +21,7 @@ if [ "${SECURE_CONNECTION:-0}" -eq 1 ]; then
     VNC_SECURITY="$VNC_SECURITY -stunnel /config/certs/vnc-server.pem"
 fi
 
-echo "[$(basename "$(pwd)")]: starting..."
+echo "[$(basename "$(pwd)")] starting..."
 
 exec 2>&1 /usr/bin/x11vnc  \
                     -display $DISPLAY \

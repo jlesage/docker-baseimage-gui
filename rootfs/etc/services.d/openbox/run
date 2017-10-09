@@ -6,7 +6,7 @@ set -u # Treat unset variables as an error.
 # happy by setting good one.  No data should be written there.
 export HOME=/config
 
-echo "[$(basename "$(pwd)")]: starting..."
+echo "[$(basename "$(pwd)")] starting..."
 
 exec 2>&1 /bin/s6-notifyoncheck s6-setuidgid $USER_ID:$GROUP_ID /usr/bin/openbox-session
 

@@ -10,7 +10,7 @@ if [ ! -L "$0" ]; then
 fi
 
 log() {
-    echo "[$(basename "$0")]: $*"
+    echo "[$(basename "$0")] $*"
 }
 
 hash() {
