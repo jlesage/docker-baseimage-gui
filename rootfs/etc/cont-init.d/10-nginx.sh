@@ -12,7 +12,7 @@ if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
     sed-patch 's/:5950;/:5900;/' /etc/nginx/default_site.conf
 fi
 if ! ifconfig -a | grep -wq inet6; then
-    sed-patch '/^[\t]listen \[::\]:5800 ssl default_server;/d' /etc/nginx/default_site.conf
+    sed-patch '/^[\t]listen \[::\]:5800 /d' /etc/nginx/default_site.conf
 fi
 
 # Make sure required directories exist.
