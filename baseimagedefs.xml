@@ -131,6 +131,11 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.0.1</version>
+        <date>2017-10-08</date>
+        <change>Fixed nginx config on systems without IPV6 support.</change>
+      </release>
+      <release>
         <version>3.0.0</version>
         <date>2017-10-06</date>
         <change>Now using version 2.0.0 of `jlesage/baseimage`, which brings the following changes:</change>
