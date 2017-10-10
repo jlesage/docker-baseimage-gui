@@ -362,7 +362,7 @@ container.
         <default>0</default>
         <unraid_template>
           <title>Secure Connection</title>
-          <description>Whether or not an encrypted connection should be used to access the application's GUI.  Set to [i][b]1[/b][/i] to encrypt the connection.</description>
+          <description>Whether or not an encrypted connection should be used to access the application's GUI.  Set to [i][b]1[/b][/i] to encrypt the connection.[br][span style='color: red;'][b]Note:[/b][/span] When enabling the secure connection, security parameters needs to be generated.  This [b]one-time[/b] operation is done during container startup.  Depending on your system, this could take a few minutes.  GUI of the application won't be available until the operation completes.</description>
           <display>advanced</display>
           <required>false</required>
           <mask>false</mask>
