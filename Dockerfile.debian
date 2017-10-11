@@ -79,9 +79,11 @@ RUN \
     make install && \
     cd .. && \
     # Install libraries
+    strip install/lib/libvnc*.so && \
     cp -P install/lib/libvncserver.so* /usr/lib/ && \
     cp -P install/lib/libvncclient.so* /usr/lib/ && \
     # Install binaries
+    strip install/bin/x11vnc && \
     cp install/bin/x11vnc /usr/bin/ && \
     # Cleanup
     del-pkg build-dependencies && \
