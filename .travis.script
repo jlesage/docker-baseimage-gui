@@ -14,4 +14,5 @@ docker build $DOCKER_BUILD_CACHE_OPTS \
              -t $IMAGE_NAME .
 
 echo "Starting tests of Docker image $IMAGE_NAME..."
+sleep 5
 env DOCKER_IMAGE="$IMAGE_NAME" bats tests
