@@ -127,6 +127,15 @@ var UI = {
     // Get the VNC server port used to establish the Websocket connection.  By
     // default, use the same HTTP port of the server that served this file.
     UI.port = WebUtil.getConfigVar('port', Number(window.location.port));
+    if (!UI.port) {
+        // Port will not be set when using default ones.
+        if (window.location.protocol === "https:") {
+            UI.port = "443"
+        }
+        else {
+            UI.port = "80"
+        }
+    }
 
     // Get the VNC password.
     UI.password = WebUtil.getConfigVar('password', '');
