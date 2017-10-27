@@ -464,6 +464,63 @@ S6 notification mechanism with any daemon.
 [service startup notifications]: https://skarnet.org/software/s6/notifywhenup.html
 [s6-notifyoncheck program]: https://skarnet.org/software/s6/s6-notifyoncheck.html
 
+### Log Monitor
+
+This baseimage include a simple log monitor.  This monitor allows sending
+notification(s) when a particular message is detected in a log file.
+
+This system has two main component: notification definitions and notifications
+backends (targets).  Definitions describe properties of a notification (title,
+message, severity, etc) and how it is triggered (i.e. filtering function).  Once
+a matching string is found in a log file, a notification is triggered and sent
+via one or more backends.  A backend can implement any functionality.  For
+example, it could send the notification to the standard output, a file or an
+online service.
+
+#### Monitored Files
+
+File(s) to be monitored can be set in the configuration file located at
+`/etc/logmonitor/logmonitor.conf`.  There are two settings to look at:
+
+  * `LOG_FILES`: List of absolute paths to log files to be monitored.  A log
+    file is a file having new content appended to it.
+  * `STATUS_FILES`: List of absolute paths to status files to be monitored.
+    A status file doesn't have new content appended.  Instead, its whole content
+    is refreshed/overwritten periodically.
+
+#### Notification Definition
+
+The definition of a notification consists in multiple files, stored in a
+directory under `/etc/logmonitor/notifications.d`.  For example, definition of
+notification `NOTIF` is found under `/etc/logmonitor/notifications.d/NOTIF/`.
+The following table describe files part of the definition:
+
+| File   | Mandatory? | Description |
+|--------|------------|-------------|
+|`filter`|Yes|Program (script or binary with executable permission) used to filter messages from a log file.  It is invoked by the log monitor with a single argument: a line from the log file.  On a match, the program should exit with a value of `0`.  Any other values is interpreted as non-match.|
+|`title` |Yes|File containing the title of the notification.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's title.|
+|`desc`  |Yes|File containing the description/message of the notification.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's description/message.|
+|`level` |Yes|File containing severity level of the notification.  Valid severity level values are `ERROR`, `WARNING` or `INFO`.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's severity level.|
+
+#### Notification Backend
+
+Definition of notification backend is stored in a directory under
+`/etc/logmonitor/targets.d`.  For example, definition of `STDOUT` backend is
+found under `/etc/logmonitor/notifications.d/STDOUT/`.  The following table
+describe files part of the definition:
+
+| File       | Mandatory? | Description |
+|------------|------------|-------------|
+|`send`      |Yes|Program (script or binary with executable permission) that sends the notification.  It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level.
+|`debouncing`|No|File containg the minimum amount time (in seconds) that must elapse before sending the same notification with the current backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done.|
+
+By default, the baseimage contains the following notification backends:
+
+|Backend |Description|Debouncing time|
+|--------|-----------|---------------|
+|`stdout`|Display a message to the standard output, make it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`.|21 600s (6 hours)|
+|`yad`|Display the notification in a window box, visible in the application's GUI.  **NOTE**: `yad` must be installed for this to work.| Infinite |
+
 ### Application Icon
 
 A picture of your application can be added to the image.  This picture is

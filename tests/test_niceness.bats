@@ -14,7 +14,7 @@ setup() {
 @test "Checking that a negative niceness value fails without the --cap-add=SYS_NICE option..." {
     run docker run --rm -p 5900:5900 -p 5800:5800 -e "APP_NICENESS=-1" -e "FORCE_APP_EXIT_CODE=0" $DOCKER_IMAGE
     script_rc="$(get_init_script_exit_code '00-app-niceness.sh' $lines)"
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 1 ]
     [ "$script_rc" -eq 6 ]
 }
 

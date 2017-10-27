@@ -1,0 +1,26 @@
+#!/usr/bin/with-contenv sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+TITLE="$1"
+MSG="$2"
+LEVEL="$3"
+
+YAD="$(which yad)"
+if [ "${YAD:-UNSET}" != "UNSET" ]; then
+    yad \
+        --fixed \
+        --center \
+        --title "$APP_NAME" \
+        --window-icon /opt/novnc/images/icons/master_icon.png \
+        --borders 10 \
+        --image dialog-warning \
+        --image-on-top \
+        --text "<b>$TITLE</b>" \
+        --form \
+        --field "$MSG:LBL" \
+        --button=gtk-ok:0 > /dev/null || true
+fi
+
+# vim: set ft=sh :
