@@ -30,7 +30,7 @@ restart_x11vnc() {
 # Disable service if secure connection disabled.
 if [ "${SECURE_CONNECTION:-0}" -ne 1 ]; then
     log "disabling service: secure connection not enabled."
-    s6-svc -d /var/run/s6/services/certsmonitor
+    s6-svc -xd /var/run/s6/services/certsmonitor
     exit 0
 fi
 
