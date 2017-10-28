@@ -131,6 +131,16 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.1.0</version>
+        <date>2017-10-28</date>
+        <change>Now using version 2.1.1 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Upgraded S6 overlay to version 1.21.1.1.</change>
+        <change level="2">Enhanced integration of service dependencies functionality.</change>
+        <change level="2">Added a simple log monitor.</change>
+        <change level="2">Fixed race condition where container's exit code would not be the expected one.</change>
+        <change>Fixed issue where application's GUI fails to displayed when accessing it through the web interface via standard ports 80/443.</change>
+      </release>
+      <release>
         <version>3.0.2</version>
         <date>2017-10-09</date>
         <change>Fixed issue where nginx config change was not applied correctly on systems without IPV6 support and secure connection disabled.</change>
