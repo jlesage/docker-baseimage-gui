@@ -14,6 +14,10 @@ env:
   - DOCKER_REPO=jlesage/baseimage-gui
   - SOURCE_BRANCH=dev
   matrix:
+  - DOCKER_TAG=alpine-3.7
+    IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
+  - DOCKER_TAG=alpine-3.7-glibc
+    IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
   - DOCKER_TAG=alpine-3.6
     IMAGE_NAME=$DOCKER_REPO:$DOCKER_TAG
   - DOCKER_TAG=alpine-3.6-glibc
