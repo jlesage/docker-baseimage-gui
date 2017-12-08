@@ -131,6 +131,11 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.2.0</version>
+        <date>2017-12-08</date>
+        <change>Added images based on Alpine Linux 3.7.</change>
+      </release>
+      <release>
         <version>3.1.4</version>
         <date>2017-11-30</date>
         <change>Set 2 worker processes for nginx.</change>
