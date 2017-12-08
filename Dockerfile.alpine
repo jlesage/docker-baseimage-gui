@@ -10,6 +10,7 @@ FROM ${BASEIMAGE}
 # Define software versions.
 ARG LIBVNCSERVER_VERSION=9029b86
 ARG X11VNC_VERSION=29597a9
+ARG STUNNEL_VERSION=5.44
 ARG NOVNC_VERSION=fa559b3
 ARG BOOTSTRAP_VERSION=3.3.7
 ARG FONTAWESOME_VERSION=4.7.0
@@ -19,6 +20,7 @@ ARG JQUERY_UI_TOUCH_PUNCH_VERSION=4bc0091
 # Define software download URLs.
 ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}.tar.gz
 ARG X11VNC_URL=https://github.com/jlesage/x11vnc/archive/${X11VNC_VERSION}.tar.gz
+ARG STUNNEL_URL=https://www.stunnel.org/downloads/stunnel-${STUNNEL_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=http://fontawesome.io/assets/font-awesome-${FONTAWESOME_VERSION}.zip
@@ -74,6 +76,29 @@ RUN \
     del-pkg build-dependencies && \
     rm -rf /tmp/* /tmp/.[!.]*
 
+# Compile stunnel
+RUN \
+    add-pkg --virtual build-dependencies \
+            curl \
+            build-base \
+            openssl-dev \
+            && \
+    # Download sources
+    mkdir stunnel && \
+    curl -# -L ${STUNNEL_URL} | tar -xz --strip 1 -C stunnel && \
+    # Compile stunnel
+    cd stunnel && \
+    ./configure && \
+    make && \
+    find . && \
+    cd .. && \
+    # Install binaries
+    strip stunnel/src/stunnel && \
+    cp -v stunnel/src/stunnel /usr/bin/ && \
+    # Cleanup
+    del-pkg build-dependencies && \
+    rm -rf /tmp/* /tmp/.[!.]*
+
 # Install packages.
 RUN \
     add-pkg \
@@ -83,7 +108,6 @@ RUN \
         libxi \
         libjpeg-turbo \
         libxcomposite \
-        stunnel \
         # X virtual framebuffer display server
         xvfb \
         xdpyinfo \
@@ -93,9 +117,6 @@ RUN \
         # Font
         font-croscore && \
     # Remove some unneeded stuff.
-    userdel stunnel && \
-    rm /etc/init.d/stunnel && \
-    rm -r /var/lib/stunnel && \
     rm -rf /var/cache/fontconfig/*
 
 # Install noVNC.
