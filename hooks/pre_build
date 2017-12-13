@@ -12,57 +12,22 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-# The git tag is stored in the SOURCE_BRANCH environment variable.
-GIT_TAG="$SOURCE_BRANCH"
+# Load mandatory environment variables.
+source hooks/load_vars
 
-# Make sure the git tag has a format like:
-#     v1.0.0
-#     v0.1.0-beta
-#     v2.0.0-rc
-#     v2.0.0-rc2
-if [[ "$GIT_TAG" =~ ^v[0-9\.]+(-(alpha|beta|rc)[0-9]*)?$ ]]; then
-    # The image version is the git tag minus the leading 'v'.
-    IMAGE_VERSION="${GIT_TAG:1}"
-elif  [[ "$GIT_TAG" = "dev" ]]; then
-    # Special case for Travis/development builds.
-    IMAGE_VERSION="$GIT_TAG"
-else
-    echo "Unsupported git tag: $GIT_TAG"
+# Load Docker build arguments.
+if [ ! -f versions/"$BASEIMAGE_DOCKER_TAG" ]; then
+    echo "ERROR: Invalid BASEIMAGE_DOCKER_TAG"
     exit 1
 fi
+source versions/"$BASEIMAGE_DOCKER_TAG"
 
-# Export our custom variables.
-echo "GIT_TAG=\"$SOURCE_BRANCH\"" >> custom_hook_env
-echo "IMAGE_VERSION=\"$IMAGE_VERSION\"" >> custom_hook_env
+echo "$(basename "$0") hook environment variables:"
+( set -o posix ; set | sort | sed 's/^/    /')
 
-echo "Environment variables:
-    IMAGE_NAME=$IMAGE_NAME
-    DOCKER_REPO=$DOCKER_REPO
-    DOCKER_TAG=$DOCKER_TAG
-    SOURCE_BRANCH=$SOURCE_BRANCH
-    GIT_TAG=$GIT_TAG
-    IMAGE_VERSION=$IMAGE_VERSION
-"
+# TODO: Validation disabled until the the following issue is resolved:
+#       https://github.com/RedCoolBeans/dockerlint/issues/47
+#echo "Validating Dockerfile..."
+#docker run --rm -v "$(pwd)/$DOCKERFILE:/Dockerfile:ro" redcoolbeans/dockerlint
 
-case "$DOCKER_TAG" in
-    alpine-3.7|alpine-3.7-glibc|alpine-3.6|alpine-3.6-glibc|alpine-3.5|alpine-3.5-glibc)
-        DOCKERFILE=Dockerfile.alpine
-        ;;
-    debian-8|ubuntu-16.04)
-        DOCKERFILE=Dockerfile.debian
-        ;;
-    *)
-        echo "ERROR: Unsupported DOCKER_TAG"
-        exit 1
-esac
-BASEIMAGE=jlesage/baseimage:${DOCKER_TAG}-v2.2.0
-
-echo "Generating Dockerfile from template $DOCKERFILE..."
-cp -v "$DOCKERFILE" Dockerfile
-sed -i "s/\${BASEIMAGE}/${BASEIMAGE//\//\\/}/g" Dockerfile
-sed -i "s/org.label-schema.version=\"unknown\"/org.label-schema.version=\"$IMAGE_VERSION\"/" Dockerfile
-
-echo "Validating Dockerfile..."
-docker run --rm -v "$(pwd)/Dockerfile:/Dockerfile:ro" redcoolbeans/dockerlint
-
-echo "pre_build hook terminated successfully."
+echo "$(basename "$0") hook terminated successfully."

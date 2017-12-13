@@ -2,53 +2,42 @@
 #
 # Post push hook for Docker Automated Build.
 #
-# This hook adds a tag that includes the image version.
+# This hook adds tags that includes the image version.
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-source custom_hook_env
+# Load mandatory environment variables.
+source hooks/load_vars
 
-echo "Environment variables:
-    IMAGE_NAME="$IMAGE_NAME"
-    DOCKER_REPO=$DOCKER_REPO
-    DOCKER_TAG=$DOCKER_TAG
-    SOURCE_BRANCH=$SOURCE_BRANCH
-    GIT_TAG=$GIT_TAG
-    IMAGE_VERSION=$IMAGE_VERSION
-"
+echo "$(basename "$0") hook environment variables:"
+( set -o posix ; set | sort | sed 's/^/    /')
 
-# The git tag has a format like:
-#     v1.0.0
-#     v0.1.0-beta
-#     v2.0.0-rc
-#     v2.0.0-rc2
-#
 # For normal versions without a beta/rc suffix, we need to add 3 tags.  For
-# example, for a git tag of v2.1.5:
-#   - ${DOCKER_TAG}-v2.1.5 (exact version)
-#   - ${DOCKER_TAG}-v2.1   (latest minor version)
-#   - ${DOCKER_TAG}-v2     (latest major version)
+# example, for an image version of 2.1.5:
+#   - ${BASEIMAGE_DOCKER_TAG}-v2.1.5 (exact version)
+#   - ${BASEIMAGE_DOCKER_TAG}-v2.1   (latest minor version)
+#   - ${BASEIMAGE_DOCKER_TAG}-v2     (latest major version)
 
-DOCKER_NEWTAG_EXACT="${DOCKER_TAG}-${GIT_TAG}"
+DOCKER_NEWTAG_EXACT="${BASEIMAGE_DOCKER_TAG}-v${BASEIMAGE_DOCKER_IMAGE_VERSION}"
 DOCKER_NEWTAG_LATEST_MINOR=UNSET
 DOCKER_NEWTAG_LATEST_MAJOR=UNSET
 
-if [[ "$GIT_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    MAJOR="$(echo "${GIT_TAG:1}" | cut -d'.' -f1)"
-    MINOR="$(echo "${GIT_TAG:1}" | cut -d'.' -f2)"
+if [[ "$BASEIMAGE_DOCKER_IMAGE_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    MAJOR="$(echo "$BASEIMAGE_DOCKER_IMAGE_VERSION" | cut -d'.' -f1)"
+    MINOR="$(echo "$BASEIMAGE_DOCKER_IMAGE_VERSION" | cut -d'.' -f2)"
 
-    DOCKER_NEWTAG_LATEST_MINOR="${DOCKER_TAG}-v${MAJOR}.${MINOR}"
-    DOCKER_NEWTAG_LATEST_MAJOR="${DOCKER_TAG}-v${MAJOR}"
+    DOCKER_NEWTAG_LATEST_MINOR="${BASEIMAGE_DOCKER_TAG}-v${MAJOR}.${MINOR}"
+    DOCKER_NEWTAG_LATEST_MAJOR="${BASEIMAGE_DOCKER_TAG}-v${MAJOR}"
 fi
 
 for TAG in "$DOCKER_NEWTAG_EXACT" "$DOCKER_NEWTAG_LATEST_MINOR" "$DOCKER_NEWTAG_LATEST_MAJOR"
 do
     [ "$TAG" != "UNSET" ] || continue
     echo "Adding tag '$TAG' to image..."
-    docker tag $IMAGE_NAME ${DOCKER_REPO}:$TAG
+    docker tag $BASEIMAGE_DOCKER_IMAGE_NAME ${BASEIMAGE_DOCKER_REPO}:$TAG
     echo "Pushing image..."
-    docker push ${DOCKER_REPO}:$TAG
+    docker push ${BASEIMAGE_DOCKER_REPO}:$TAG
 done
 
-echo "post_push hook terminated successfully."
+echo "$(basename "$0") hook terminated successfully."
