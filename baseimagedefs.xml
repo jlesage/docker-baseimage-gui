@@ -131,6 +131,13 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.2.1</version>
+        <date>2018-01-04</date>
+        <change>Now using version 2.2.1 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Upgraded S6 overlay to version 1.21.2.2.</change>
+        <change level="2">Upgraded glibc to version 2.26 (Alpine Linux glibc images).</change>
+      </release>
+      <release>
         <version>3.2.0</version>
         <date>2017-12-08</date>
         <change>Added images based on Alpine Linux 3.7.</change>
