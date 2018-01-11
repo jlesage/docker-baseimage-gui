@@ -131,6 +131,12 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.2.2</version>
+        <date>2018-01-11</date>
+        <change>Now using version 2.2.2 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Adjusted the way ownership of /config is taken to better support cases where the folder is mapped to a network share.</change>
+      </release>
+      <release>
         <version>3.2.1</version>
         <date>2018-01-04</date>
         <change>Now using version 2.2.1 of `jlesage/baseimage`, which brings the following changes:</change>
