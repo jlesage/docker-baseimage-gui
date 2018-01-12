@@ -131,6 +131,12 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.2.3</version>
+        <date>2018-01-12</date>
+        <change>Now using version 2.2.3 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">For Alpine Linux images with glibc, automatically update dynamic linker's cache after new libraries are installed.</change>
+      </release>
+      <release>
         <version>3.2.2</version>
         <date>2018-01-11</date>
         <change>Now using version 2.2.2 of `jlesage/baseimage`, which brings the following changes:</change>
