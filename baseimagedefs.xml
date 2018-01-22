@@ -443,6 +443,11 @@ container.
           <mask>false</mask>
         </unraid_template>
       </environment_variable>
+      <environment_variable>
+        <name>ENABLE_CJK_FONT</name>
+        <description>When set to `1`, open source computer font `WenQuanYi Zen Hei` is installed.  This font contains a large range of Chinese/Japanese/Korean characters.</description>
+        <default>0</default>
+      </environment_variable>
     </environment_variables>
     <!-- Volumes -->
     <volumes/>
