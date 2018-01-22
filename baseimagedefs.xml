@@ -131,6 +131,13 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.3.0</version>
+        <date>2018-01-22</date>
+        <change>Now using version 2.2.4 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Fixed the LANG environment variable not being set properly.</change>
+        <change>Added the ability to automatically install a CJK (Chinese/Japanese/Korean) font.</change>
+      </release>
+      <release>
         <version>3.2.3</version>
         <date>2018-01-12</date>
         <change>Now using version 2.2.3 of `jlesage/baseimage`, which brings the following changes:</change>
