@@ -141,7 +141,7 @@ var UI = {
     UI.password = WebUtil.getConfigVar('password', '');
 
     // Get the path.
-    UI.path = WebUtil.getConfigVar('path', 'websockify');
+    UI.path = WebUtil.getConfigVar('path', window.location.pathname.substr(1) + 'websockify');
 
     Util.Debug("<< initConnectSettings");
   },
