@@ -9,6 +9,12 @@ LEVEL="$3"
 
 YAD="$(which yad)"
 if [ "${YAD:-UNSET}" != "UNSET" ]; then
+    XDG_BASE="$(mktemp -d)"
+
+    export XDG_DATA_HOME="$XDG_BASE/xdg/data"
+    export XDG_CONFIG_HOME="$XDG_BASE/xdg/config"
+    export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
+
     yad \
         --fixed \
         --center \
@@ -21,6 +27,8 @@ if [ "${YAD:-UNSET}" != "UNSET" ]; then
         --form \
         --field "$MSG:LBL" \
         --button=gtk-ok:0 > /dev/null || true
+
+    rm -r "$XDG_BASE"
 fi
 
 # vim: set ft=sh :
