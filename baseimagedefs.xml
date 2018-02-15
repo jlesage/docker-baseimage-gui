@@ -131,6 +131,12 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.3.3</version>
+        <date>2018-02-14</date>
+        <change>Make sure the log monitor is started after the X server.</change>
+        <change>Fixed an issue where the log monitor `yad` target would use XDG folders of the application.</change>
+      </release>
+      <release>
         <version>3.3.2</version>
         <date>2018-02-02</date>
         <change>Now using version 2.2.5 of `jlesage/baseimage`, which brings the following changes:</change>
