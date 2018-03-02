@@ -131,6 +131,12 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.3.4</version>
+        <date>2018-03-02</date>
+        <change>Now using version 2.2.6 of `jlesage/baseimage`, which brings the following changes:</change>
+        <change level="2">Fixed issue where log monitor states were not cleared during container startup.</change>
+      </release>
+      <release>
         <version>3.3.3</version>
         <date>2018-02-15</date>
         <change>Make sure the log monitor is started after the X server.</change>
