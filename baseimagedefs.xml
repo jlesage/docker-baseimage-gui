@@ -131,6 +131,14 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.3.5</version>
+        <date>2018-04-03</date>
+        <change>Now using version 2.2.7 of jlesage/baseimage, which brings the following changes:</change>
+        <change level="2">Upgraded s6-overlay to version 1.21.4.0.</change>
+        <change level="2">Wait for a limited time when terminating a service.</change>
+        <change level="2">Set and create the XDG_RUNTIME_DIR directory.</change>
+      </release>
+      <release>
         <version>3.3.4</version>
         <date>2018-03-02</date>
         <change>Now using version 2.2.6 of `jlesage/baseimage`, which brings the following changes:</change>
