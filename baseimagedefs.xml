@@ -131,6 +131,12 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.3.6</version>
+        <date>2018-04-12</date>
+        <change>Now using version 2.2.8 of jlesage/baseimage, which brings the following changes:</change>
+        <change level="2">Fixed architecture of ubuntu baseimage: it is meant to be 64-bit.</change>
+      </release>
+      <release>
         <version>3.3.5</version>
         <date>2018-04-03</date>
         <change>Now using version 2.2.7 of jlesage/baseimage, which brings the following changes:</change>
