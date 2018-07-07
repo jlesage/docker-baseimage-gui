@@ -131,6 +131,12 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.4.0</version>
+        <date>2018-07-06</date>
+        <change>Added images based on Alpine Linux 3.8.</change>
+        <change>Added images based on Debian 9.</change>
+      </release>
+      <release>
         <version>3.3.6</version>
         <date>2018-04-12</date>
         <change>Now using version 2.2.8 of jlesage/baseimage, which brings the following changes:</change>
