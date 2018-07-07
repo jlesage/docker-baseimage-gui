@@ -52,16 +52,21 @@ Different docker images are available:
 | [Alpine 3.5]       | alpine-3.5       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5 "Get your own image badge on microbadger.com") |
 | [Alpine 3.6]       | alpine-3.6       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.6.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.6 "Get your own image badge on microbadger.com") |
 | [Alpine 3.7]       | alpine-3.7       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.7.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.7 "Get your own image badge on microbadger.com") |
+| [Alpine 3.8]       | alpine-3.8       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.8 "Get your own image badge on microbadger.com") |
 | [Alpine 3.5]       | alpine-3.5-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.6]       | alpine-3.6-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.6-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.6-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.7]       | alpine-3.7-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.7-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.7-glibc "Get your own image badge on microbadger.com") |
+| [Alpine 3.8]       | alpine-3.8-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.8-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.8-glibc "Get your own image badge on microbadger.com") |
 | [Debian 8]         | debian-8         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-8/ "Get your own image badge on microbadger.com") |
+| [Debian 9]         | debian-9         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-9.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-9/ "Get your own image badge on microbadger.com") |
 | [Ubuntu 16.04 LTS] | ubuntu-16.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-16.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-16.04 "Get your own image badge on microbadger.com") |
 
 [Alpine 3.5]: https://alpinelinux.org
 [Alpine 3.6]: https://alpinelinux.org
 [Alpine 3.7]: https://alpinelinux.org
+[Alpine 3.8]: https://alpinelinux.org
 [Debian 8]: https://www.debian.org/releases/jessie/
+[Debian 9]: https://www.debian.org/releases/stretch/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
 
 Due to its size, the `Alpine` image is recommended.  However, it may be harder
