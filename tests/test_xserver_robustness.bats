@@ -8,7 +8,7 @@ setup() {
     [ "$status" -eq 0 ]
     CONTAINER_ID="$output"
 
-    docker exec "$CONTAINER_ID" add-pkg at
+    docker exec "$CONTAINER_ID" add-pkg at procps
     docker exec "$CONTAINER_ID" atd
 
     docker exec "$CONTAINER_ID" mkdir -p /var/run/s6/container_environment
