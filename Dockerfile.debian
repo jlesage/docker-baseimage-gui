@@ -32,7 +32,7 @@ WORKDIR /tmp
 
 # Install the nodejs PPA.
 RUN \
-    add-pkg --virtual build-dependencies curl ca-certificates && \
+    add-pkg --virtual build-dependencies curl ca-certificates gnupg && \
     . /etc/os-release && \
     curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key --keyring /etc/apt/trusted.gpg.d/nodesource.gpg add - && \
     echo "deb http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/nodesource.list && \
@@ -93,12 +93,14 @@ RUN \
 
 # Install packages.
 RUN \
+    apt-get -q update && \
+    LIBPNG="$(apt-cache depends libpng-dev | grep 'Depends: libpng' | awk '{print $2}')" && \
     add-pkg \
         # X11 VNC server dependencies
         openssl \
         libxtst6 \
         libxcomposite1 \
-        libpng12-0 \
+        $LIBPNG \
         stunnel \
         # X virtual framebuffer display server
         xvfb \
