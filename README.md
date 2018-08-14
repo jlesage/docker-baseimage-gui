@@ -60,6 +60,7 @@ Different docker images are available:
 | [Debian 8]         | debian-8         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-8/ "Get your own image badge on microbadger.com") |
 | [Debian 9]         | debian-9         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-9.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-9/ "Get your own image badge on microbadger.com") |
 | [Ubuntu 16.04 LTS] | ubuntu-16.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-16.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-16.04 "Get your own image badge on microbadger.com") |
+| [Ubuntu 18.04 LTS] | ubuntu-18.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-18.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-18.04 "Get your own image badge on microbadger.com") |
 
 [Alpine 3.5]: https://alpinelinux.org
 [Alpine 3.6]: https://alpinelinux.org
@@ -68,6 +69,7 @@ Different docker images are available:
 [Debian 8]: https://www.debian.org/releases/jessie/
 [Debian 9]: https://www.debian.org/releases/stretch/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
+[Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18:04/
 
 Due to its size, the `Alpine` image is recommended.  However, it may be harder
 to integrate your application (especially third party ones without source code),
