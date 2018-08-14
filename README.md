@@ -559,7 +559,7 @@ describe files part of the definition:
 | File       | Mandatory? | Description |
 |------------|------------|-------------|
 |`send`      |Yes|Program (script or binary with executable permission) that sends the notification.  It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level.
-|`debouncing`|No|File containg the minimum amount time (in seconds) that must elapse before sending the same notification with the current backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done.|
+|`debouncing`|No|File containing the minimum amount time (in seconds) that must elapse before sending the same notification with the current backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done.|
 
 By default, the baseimage contains the following notification backends:
 
