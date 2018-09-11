@@ -35,8 +35,8 @@ RUN \
     add-pkg --virtual build-dependencies curl ca-certificates gnupg && \
     . /etc/os-release && \
     curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key --keyring /etc/apt/trusted.gpg.d/nodesource.gpg add - && \
-    echo "deb http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/nodesource.list && \
-    echo "deb-src http://deb.nodesource.com/node_7.x $VERSION_CODENAME main" >> /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb http://deb.nodesource.com/node_8.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/nodesource.list && \
+    echo "deb-src http://deb.nodesource.com/node_8.x $VERSION_CODENAME main" >> /etc/apt/sources.list.d/nodesource.list && \
     # Cleanup
     del-pkg build-dependencies && \
     rm -rf /tmp/* /tmp/.[!.]*
