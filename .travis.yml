@@ -24,6 +24,7 @@ env:
   - DOCKER_TAG=debian-8
   - DOCKER_TAG=debian-9
   - DOCKER_TAG=ubuntu-16.04
+  - DOCKER_TAG=ubuntu-18.04
 
 before_install:
   - sudo add-apt-repository ppa:duggan/bats --yes
