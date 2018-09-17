@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/bin/sh
 
 #
 # Handle the VNC password.
@@ -30,4 +30,4 @@ fi
 
 return 0
 
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4

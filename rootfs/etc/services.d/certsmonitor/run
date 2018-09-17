@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/bin/sh
 
 set -u # Treat unset variables as an error.
 
@@ -9,69 +9,71 @@ if [ ! -L "$0" ]; then
     exec ./"$SV_NAME" "$@"
 fi
 
-log() {
-    echo "[$(basename "$0")] $*"
-}
+WEB_CERTS="/config/certs/web-privkey.pem /config/certs/web-fullchain.pem"
+VNC_CERTS="/config/certs/vnc-server.pem"
+DH_PARAMS="/config/certs/dhparam.pem"
+
+RUN_DIR=/var/run/certsmonitor
+
+WEB_CERTS_HASH_FILE="$RUN_DIR"/web_certs_hash
+VNC_CERTS_HASH_FILE="$RUN_DIR"/vnc_certs_hash
+DH_PARAMS_HASH_FILE="$RUN_DIR"/dh_params_hash
 
 hash() {
     stat -c '%n %s %Y' "$@" | md5sum | cut -d' ' -f1
 }
 
 restart_nginx() {
-    log "Restarting nginx..."
-    /bin/s6-svc -h /var/run/s6/services/nginx
+    echo "Restarting nginx..."
+    /usr/sbin/nginx -s reload
 }
 
 restart_x11vnc() {
-    log "Restarting x11vnc..."
+    echo "Restarting x11vnc..."
     /usr/bin/x11vnc -R stop
 }
 
-# Disable service if secure connection disabled.
-if [ "${SECURE_CONNECTION:-0}" -ne 1 ]; then
-    log "disabling service: secure connection not enabled."
-    touch /var/run/s6/services/certsmonitor/down
-    s6-svc -xd /var/run/s6/services/certsmonitor
-    exit 0
-fi
+mkdir -p "$RUN_DIR"
 
-log "starting..."
+# Get previous hashes.
+WEB_CERTS_HASH="$(cat "$WEB_CERTS_HASH_FILE" || true)"
+VNC_CERTS_HASH="$(cat "$VNC_CERTS_HASH_FILE" || true)"
+DH_PARAMS_HASH="$(cat "$DH_PARAMS_HASH_FILE" || true)"
 
-WEB_CERTS="/config/certs/web-privkey.pem /config/certs/web-fullchain.pem"
-VNC_CERTS="/config/certs/vnc-server.pem"
-DH_PARAMS="/config/certs/dhparam.pem"
+# Get new hashes.
+WEB_CERTS_NEW_HASH="$(hash $WEB_CERTS)"
+VNC_CERTS_NEW_HASH="$(hash $VNC_CERTS)"
+DH_PARAMS_NEW_HASH="$(hash $DH_PARAMS)"
 
-WEB_CERTS_HASH="$(hash $WEB_CERTS)"
-VNC_CERTS_HASH="$(hash $VNC_CERTS)"
-DH_PARAMS_HASH="$(hash $DH_PARAMS)"
+UPDATE_HASHES=0
 
-while true; do
-    # Check for certificate changes every 5 seconds.
-    sleep 5
-
-    # Get new hashes.
-    WEB_CERTS_NEW_HASH="$(hash $WEB_CERTS)"
-    VNC_CERTS_NEW_HASH="$(hash $VNC_CERTS)"
-    DH_PARAMS_NEW_HASH="$(hash $DH_PARAMS)"
-
+if [ -n "$WEB_CERTS_HASH" ] && [ -n "$VNC_CERTS_HASH" ] && [ -n "$DH_PARAMS_HASH" ]; then
     # Restart nginx if certificates changed.
     if [ "$WEB_CERTS_NEW_HASH" != "$WEB_CERTS_HASH" ]; then
-        log "Web certificates changed."
+        echo "Web certificates changed."
+        UPDATE_HASHES=1
         restart_nginx
     elif [ "$DH_PARAMS_NEW_HASH" != "$DH_PARAMS_HASH" ]; then
-        log "DH parameters changed."
+        echo "DH parameters changed."
+        UPDATE_HASHES=1
         restart_nginx
     fi
 
     # Restart x11vnc if certificates changed.
     if [ "$VNC_CERTS_NEW_HASH" != "$VNC_CERTS_HASH" ]; then
-        log "VNC certificates changed."
+        echo "VNC certificates changed."
+        UPDATE_HASHES=1
         restart_x11vnc
     fi
+else
+    UPDATE_HASHES=1
+fi
 
-    WEB_CERTS_HASH="$WEB_CERTS_NEW_HASH"
-    VNC_CERTS_HASH="$VNC_CERTS_NEW_HASH"
-    DH_PARAMS_HASH="$DH_PARAMS_NEW_HASH"
-done
+# Save new hashes.
+if [ "$SAVE_HASHES" -eq 1 ]; then
+    echo "$WEB_CERTS_NEW_HASH" > "$WEB_CERTS_HASH_FILE"
+    echo "$VNC_CERTS_NEW_HASH" > "$VNC_CERTS_HASH_FILE"
+    echo "$DH_PARAMS_NEW_HASH" > "$DH_PARAMS_HASH_FILE"
+fi
 
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4

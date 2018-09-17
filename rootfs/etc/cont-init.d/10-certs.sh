@@ -1,24 +1,20 @@
-#!/usr/bin/with-contenv sh
+#!/bin/sh
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
-
-log() {
-    echo "[cont-init.d] $(basename $0): $*"
-}
 
 # Exit now if secure connection not enabled.
 [ "${SECURE_CONNECTION:-0}" -eq 1 ] || exit 0
 
 CERT_DIR=/config/certs
 
-s6-setuidgid $USER_ID:$GROUP_ID mkdir -p "$CERT_DIR"
+su-exec $USER_ID:$GROUP_ID mkdir -p "$CERT_DIR"
 
 # Generate DH parameters.
 if [ ! -f "$CERT_DIR/dhparam.pem" ]; then
     if [ "${USE_DEFAULT_DH_PARAMS:-0}" -eq 0 ]; then
-        log "Generating DH parameters (2048 bits), this is going to take a long time..."
-        env HOME=/tmp s6-setuidgid $USER_ID:$GROUP_ID openssl dhparam \
+        echo "generating DH parameters (2048 bits), this is going to take a long time..."
+        env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl dhparam \
             -out "$CERT_DIR/dhparam.pem" \
             2048 \
             > /dev/null 2>&1
@@ -29,8 +25,8 @@ fi
 
 # Generate certificate used by the WEB server (nginx).
 if [ ! -f "$CERT_DIR/web-privkey.pem" ] && [ ! -f "$CERT_DIR/web-fullchain.pem" ]; then
-    log "Generating self-signed certificate for WEB server..."
-    env HOME=/tmp s6-setuidgid $USER_ID:$GROUP_ID openssl req \
+    echo "generating self-signed certificate for WEB server..."
+    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl req \
         -x509 \
         -nodes \
         -days 3650 \
@@ -44,7 +40,7 @@ fi
 
 # Generate certificate used by the VNC server (stunnel).
 if [ ! -f "$CERT_DIR/vnc-server.pem" ]; then
-    log "Generating self-signed certificate for VNC server..."
+    echo "generating self-signed certificate for VNC server..."
     TMP_DIR="$(mktemp -d)"
     env HOME=/tmp openssl req \
         -x509 \
@@ -63,4 +59,4 @@ if [ ! -f "$CERT_DIR/vnc-server.pem" ]; then
     rm -r "$TMP_DIR"
 fi
 
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4

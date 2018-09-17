@@ -21,17 +21,17 @@ if [ "${SECURE_CONNECTION:-0}" -eq 1 ]; then
     VNC_SECURITY="$VNC_SECURITY -stunnel /config/certs/vnc-server.pem"
 fi
 
-echo "[$(basename "$(pwd)")] starting..."
+echo "starting..."
 
-exec 2>&1 /usr/bin/x11vnc  \
-                    -display $DISPLAY \
-                    -rfbport 5900 \
-                    $IPV6 \
-                    -forever \
-                    -desktop "${APP_NAME}" \
-                    -cursor arrow \
-                    -shared \
-                    $VNC_SECURITY \
-                    ${X11VNC_EXTRA_OPTS:- }
+exec /usr/bin/x11vnc  \
+    -display $DISPLAY \
+    -rfbport 5900 \
+    $IPV6 \
+    -forever \
+    -desktop "${APP_NAME}" \
+    -cursor arrow \
+    -shared \
+    $VNC_SECURITY \
+    ${X11VNC_EXTRA_OPTS:- }
 
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4

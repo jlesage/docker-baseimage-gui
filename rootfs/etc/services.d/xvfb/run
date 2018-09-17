@@ -2,10 +2,6 @@
 
 set -u # Treat unset variables as an error.
 
-log() {
-    echo "[$(basename "$(pwd)")] $*"
-}
-
 get_xvfb_pid() {
     PID="$(ps -A -o pid,args | \
            grep -vw grep | \
@@ -18,7 +14,7 @@ get_xvfb_pid() {
 # Make sure to kill any running instance of xvfb.
 PID="$(get_xvfb_pid)"
 if [ "$PID" != "UNSET" ]; then
-    log "WARNING: an instance is already running?!  Terminating it..."
+    echo "WARNING: an instance is already running?!  Terminating it..."
     kill -15 $PID #SIGTERM
     for i in $(seq 1 5); do
         sleep 1
@@ -26,7 +22,7 @@ if [ "$PID" != "UNSET" ]; then
         [ "$PID" != "UNSET" ] || break
     done
     if [ "$PID" != "UNSET" ]; then
-        log "WARNING: previous instance still running after 5 seconds.  Killing it..."
+        echo "WARNING: previous instance still running after 5 seconds.  Killing it..."
         kill -9 $PID #SIGKILL
         sleep 1
     fi
@@ -35,8 +31,8 @@ fi
 # Make sure to remove the X server's lock file.
 rm -f /tmp/.X$(echo $DISPLAY | cut -d':' -f2)-lock
 
-log "starting..."
+echo "starting..."
 
-exec 2>&1 /bin/s6-notifyoncheck -d /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24
+exec /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24
 
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4
