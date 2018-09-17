@@ -1,10 +1,1 @@
-#!/usr/bin/with-contenv sh
-
-set -u # Treat unset variables as an error.
-
-echo "[$(basename "$(pwd)")] starting..."
-
-mkdir -p /tmp/nginx
-exec 2>&1 /usr/sbin/nginx -c /etc/nginx/nginx.conf -g 'daemon off;'
-
-# vim: set ft=sh :
+/usr/sbin/nginx

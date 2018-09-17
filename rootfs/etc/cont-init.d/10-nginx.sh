@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/bin/sh
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
@@ -16,6 +16,6 @@ if ! ifconfig -a | grep -wq inet6; then
 fi
 
 # Make sure required directories exist.
-s6-setuidgid $USER_ID:$GROUP_ID mkdir -p /config/log/nginx
+su-exec $USER_ID:$GROUP_ID mkdir -p /config/log/nginx
 
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4

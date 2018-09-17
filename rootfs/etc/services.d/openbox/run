@@ -1,4 +1,4 @@
-#!/usr/bin/with-contenv sh
+#!/bin/sh
 
 set -u # Treat unset variables as an error.
 
@@ -6,8 +6,6 @@ set -u # Treat unset variables as an error.
 # happy by setting good one.  No data should be written there.
 export HOME=/config
 
-echo "[$(basename "$(pwd)")] starting..."
+exec /usr/bin/openbox-session
 
-exec 2>&1 /bin/s6-notifyoncheck -d s6-setuidgid $USER_ID:$GROUP_ID /usr/bin/openbox-session
-
-# vim: set ft=sh :
+# vim:ft=sh:ts=4:sw=4:et:sts=4
