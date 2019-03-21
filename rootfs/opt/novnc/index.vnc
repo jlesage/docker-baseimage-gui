@@ -164,7 +164,7 @@
   </canvas>
 
   <!-- Password Modal -->
-  <div class="modal fade" id="passwordModal" role="dialog">
+  <form class="modal fade" id="passwordModal" role="dialog">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -175,11 +175,11 @@
             <input type="password" class="form-control" id="vnc_password" name="password" placeholder="Password"/>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-default" id="SubmitPasswordButton">Submit</button>
+          <button class="btn btn-default" type="submit" id="SubmitPasswordButton">Submit</button>
         </div>
       </div>
     </div>
-  </div>
+  </form>
 
   <!-- Clipboard Modal -->
   <div class="modal fade" id="clipboardModal" role="dialog">
