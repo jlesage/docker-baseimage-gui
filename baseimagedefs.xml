@@ -152,6 +152,14 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.5.2</version>
+        <date>2019-04-24</date>
+        <change>Now using version 2.4.2 of `jlesage/baseimage`, which bring the following changes:</change>
+        <change level="2">Updated installed packages to get latest security fixes.</change>
+        <change>Fixed issue where the container could have a zombie process.</change>
+        <change>Fixed an issue where the password would not be submitted when pressing the enter key in the password modal.</change>
+      </release>
+      <release>
         <version>3.5.1</version>
         <date>2018-09-18</date>
         <change>Now using version 2.4.1 of `jlesage/baseimage`, which bring the following changes:</change>
