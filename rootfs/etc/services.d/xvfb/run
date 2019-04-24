@@ -37,6 +37,6 @@ rm -f /tmp/.X$(echo $DISPLAY | cut -d':' -f2)-lock
 
 log "starting..."
 
-exec 2>&1 /bin/s6-notifyoncheck /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24
+exec 2>&1 /bin/s6-notifyoncheck -d /usr/bin/Xvfb $DISPLAY -screen 0 ${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}x24
 
 # vim: set ft=sh :
