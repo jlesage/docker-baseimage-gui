@@ -32,6 +32,12 @@ var PasswordModule = {
     this.passwordSent = false;
     // Add event handlers.
     $('#SubmitPasswordButton').on('click', this.passwordSet);
+    $('#vnc_password').on('keypress', function(e) {
+      var keycode = e.keyCode || e.which;
+      if (keycode == 13) {
+        PasswordModule.passwordSet();
+      }
+    });
     $('#passwordModal').on('hidden.bs.modal', this.handleModalClosed);
     // Register the RFB callback.
     UI.rfbPasswordRequiredCallbacks.add(this.passwordRequired);
@@ -74,10 +80,10 @@ var PasswordModule = {
       }
       PasswordModule.handleModalClosed.counter++;
       if (PasswordModule.handleModalClosed.counter > 2) {
-          PasswordModule.rfb.sendPassword('wefo859803sa26gycth2378K#*2#ry1209');
+          UI.rfb.sendPassword('wefo859803sa26gycth2378K#*2#ry1209');
       }
       else {
-          PasswordModule.rfb.sendPassword('');
+          UI.rfb.sendPassword('');
       }
     }
 
