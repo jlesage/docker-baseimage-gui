@@ -152,6 +152,13 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.5.3</version>
+        <date>2019-10-04</date>
+        <change>Now using version 2.4.3 of `jlesage/baseimage`, which bring the following changes:</change>
+        <change level="2">Updated installed packages to get latest security fixes.</change>
+        <change level="2">Make sure the tzdata is installed.</change>
+      </release>
+      <release>
         <version>3.5.2</version>
         <date>2019-04-24</date>
         <change>Now using version 2.4.2 of `jlesage/baseimage`, which bring the following changes:</change>
