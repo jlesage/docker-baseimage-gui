@@ -27,6 +27,7 @@ env:
   - DOCKER_TAG=alpine-3.5-glibc
   - DOCKER_TAG=debian-8
   - DOCKER_TAG=debian-9
+  - DOCKER_TAG=debian-10
   - DOCKER_TAG=ubuntu-16.04
   - DOCKER_TAG=ubuntu-18.04
 
