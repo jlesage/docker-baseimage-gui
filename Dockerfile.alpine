@@ -123,7 +123,7 @@ RUN \
 
 # Install noVNC.
 RUN \
-    NODEJS_NPM=$(apk -q --no-cache search nodejs-npm) && \
+    NODEJS_NPM=$(apk -q --no-cache search npm | head -n1) && \
     add-pkg --virtual build-dependencies curl ${NODEJS_NPM:-nodejs} && \
     mkdir noVNC && \
     curl -sS -L ${NOVNC_URL} | tar -xz --strip 1 -C noVNC && \
