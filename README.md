@@ -488,7 +488,7 @@ various data.  The baseimage sets these variables so they all fall under
   * XDG_CONFIG_HOME=/config/xdg/config
   * XDG_CACHE_HOME=/config/xdg/cache
 
-[XDG Base Directory Specification]: https://standards.freedesktop.org/basedir-spec/basedir-spec-latest.html
+[XDG Base Directory Specification]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
 ### $HOME Environment Variable
 
