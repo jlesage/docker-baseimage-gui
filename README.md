@@ -81,7 +81,7 @@ Different docker images are available:
 [Debian 9]: https://www.debian.org/releases/stretch/
 [Debian 10]: https://www.debian.org/releases/buster/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
-[Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18:04/
+[Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18.04/
 
 Due to its size, the `Alpine` image is recommended.  However, it may be harder
 to integrate your application (especially third party ones without source code),
