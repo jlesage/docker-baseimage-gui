@@ -679,7 +679,7 @@ Finally, in the `Dockerfile` of your container, modify the configuration file of
 Usually, specifying the window's title is enough.
 
 ```
-set-patch 's/<application type="normal">/<application type="normal" title="Google Chrome">/' /etc/xdg/openbox/rc.xml
+sed-patch 's/<application type="normal">/<application type="normal" title="Google Chrome">/' /etc/xdg/openbox/rc.xml
 ```
 
 See the openbox's documentation for more details: http://openbox.org/wiki/Help:Applications
