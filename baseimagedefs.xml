@@ -152,6 +152,13 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.5.4</version>
+        <date>2020-06-26</date>
+        <change>Now using version 2.4.4 of `jlesage/baseimage`, which bring the following changes:</change>
+        <change level="2">Upgraded glibc to version 2.31 on Alpine Linux images with glibc integrated.</change>
+        <change level="2">Updated installed packages to get latest security fixes.</change>
+      </release>
+      <release>
         <version>3.5.3</version>
         <date>2019-10-04</date>
         <change>Now using version 2.4.3 of `jlesage/baseimage`, which bring the following changes:</change>
