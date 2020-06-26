@@ -13,6 +13,8 @@ env:
   global:
   - DOCKER_REPO=jlesage/baseimage-gui
   matrix:
+  - DOCKER_TAG=alpine-3.12
+  - DOCKER_TAG=alpine-3.12-glibc
   - DOCKER_TAG=alpine-3.11
   - DOCKER_TAG=alpine-3.11-glibc
   - DOCKER_TAG=alpine-3.10

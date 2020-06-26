@@ -57,6 +57,7 @@ Different docker images are available:
 | [Alpine 3.9]       | alpine-3.9       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.9.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.9 "Get your own image badge on microbadger.com") |
 | [Alpine 3.10]      | alpine-3.10      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.10.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.10 "Get your own image badge on microbadger.com") |
 | [Alpine 3.11]      | alpine-3.11      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.11.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.11 "Get your own image badge on microbadger.com") |
+| [Alpine 3.12]      | alpine-3.12      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.12.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.12 "Get your own image badge on microbadger.com") |
 | [Alpine 3.5]       | alpine-3.5-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.6]       | alpine-3.6-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.6-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.6-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.7]       | alpine-3.7-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.7-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.7-glibc "Get your own image badge on microbadger.com") |
@@ -64,6 +65,7 @@ Different docker images are available:
 | [Alpine 3.9]       | alpine-3.9-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.9-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.9-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.10]       | alpine-3.10-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.10-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.10-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.11]       | alpine-3.11-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.11-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.11-glibc "Get your own image badge on microbadger.com") |
+| [Alpine 3.12]       | alpine-3.12-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.12-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.12-glibc "Get your own image badge on microbadger.com") |
 | [Debian 8]         | debian-8         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-8/ "Get your own image badge on microbadger.com") |
 | [Debian 9]         | debian-9         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-9.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-9/ "Get your own image badge on microbadger.com") |
 | [Debian 10]        | debian-10        | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-10.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-10/ "Get your own image badge on microbadger.com") |
@@ -77,11 +79,12 @@ Different docker images are available:
 [Alpine 3.9]: https://alpinelinux.org
 [Alpine 3.10]: https://alpinelinux.org
 [Alpine 3.11]: https://alpinelinux.org
+[Alpine 3.12]: https://alpinelinux.org
 [Debian 8]: https://www.debian.org/releases/jessie/
 [Debian 9]: https://www.debian.org/releases/stretch/
 [Debian 10]: https://www.debian.org/releases/buster/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
-[Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18:04/
+[Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18.04/
 
 Due to its size, the `Alpine` image is recommended.  However, it may be harder
 to integrate your application (especially third party ones without source code),
@@ -679,7 +682,7 @@ Finally, in the `Dockerfile` of your container, modify the configuration file of
 Usually, specifying the window's title is enough.
 
 ```
-set-patch 's/<application type="normal">/<application type="normal" title="Google Chrome">/' /etc/xdg/openbox/rc.xml
+sed-patch 's/<application type="normal">/<application type="normal" title="Google Chrome">/' /etc/xdg/openbox/rc.xml
 ```
 
 See the openbox's documentation for more details: http://openbox.org/wiki/Help:Applications
