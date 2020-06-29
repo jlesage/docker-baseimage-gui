@@ -152,6 +152,11 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.5.5</version>
+        <date>2020-06-29</date>
+        <change>Adjusted the log monitor target for recent versions of YAD.</change>
+      </release>
+      <release>
         <version>3.5.4</version>
         <date>2020-06-26</date>
         <change>Now using version 2.4.4 of `jlesage/baseimage`, which bring the following changes:</change>
