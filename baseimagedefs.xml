@@ -12,7 +12,7 @@ from Jinja2 templates.
 This is a docker baseimage that can be used to create containers able to run any
 X application on a headless server very easily.  The application's GUI is
 accessed through a modern web browser (no installation or configuration needed
-on client side) or via any VNC client.
+on the client side) or via any VNC client.
     </description>
     <gui>True</gui>
     <!-- Extra stuff to be added to the documentation. -->
@@ -497,7 +497,7 @@ container.
   </baseimage>
   <app>
     <container>
-      <overview>The GUI of the application is accessed through a modern web browser (no installation or configuration needed on client side) or via any VNC client.</overview>
+      <overview>The GUI of the application is accessed through a modern web browser (no installation or configuration needed on the client side) or via any VNC client.</overview>
     </container>
   </app>
   <container>
@@ -527,7 +527,7 @@ container.
       </environment_variable>
       <environment_variable>
         <name>SECURE_CONNECTION</name>
-        <description>When set to `1`, an encrypted connection is used to access the application's GUI (either via web browser or VNC client).  See the [Security](#security) section for more details.</description>
+        <description>When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details.</description>
         <default>0</default>
         <unraid_template>
           <title>Secure Connection</title>
@@ -556,7 +556,7 @@ container.
       </environment_variable>
       <environment_variable>
         <name>ENABLE_CJK_FONT</name>
-        <description>When set to `1`, open source computer font `WenQuanYi Zen Hei` is installed.  This font contains a large range of Chinese/Japanese/Korean characters.</description>
+        <description>When set to `1`, open-source computer font `WenQuanYi Zen Hei` is installed.  This font contains a large range of Chinese/Japanese/Korean characters.</description>
         <default>0</default>
       </environment_variable>
     </environment_variables>
