@@ -4,7 +4,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 TITLE="$1"
-MSG="$(echo "$2" | fold -w 80 -s)"
+MSG="$2"
 LEVEL="$3"
 
 YAD="$(which yad)"
@@ -18,10 +18,12 @@ if [ "${YAD:-UNSET}" != "UNSET" ]; then
     if [ "$(yad --version | cut -d'.' -f1)" = "0" ]; then
         BUTTON_NAME="gtk-ok"
     else
+        MSG="$(echo "$2" | fold -w 80 -s)"
         BUTTON_NAME="yad-ok"
     fi
 
     yad \
+        --on-top \
         --fixed \
         --center \
         --title "$APP_NAME" \
