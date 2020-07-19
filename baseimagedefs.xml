@@ -152,6 +152,11 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.5.6</version>
+        <date>2020-07-19</date>
+        <change>Other small adjustments for the YAD log monitor target.</change>
+      </release>
+      <release>
         <version>3.5.5</version>
         <date>2020-06-29</date>
         <change>Adjusted the log monitor target for recent versions of YAD.</change>
