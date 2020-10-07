@@ -15,6 +15,11 @@ if ! ifconfig -a | grep -wq inet6; then
     sed-patch '/^[\t]listen \[::\]:5800 /d' /etc/nginx/default_site.conf
 fi
 
+# If environment Variable PATH_PREFIX is defined, replace it in virtual server configuration.
+if [[ ! -z "${PATH_PREFIX:-}" ]]; then
+	sed-patch "s|/sed_path_prefix|$PATH_PREFIX|g" /etc/nginx/default_site.conf
+fi
+
 # Make sure required directories exist.
 s6-setuidgid $USER_ID:$GROUP_ID mkdir -p /config/log/nginx
 
