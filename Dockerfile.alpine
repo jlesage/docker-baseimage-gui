@@ -257,7 +257,7 @@ RUN \
     install_app_icon.sh "$APP_ICON_URL"
 
 # Set environment variables.
-ENV DISPLAY=:0 \
+ENV \
     DISPLAY_WIDTH=1280 \
     DISPLAY_HEIGHT=768
 
