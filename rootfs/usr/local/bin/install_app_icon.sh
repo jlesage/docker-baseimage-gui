@@ -100,8 +100,7 @@ sed-patch "s/ICON_VERSION/$(date | md5sum | cut -c1-10)/" faviconDescription.jso
 echo "Installing Real Favicon Generator..."
 mkdir cli-real-favicon
 cd cli-real-favicon
-env HOME=/tmp npm install --cache /tmp/.npm --production https://github.com/RealFaviconGenerator/cli-real-favicon/archive/master.tar.gz
-patch_rfg_cli
+env HOME=/tmp npm install --cache /tmp/.npm --production cli-real-favicon@0.0.8
 cd ..
 
 echo "Generating favicons..." && \
