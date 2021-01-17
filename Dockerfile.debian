@@ -182,15 +182,6 @@ RUN \
           && \
     ln -s /config/log/nginx /var/log/nginx && \
     ln -s /tmp/nginx /var/lib/nginx && \
-    # Adjust user under which nginx will run.
-    useradd --system \
-            --home-dir /dev/null \
-            --no-create-home \
-            --shell /sbin/nologin \
-            nginx && \
-    # Users/groups changed, save them.
-    cp /etc/passwd /defaults/ && \
-    cp /etc/group /defaults && \
     # Generate default DH params.
     echo "Generating default DH parameters (2048 bits)..." && \
     env HOME=/tmp openssl dhparam \

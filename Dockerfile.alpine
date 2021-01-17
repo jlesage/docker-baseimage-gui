@@ -192,17 +192,6 @@ RUN \
         # alpine 3.5
         ln -s /tmp/nginx /var/lib/nginx/tmp; \
     fi && \
-    # Adjust user under which nginx will run.
-    userdel nginx && \
-    groupdel www-data && \
-    useradd --system \
-            --home-dir /dev/null \
-            --no-create-home \
-            --shell /sbin/nologin \
-            nginx && \
-    # Users/groups changed, save them.
-    cp /etc/passwd /defaults/ && \
-    cp /etc/group /defaults && \
     # Generate default DH params.
     echo "Generating default DH parameters (2048 bits)..." && \
     env HOME=/tmp openssl dhparam \
