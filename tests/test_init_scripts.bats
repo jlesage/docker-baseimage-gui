@@ -4,10 +4,15 @@ setup() {
     load setup_common
 }
 
+teardown() {
+    load teardown_common
+}
+
 @test "Checking that all init scripts terminate successfully..." {
-    run docker run --rm -p 5900:5900 -p 5800:5800 $DOCKER_IMAGE
+    docker_run --rm $DOCKER_IMAGE
+    regex=".* all container initialization scripts executed."
     for item in "${lines[@]}"; do
-        if [ "$item" == "[cont-init.d] done." ]; then
+        if [[ "$item" =~ $regex ]]; then
             break;
         fi
     done
@@ -18,5 +23,7 @@ setup() {
     echo "====================================================================="
     echo " END OUTPUT"
     echo "====================================================================="
-    [ "$item" == "[cont-init.d] done." ]
+    [[ "$item" =~ $regex ]]
 }
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4

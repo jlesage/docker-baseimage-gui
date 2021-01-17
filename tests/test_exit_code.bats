@@ -4,8 +4,12 @@ setup() {
     load setup_common
 }
 
+teardown() {
+    load teardown_common
+}
+
 @test "Checking container's exit code when /startapp.sh script is missing..." {
-    run docker run --rm -p 5900:5900 -p 5800:5800 $DOCKER_IMAGE
+    docker_run --rm $DOCKER_IMAGE
     echo "====================================================================="
     echo " OUTPUT"
     echo "====================================================================="
@@ -18,7 +22,12 @@ setup() {
 }
 
 @test "Checking container's exit code when forcing application's termination with success..." {
-    run docker run --rm -p 5900:5900 -p 5800:5800 -e "FORCE_APP_EXIT_CODE=0" $DOCKER_IMAGE
+    STARTAPP_SCRIPT="$(mktemp)"
+    echo '#!/bin/sh' >> "$STARTAPP_SCRIPT"
+    echo 'exit 0' >> "$STARTAPP_SCRIPT"
+    chmod a+rx "$STARTAPP_SCRIPT"
+    docker_run --rm -v "$STARTAPP_SCRIPT":/startapp.sh $DOCKER_IMAGE
+    rm "$STARTAPP_SCRIPT"
     echo "====================================================================="
     echo " OUTPUT"
     echo "====================================================================="
@@ -31,7 +40,12 @@ setup() {
 }
 
 @test "Checking container's exit code when forcing application's termination with custom error..." {
-    run docker run --rm -p 5900:5900 -p 5800:5800 -e "FORCE_APP_EXIT_CODE=10" $DOCKER_IMAGE
+    STARTAPP_SCRIPT="$(mktemp)"
+    echo '#!/bin/sh' >> "$STARTAPP_SCRIPT"
+    echo 'exit 10' >> "$STARTAPP_SCRIPT"
+    chmod a+rx "$STARTAPP_SCRIPT"
+    docker_run --rm -v "$STARTAPP_SCRIPT":/startapp.sh $DOCKER_IMAGE
+    rm "$STARTAPP_SCRIPT"
     echo "====================================================================="
     echo " OUTPUT"
     echo "====================================================================="
@@ -42,3 +56,5 @@ setup() {
     echo "STATUS: $status"
     [ "$status" -eq 10 ]
 }
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
