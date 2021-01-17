@@ -1,7 +1,5 @@
 #!/bin/env bats
 
-DOCKER_EXTRA_OPTS="-p 5900:5900 -p 5800:5800"
-
 setup() {
     load setup_common
     load setup_container_daemon
@@ -9,15 +7,15 @@ setup() {
 
 teardown() {
     load teardown_container_daemon
+    load teardown_common
 }
 
-@test "Checking that the /tmp directory is cleaned when CLEAN_TMP_DIR=1..." {
-    [ -n "$CONTAINER_ID" ]
+@test "Checking that the /tmp directory is cleaned..." {
+    exec_container_daemon sh -c "touch /tmp/test_file"
 
-    docker exec "$CONTAINER_ID" sh -c "touch /tmp/test_file"
+    restart_container_daemon
 
-    docker restart "$CONTAINER_ID"
-    sleep 5
-
-    docker exec "$CONTAINER_ID" sh -c "[ ! -f /tmp/test_file ]"
+    exec_container_daemon sh -c "[ ! -f /tmp/test_file ]"
 }
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
