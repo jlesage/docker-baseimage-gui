@@ -10,7 +10,7 @@ if [ ! -L "$0" ]; then
 fi
 
 WEB_CERTS="/config/certs/web-privkey.pem /config/certs/web-fullchain.pem"
-VNC_CERTS="/config/certs/vnc-server.pem"
+VNC_CERTS="/config/certs/vnc-privkey.pem /config/certs/vnc-fullchain.pem"
 DH_PARAMS="/config/certs/dhparam.pem"
 
 RUN_DIR=/var/run/certsmonitor
@@ -28,17 +28,17 @@ restart_nginx() {
     /usr/sbin/nginx -s reload
 }
 
-restart_x11vnc() {
-    echo "Restarting x11vnc..."
-    /usr/bin/x11vnc -R stop
+restart_xvnc() {
+    echo "Restarting Xvnc..."
+    killall Xvnc
 }
 
 mkdir -p "$RUN_DIR"
 
 # Get previous hashes.
-WEB_CERTS_HASH="$(cat "$WEB_CERTS_HASH_FILE" || true)"
-VNC_CERTS_HASH="$(cat "$VNC_CERTS_HASH_FILE" || true)"
-DH_PARAMS_HASH="$(cat "$DH_PARAMS_HASH_FILE" || true)"
+WEB_CERTS_HASH="$(cat "$WEB_CERTS_HASH_FILE" 2>/dev/null || true)"
+VNC_CERTS_HASH="$(cat "$VNC_CERTS_HASH_FILE" 2>/dev/null || true)"
+DH_PARAMS_HASH="$(cat "$DH_PARAMS_HASH_FILE" 2>/dev/null || true)"
 
 # Get new hashes.
 WEB_CERTS_NEW_HASH="$(hash $WEB_CERTS)"
@@ -59,18 +59,18 @@ if [ -n "$WEB_CERTS_HASH" ] && [ -n "$VNC_CERTS_HASH" ] && [ -n "$DH_PARAMS_HASH
         restart_nginx
     fi
 
-    # Restart x11vnc if certificates changed.
+    # Restart xvnc if certificates changed.
     if [ "$VNC_CERTS_NEW_HASH" != "$VNC_CERTS_HASH" ]; then
         echo "VNC certificates changed."
         UPDATE_HASHES=1
-        restart_x11vnc
+        restart_xvnc
     fi
 else
     UPDATE_HASHES=1
 fi
 
 # Save new hashes.
-if [ "$SAVE_HASHES" -eq 1 ]; then
+if [ "$UPDATE_HASHES" -eq 1 ]; then
     echo "$WEB_CERTS_NEW_HASH" > "$WEB_CERTS_HASH_FILE"
     echo "$VNC_CERTS_NEW_HASH" > "$VNC_CERTS_HASH_FILE"
     echo "$DH_PARAMS_NEW_HASH" > "$DH_PARAMS_HASH_FILE"
