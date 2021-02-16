@@ -11,9 +11,9 @@ FROM ${BASEIMAGE}
 
 # Define software versions.
 ARG NGINX_VERSION=1.18.0
-ARG LIBVNCSERVER_VERSION=9029b86
-ARG X11VNC_VERSION=29597a9
-ARG STUNNEL_VERSION=5.44
+ARG NGINXWEBSOCKIFYMOD_VERSION=0.0.3
+ARG TIGERVNC_VERSION=1.11.0
+ARG XSERVER_VERSION=1.20.10
 ARG NOVNC_VERSION=fa559b3
 ARG BOOTSTRAP_VERSION=3.3.7
 ARG FONTAWESOME_VERSION=4.7.0
@@ -22,9 +22,9 @@ ARG JQUERY_UI_TOUCH_PUNCH_VERSION=4bc0091
 
 # Define software download URLs.
 ARG NGINX_URL=http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
-ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}.tar.gz
-ARG X11VNC_URL=https://github.com/jlesage/x11vnc/archive/${X11VNC_VERSION}.tar.gz
-ARG STUNNEL_URL=https://www.usenix.org.uk/mirrors/stunnel/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz
+ARG NGINXWEBSOCKIFYMOD_URL=https://github.com/tg123/websockify-nginx-module/archive/v${NGINXWEBSOCKIFYMOD_VERSION}.tar.gz
+ARG TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
+ARG XSERVER_URL=https://github.com/freedesktop/xorg-xserver/archive/xorg-server-${XSERVER_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=https://fontawesome.com/v${FONTAWESOME_VERSION}/assets/font-awesome-${FONTAWESOME_VERSION}.zip
@@ -34,71 +34,102 @@ ARG JQUERY_UI_TOUCH_PUNCH_URL=https://raw.github.com/furf/jquery-ui-touch-punch/
 # Define working directory.
 WORKDIR /tmp
 
-# Compile x11vnc.
+# Compile TigerVNC.
 RUN \
     add-pkg --virtual build-dependencies \
-            curl \
-            build-base \
-            autoconf \
-            automake \
-            libtool \
-            libx11-dev \
-            libxtst-dev \
-            libjpeg-turbo-dev \
-            libpng-dev \
-            libxinerama-dev \
-            libxdamage-dev \
-            libxcomposite-dev \
-            libxcursor-dev \
-            libxrandr-dev \
-            libxfixes-dev \
-            libice-dev \
-            && \
-    # Download sources
-    mkdir libvncserver x11vnc && \
-    curl -sS -L ${LIBVNCSERVER_URL} | tar -xz --strip 1 -C libvncserver && \
-    curl -sS -L ${X11VNC_URL} | tar -xz --strip 1 -C x11vnc && \
-    # Compile libvncserver
-    cd libvncserver && \
-    ./autogen.sh --prefix=/tmp/install && \
-    make install && \
-    cd .. && \
-    # Compile x11vnc
-    cd x11vnc && \
-    autoreconf -v --install && \
-    PKG_CONFIG_PATH=/tmp/install/lib/pkgconfig/ ./configure --prefix=/tmp/install --with-websockets && \
-    make install && \
-    cd .. && \
-    # Install libraries
-    strip install/lib/libvnc*.so && \
-    cp -P install/lib/libvncserver.so* /usr/lib/ && \
-    cp -P install/lib/libvncclient.so* /usr/lib/ && \
-    # Install binaries
-    strip install/bin/x11vnc && \
-    cp install/bin/x11vnc /usr/bin/ && \
-    # Cleanup
-    del-pkg build-dependencies && \
-    rm -rf /tmp/* /tmp/.[!.]*
-
-# Compile stunnel
-RUN \
-    add-pkg --virtual build-dependencies \
-            curl \
-            build-base \
-            openssl-dev \
-            && \
-    # Download sources
-    mkdir stunnel && \
-    curl -# -L ${STUNNEL_URL} | tar -xz --strip 1 -C stunnel && \
-    # Compile stunnel
-    cd stunnel && \
-    ./configure && \
-    make && \
-    find . && \
-    cd .. && \
-    # Install binaries
-    strip stunnel/src/stunnel && \
-    cp -v stunnel/src/stunnel /usr/bin/ && \
+        curl \
+        build-base \
+        cmake \
+        autoconf \
+        automake \
+        libtool \
+        xcb-util-dev \
+        xtrans \
+        font-util-dev \
+        pixman-dev \
+        libdrm-dev \
+        libx11-dev \
+        mesa-dev \
+        libgcrypt-dev \
+        libxkbfile-dev \
+        libxfont2-dev \
+        libjpeg-turbo-dev \
+        linux-pam-dev \
+        gnutls-dev \
+        fltk-dev \
+        libxrandr-dev \
+        libxtst-dev \
+        && \
+    # Set same default compilation flags as abuild.
+    export CFLAGS="-Os -fomit-frame-pointer" && \
+    export CXXFLAGS="$CFLAGS" && \
+    export CPPFLAGS="$CFLAGS" && \
+    export LDFLAGS="-Wl,--as-needed" && \
+    # Download.
+    mkdir tigervnc && \
+    mkdir xserver && \
+    curl -# -L ${TIGERVNC_URL} | tar -xz --strip 1 -C tigervnc && \
+    curl -# -L ${XSERVER_URL} | tar -xz --strip 1 -C xserver && \
+    # Compile.
+    cd tigervnc && \
+    curl -# -L https://github.com/TigerVNC/tigervnc/commit/701605e.patch | patch -p1 && \
+    cmake -G "Unix Makefiles" \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DINSTALL_SYSTEMD_UNITS=OFF \
+        -DENABLE_NLS=OFF \
+        -DENABLE_GNUTLS=ON \
+        -DBUILD_VIEWER=OFF \
+        && \
+    make -j$(nproc) && \
+    cd unix/xserver && \
+    cp -r /tmp/xserver/* . && \
+    patch -p1 < ../xserver120.patch && \
+    autoreconf -fiv && \
+    ./configure \
+        --prefix=/usr \
+        --sysconfdir=/etc/X11 \
+        --localstatedir=/var \
+        --with-xkb-path=/usr/share/X11/xkb \
+        --with-xkb-output=/var/lib/xkb \
+        --with-default-font-path=/usr/share/fonts/misc,/usr/share/fonts/100dpi:unscaled,/usr/share/fonts/75dpi:unscaled,/usr/share/fonts/TTF,/usr/share/fonts/Type1 \
+        --disable-docs \
+        --disable-unit-tests \
+        \
+        --with-pic \
+        --disable-static \
+        --disable-shared \
+        \
+        --disable-listen-tcp \
+        --enable-listen-unix \
+        --disable-listen-local \
+        \
+        --disable-dpms \
+        \
+        --disable-systemd-logind \
+        --disable-config-hal \
+        --disable-xorg \
+        --disable-dmx \
+        --disable-xvfb \
+        --disable-xnest \
+        --disable-xquartz \
+        --disable-xwayland \
+        --disable-xwayland-eglstream \
+        --disable-standalone-xpbproxy \
+        --disable-xwin \
+        --disable-glamor \
+        --disable-kdrive \
+        --disable-xephyr \
+        && \
+    make -j$(nproc) && \
+    cd ../../../ && \
+    # Install.
+    make DESTDIR=/tmp/tigervnc-install -C tigervnc/unix/xserver install && \
+    strip /tmp/tigervnc-install/usr/bin/Xvnc && \
+    cp -v /tmp/tigervnc-install/usr/bin/Xvnc /usr/bin/ && \
+    make DESTDIR=/tmp/tigervnc-install -C tigervnc/unix/vncpasswd install && \
+    strip /tmp/tigervnc-install/usr/bin/vncpasswd && \
+    cp -v /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/ && \
     # Cleanup
     del-pkg build-dependencies && \
     rm -rf /tmp/* /tmp/.[!.]*
@@ -120,6 +151,8 @@ RUN \
     # Download.
     mkdir nginx && \
     curl -# -L ${NGINX_URL} | tar xz --strip 1 -C nginx && \
+    mkdir websockify-nginx-module && \
+    curl -# -L ${NGINXWEBSOCKIFYMOD_URL} | tar xz --strip 1 -C websockify-nginx-module && \
     # Compile.
     cd nginx && \
     ./configure \
@@ -170,6 +203,11 @@ RUN \
         --without-http_upstream_least_conn_module \
         --without-http_upstream_keepalive_module \
         --without-http_upstream_zone_module \
+        \
+        --with-stream \
+        --with-stream_ssl_module \
+        \
+        --add-module=/tmp/websockify-nginx-module \
         && \
     make -j$(nproc) && \
     # Install.
@@ -188,20 +226,27 @@ RUN \
 # Install packages.
 RUN \
     add-pkg \
-        # X11 VNC server dependencies
-        openssl \
-        libxtst \
-        libxi \
+        # TigerVNC dependencies
+        libstdc++ \
+        libgcrypt \
         libjpeg-turbo \
-        libxcomposite \
-        # X virtual framebuffer display server
-        xvfb \
+        libxfont2 \
+        font-misc-misc \
+        font-cursor-misc \
+        gnutls \
+        mesa-gl \
+        xkbcomp \
+        xkeyboard-config \
+        # Used to determine when the X server is ready
         xdpyinfo \
         # Openbox window manager
         openbox \
         xsetroot \
         # Font
-        font-croscore && \
+        font-croscore \
+        # Needed to generate self-signed certificates
+        openssl \
+        && \
     # Remove some unneeded stuff.
     rm -rf /var/cache/fontconfig/*
 
@@ -260,8 +305,7 @@ RUN \
     env HOME=/tmp openssl dhparam \
         -out "/defaults/dhparam.pem" \
         2048 \
-        > /dev/null 2>&1 && \
-    rm -rf /tmp/* /tmp/.[!.]*
+        > /dev/null 2>&1
 
 # Add files.
 COPY rootfs/ /
@@ -269,7 +313,7 @@ COPY rootfs/ /
 # Set version to CSS and JavaScript file URLs.
 RUN sed-patch "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.vnc
 
-# Minify noVNC UI JS files
+# Minify noVNC UI JS files.
 RUN \
     NODEJS_NPM=$(apk -q --no-cache search nodejs-npm) && \
     add-pkg --virtual build-dependencies ${NODEJS_NPM:-nodejs} && \

@@ -38,25 +38,44 @@ if [ ! -f "$CERT_DIR/web-privkey.pem" ] && [ ! -f "$CERT_DIR/web-fullchain.pem" 
     chmod 400 "$CERT_DIR/web-privkey.pem"
 fi
 
-# Generate certificate used by the VNC server (stunnel).
-if [ ! -f "$CERT_DIR/vnc-server.pem" ]; then
+# If certificate from previous version is found, split it.
+if [ -f "$CERT_DIR/vnc-server.pem" ]; then
+    echo "splitting $CERT_DIR/vnc-server.pem..."
+
+    # Extract the private key.
+    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl pkey \
+        -in "$CERT_DIR/vnc-server.pem" \
+        -out "$CERT_DIR/vnc-privkey.pem"
+    chmod 400 "$CERT_DIR/vnc-privkey.pem"
+
+    # Extract certificates.
+    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl crl2pkcs7 \
+        -nocrl \
+        -certfile "$CERT_DIR/vnc-server.pem" \
+        | \
+    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl pkcs7 \
+        -print_certs \
+        -out "$CERT_DIR/vnc-fullchain.pem"
+
+    mv  "$CERT_DIR/vnc-server.pem"  "$CERT_DIR/vnc-server.pem.converted"
+fi
+
+# Generate certificate used by the VNC server.
+if [ ! -f "$CERT_DIR/vnc-privkey.pem" ] && [ ! -f "$CERT_DIR/vnc-fullchain.pem" ] ; then
     echo "generating self-signed certificate for VNC server..."
-    TMP_DIR="$(mktemp -d)"
-    env HOME=/tmp openssl req \
+    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl req \
         -x509 \
         -nodes \
         -days 3650 \
         -newkey rsa:2048 \
         -subj "/C=CA/O=github.com\\/jlesage\\/$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')/OU=Docker container VNC access/CN=vnc.$(echo "$APP_NAME" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').example.com" \
-        -keyout "$TMP_DIR/web-privkey.pem" \
-        -out "$TMP_DIR/cert.pem" \
+        -keyout "$CERT_DIR/vnc-privkey.pem" \
+        -out "$CERT_DIR/vnc-fullchain.pem" \
         > /dev/null 2>&1
-    cat "$TMP_DIR/web-privkey.pem" \
-        "$TMP_DIR/cert.pem" \
-        "$CERT_DIR/dhparam.pem" > "$CERT_DIR/vnc-server.pem"
-    chmod 400 "$CERT_DIR/vnc-server.pem"
-    chown $USER_ID:$GROUP_ID "$CERT_DIR/vnc-server.pem"
-    rm -r "$TMP_DIR"
+    chmod 400 "$CERT_DIR/vnc-privkey.pem"
 fi
+
+mkdir -p /var/run/certsmonitor
+chown $USER_ID:$GROUP_ID /var/run/certsmonitor
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

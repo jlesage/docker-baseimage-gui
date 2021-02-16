@@ -9,25 +9,26 @@ set -u # Treat unset variables as an error.
 
 # If password is saved in clear, obfuscate it to a new file.
 if [ -f /config/.vncpass_clear ]; then
-    /usr/bin/x11vnc -storepasswd "$( cat /config/.vncpass_clear )" /config/.vncpass
+    echo "obfuscating VNC password..."
+    rm -f /config/.vncpass
+    cat /config/.vncpass_clear | /usr/bin/vncpasswd -f  > /config/.vncpass
     rm /config/.vncpass_clear
 fi
 
 # If password is set in a file, use it.  Else, use the password stored in the
 # environment variable.
 if [ -f /config/.vncpass ]; then
-    cp /config/.vncpass /root/.vncpass
-elif [ "${VNC_PASSWORD:-UNSET}" != "UNSET" ]; then
-    /usr/bin/x11vnc -storepasswd "$VNC_PASSWORD" /root/.vncpass
-else
-    rm -f /root/.vncpass
+    echo "VNC password file found."
+elif [ -n "${VNC_PASSWORD:-}" ]; then
+    echo "creating VNC password file from environment variable..."
+    echo "$VNC_PASSWORD" | /usr/bin/vncpasswd -f  > /tmp/.vncpass
+    chmod 400 /tmp/.vncpass
 fi
 
 # Adjust ownership and permissions of password files.
-[ -f /config/.vncpass ] && chown $USER_ID:$GROUP_ID /config/.vncpass
-[ -f /config/.vncpass ] && chmod 600 /config/.vncpass
-[ -f /root/.vncpass ]   && chmod 400 /root/.vncpass
-
-return 0
+if [ -f /config/.vncpass ]; then
+   chown $USER_ID:$GROUP_ID /config/.vncpass
+   chmod 400 /config/.vncpass
+fi
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

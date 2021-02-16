@@ -1,0 +1,76 @@
+#!/bin/sh
+
+set -u # Treat unset variables as an error.
+
+# Window size.
+echo "-geometry"
+echo "${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}"
+
+# Color depth.
+echo "-depth"
+echo "24"
+
+# VNC listening port.
+if [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+    # SSL secure connection enabled: disable TCP listening.
+    echo "-rfbport=-1"
+else
+    echo "-rfbport=5900"
+fi
+
+# VNC Unix socket.
+echo "-rfbunixpath=/tmp/vnc.sock"
+echo "-rfbunixmode=0660"
+
+# Support for IPv6.
+if ifconfig -a | grep -wq inet6; then
+    echo "-UseIPv6=yes"
+else
+    echo "-UseIPv6=no"
+fi
+
+# VNC security.
+PASSWORD_FILE=
+if [ -f /config/.vncpass ] && [ -n "$( cat /config/.vncpass )" ]; then
+    PASSWORD_FILE=/config/.vncpass
+elif [ -f /tmp/.vncpass ] && [ -n "$( cat /tmp/.vncpass )" ]; then
+    PASSWORD_FILE=/tmp/.vncpass
+fi
+
+if [ -n "$PASSWORD_FILE" ]; then
+    # With password.
+    if [ "${SECURE_CONNECTION:-0}" -eq 0 ] || [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+        echo "-SecurityTypes=VncAuth"
+    else
+        echo "-SecurityTypes=X509Vnc,TLSVnc"
+    fi
+    echo "-rfbauth=$PASSWORD_FILE"
+else
+    # Without password.
+    if [ "${SECURE_CONNECTION:-0}" -eq 0 ] || [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+        echo "-SecurityTypes=None"
+    else
+        echo "-SecurityTypes=X509None,TLSNone"
+    fi
+fi
+
+if [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" != "SSL" ]; then
+    echo "-X509Key"
+    echo "/config/certs/vnc-privkey.pem"
+    echo "-X509Cert"
+    echo "/config/certs/vnc-fullchain.pem"
+fi
+
+# Desktop (app) name.
+echo "-desktop=$APP_NAME"
+
+# Extra options.
+if [ -n "${XVNC_EXTRA_OPTS:-}" ]; then
+    for OPT in $XVNC_EXTRA_OPTS
+    do
+        echo "$OPT"
+    done
+fi
+
+# X11 display.
+echo "$DISPLAY"

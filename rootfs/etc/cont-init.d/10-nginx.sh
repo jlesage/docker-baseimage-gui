@@ -5,11 +5,16 @@ set -u # Treat unset variables as an error.
 
 # Adjust nginx virtual server configuration.
 cp /defaults/default_site.conf /etc/nginx/
+rm -f /etc/nginx/default_stream.conf
 if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
+    # Secure connection disabled: remove ssl related setting from the site
+    # config.
     sed-patch 's/ssl default_server/default_server/g' /etc/nginx/default_site.conf
     sed-patch '/^[\t]ssl_certificate/d' /etc/nginx/default_site.conf
     sed-patch '/^[\t]ssl_dhparam/d' /etc/nginx/default_site.conf
-    sed-patch 's/:5950;/:5900;/' /etc/nginx/default_site.conf
+elif [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+    # SSL secure connection enabled: activate the default stream config.
+    cp /defaults/default_stream.conf /etc/nginx/default_stream.conf
 fi
 if ! ifconfig -a | grep -wq inet6; then
     sed-patch '/^[\t]listen \[::\]:5800 /d' /etc/nginx/default_site.conf
