@@ -35,13 +35,7 @@ Options:
 }
 
 install_build_dependencies_alpine() {
-    case "$(cat /etc/alpine-release)" in
-        3.5.*) NODEJS_NPM="nodejs-current" ;;
-        3.6.*) NODEJS_NPM="nodejs-current-npm" ;;
-        3.7.*) NODEJS_NPM="nodejs-npm" ;;
-        *) NODEJS_NPM="npm" ;;
-    esac
-    add-pkg --virtual rfg-build-dependencies curl $NODEJS_NPM jq sed
+    add-pkg --virtual rfg-build-dependencies curl npm jq sed
 }
 
 install_build_dependencies_debian() {
@@ -57,18 +51,7 @@ install_build_dependencies() {
 }
 
 uninstall_build_dependencies() {
-    del-pkg rfg-build-dependencies
-}
-
-patch_rfg_cli() {
-    if [ -n "$(which apk)" ]; then
-        case "$(cat /etc/alpine-release)" in
-            3.5.*|3.6.*|3.7.*)
-                sed-patch 's|return s\.replace(.*|return s.replace(/(?:^\|\.?)([A-Z])/g, function(x,y) {|' /tmp/cli-real-favicon/node_modules/rfg-api/index.js
-                ;;
-            *) ;;
-    esac
-    fi
+  del-pkg rfg-build-dependencies
 }
 
 cleanup() {
