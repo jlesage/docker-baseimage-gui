@@ -10,6 +10,7 @@ ARG BASEIMAGE=unknown
 FROM ${BASEIMAGE}
 
 # Define software versions.
+ARG NGINX_VERSION=1.18.0
 ARG LIBVNCSERVER_VERSION=9029b86
 ARG X11VNC_VERSION=29597a9
 ARG NOVNC_VERSION=fa559b3
@@ -19,6 +20,7 @@ ARG JQUERY_VERSION=3.2.1
 ARG JQUERY_UI_TOUCH_PUNCH_VERSION=4bc0091
 
 # Define software download URLs.
+ARG NGINX_URL=http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}.tar.gz
 ARG X11VNC_URL=https://github.com/jlesage/x11vnc/archive/${X11VNC_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/${NOVNC_VERSION}.tar.gz
@@ -89,6 +91,85 @@ RUN \
     cp install/bin/x11vnc /usr/bin/ && \
     # Cleanup
     del-pkg build-dependencies && \
+    rm -rf /tmp/* /tmp/.[!.]*
+
+# Compile nginx.
+RUN \
+    add-pkg --virtual build-dependencies \
+        build-essential \
+        curl \
+        ca-certificates \
+        libssl-dev \
+        libpcre3-dev \
+        && \
+    # Download.
+    mkdir nginx && \
+    mkdir websockify-nginx-module && \
+    curl -# -L ${NGINX_URL} | tar xz --strip 1 -C nginx && \
+    curl -# -L https://github.com/tg123/websockify-nginx-module/archive/v0.0.3.tar.gz | tar xz --strip 1 -C websockify-nginx-module && \
+    # Compile.
+    cd nginx && \
+    ./configure \
+        --prefix=/var/lib/nginx \
+        --sbin-path=/usr/sbin/nginx \
+        --modules-path=/usr/lib/nginx/modules \
+        --conf-path=/etc/nginx/nginx.conf \
+        --pid-path=/var/run/nginx/nginx.pid \
+        --lock-path=/var/run/nginx/nginx.lock \
+        --error-log-path=/config/log/nginx/error.log \
+        --http-log-path=/config/log/nginx/access.log \
+        \
+        --http-client-body-temp-path=/var/tmp/nginx/client_body \
+        --http-proxy-temp-path=/var/tmp/nginx/proxy \
+        \
+        --user=app \
+        --group=app \
+        \
+        --with-threads \
+        --with-file-aio \
+        --with-http_ssl_module \
+        --with-pcre \
+        --with-pcre-jit \
+        \
+        --without-http_charset_module \
+        --without-http_gzip_module \
+        --without-http_ssi_module \
+        --without-http_userid_module \
+        --without-http_access_module \
+        --without-http_auth_basic_module \
+        --without-http_mirror_module \
+        --without-http_autoindex_module \
+        --without-http_geo_module \
+        --without-http_split_clients_module \
+        --without-http_referer_module \
+        --without-http_rewrite_module \
+        --without-http_fastcgi_module \
+        --without-http_uwsgi_module \
+        --without-http_scgi_module \
+        --without-http_grpc_module \
+        --without-http_memcached_module \
+        --without-http_limit_conn_module \
+        --without-http_limit_req_module \
+        --without-http_empty_gif_module \
+        --without-http_browser_module \
+        --without-http_upstream_hash_module \
+        --without-http_upstream_ip_hash_module \
+        --without-http_upstream_least_conn_module \
+        --without-http_upstream_keepalive_module \
+        --without-http_upstream_zone_module \
+        && \
+    make -j$(nproc) && \
+    # Install.
+    make install && \
+    strip /usr/sbin/nginx && \
+    cd .. && \
+    # Cleanup.
+    del-pkg build-dependencies && \
+    find /etc/nginx ! -name "mime.types" -type f -exec rm -v {} ';' && \
+    rm -r \
+        /var/lib/nginx \
+        /config/log \
+        && \
     rm -rf /tmp/* /tmp/.[!.]*
 
 # Install packages.
@@ -164,25 +245,8 @@ RUN \
     del-pkg build-dependencies && \
     rm -rf /tmp/* /tmp/.[!.]*
 
-# Install nginx.
+# Generate default DH params.
 RUN \
-    add-pkg nginx && \
-    rm /etc/nginx/nginx.conf \
-       /etc/init.d/nginx \
-       /etc/logrotate.d/nginx \
-       /etc/ufw/applications.d/nginx \
-       /etc/default/nginx \
-       && \
-    rm -r /etc/nginx/snippets \
-          /etc/nginx/sites-enabled \
-          /etc/nginx/sites-available \
-          /usr/share/nginx \
-          /usr/share/doc/nginx \
-          /var/log/nginx \
-          && \
-    ln -s /config/log/nginx /var/log/nginx && \
-    ln -s /tmp/nginx /var/lib/nginx && \
-    # Generate default DH params.
     echo "Generating default DH parameters (2048 bits)..." && \
     env HOME=/tmp openssl dhparam \
         -out "/defaults/dhparam.pem" \

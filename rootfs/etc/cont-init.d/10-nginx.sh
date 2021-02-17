@@ -16,6 +16,16 @@ if ! ifconfig -a | grep -wq inet6; then
 fi
 
 # Make sure required directories exist.
-su-exec $USER_ID:$GROUP_ID mkdir -p /config/log/nginx
+NGINX_DIRS="\
+    /config/log/nginx \
+    /var/run/nginx \
+    /var/tmp/nginx \
+"
+
+for DIR in $NGINX_DIRS
+do
+    mkdir -p "$DIR"
+    chown $USER_ID:$GROUP_ID "$DIR"
+done
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
