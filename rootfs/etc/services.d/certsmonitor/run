@@ -46,8 +46,8 @@ VNC_CERTS_HASH="$(hash $VNC_CERTS)"
 DH_PARAMS_HASH="$(hash $DH_PARAMS)"
 
 while true; do
-    # Check for certificate changes every 5 seconds.
-    sleep 5
+    # Check for certificate changes periodically (default: 5 seconds).
+    sleep "${CERTSMONITOR_INTERVAL:-5}"
 
     # Get new hashes.
     WEB_CERTS_NEW_HASH="$(hash $WEB_CERTS)"
