@@ -35,10 +35,12 @@ Options:
 }
 
 install_build_dependencies_alpine() {
-    # In alpine 3.5, npm is in nodejs package, while in alpine 3.6 it's in
-    # nodejs-npm.
-    NODEJS_NPM=$(apk -q --no-cache search npm | head -n1)
-    NODEJS_NPM=${NODEJS_NPM:-nodejs}
+    case "$(cat /etc/alpine-release)" in
+        3.5.*) NODEJS_NPM="nodejs-current" ;;
+        3.6.*) NODEJS_NPM="nodejs-current-npm" ;;
+        3.7.*) NODEJS_NPM="nodejs-npm" ;;
+        *) NODEJS_NPM="npm" ;;
+    esac
     add-pkg --virtual rfg-build-dependencies curl $NODEJS_NPM jq sed
 }
 
@@ -55,7 +57,18 @@ install_build_dependencies() {
 }
 
 uninstall_build_dependencies() {
-  del-pkg rfg-build-dependencies
+    del-pkg rfg-build-dependencies
+}
+
+patch_rfg_cli() {
+    if [ -n "$(which apk)" ]; then
+        case "$(cat /etc/alpine-release)" in
+            3.5.*|3.6.*|3.7.*)
+                sed-patch 's|return s\.replace(.*|return s.replace(/(?:^\|\.?)([A-Z])/g, function(x,y) {|' /tmp/cli-real-favicon/node_modules/rfg-api/index.js
+                ;;
+            *) ;;
+    esac
+    fi
 }
 
 cleanup() {
@@ -88,6 +101,7 @@ echo "Installing Real Favicon Generator..."
 mkdir cli-real-favicon
 cd cli-real-favicon
 env HOME=/tmp npm install --cache /tmp/.npm --production https://github.com/RealFaviconGenerator/cli-real-favicon/archive/master.tar.gz
+patch_rfg_cli
 cd ..
 
 echo "Generating favicons..." && \
