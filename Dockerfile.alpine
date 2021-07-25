@@ -1,7 +1,7 @@
 #
-# baseimage-gui Dockerfile
+# baseimage-gui-cac Dockerfile
 #
-# https://github.com/jlesage/docker-baseimage-gui
+# https://github.com/dmwilson1990/docker-baseimage-gui-cac
 #
 
 ARG BASEIMAGE=unknown
@@ -264,8 +264,8 @@ EXPOSE 5800 5900
 # Metadata.
 ARG IMAGE_VERSION=unknown
 LABEL \
-      org.label-schema.name="baseimage-gui" \
+      org.label-schema.name="baseimage-gui-cac" \
       org.label-schema.description="A minimal docker baseimage to ease creation of X graphical application containers" \
       org.label-schema.version="${IMAGE_VERSION}" \
-      org.label-schema.vcs-url="https://github.com/jlesage/docker-baseimage-gui" \
+      org.label-schema.vcs-url="https://github.com/dmwilson1990/docker-baseimage-gui-cac" \
       org.label-schema.schema-version="1.0"
