@@ -6,7 +6,7 @@ from Jinja2 templates.
 -->
 <defs>
   <baseimage>
-    <name>baseimage-gui</name>
+    <name>baseimage-gui-cac</name>
     <title>A minimal docker baseimage to ease creation of X graphical application containers</title>
     <description>
 This is a docker baseimage that can be used to create containers able to run any
