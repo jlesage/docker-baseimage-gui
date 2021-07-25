@@ -11,6 +11,9 @@ if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
     sed-patch '/^[\t]ssl_dhparam/d' /etc/nginx/default_site.conf
     sed-patch 's/:5950;/:5900;/' /etc/nginx/default_site.conf
 fi
+if [ "${CAC_AUTH:-0}" -eq 1 ]; then
+    sed-patch '19i \\tssl_client_certificate /config/certs/client.pem; \n\tssl_verify_client on; \n\tif ($ssl_client_s_dn !~ "CN=CAC_Common_Name") { \n\t\treturn 403; \n\t} \n' /etc/nginx/default_site.conf
+fi
 if ! ifconfig -a | grep -wq inet6; then
     sed-patch '/^[\t]listen \[::\]:5800 /d' /etc/nginx/default_site.conf
 fi
