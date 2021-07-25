@@ -65,7 +65,7 @@ done
 
 for DOCKER_TAG in $DOCKER_TAGS; do
     # Export build variables.
-    export DOCKER_REPO=dmwilson1990/baseimage-gui-cac
+    export DOCKER_REPO=dmwilson1990/docker-baseimage-gui-cac
     export DOCKER_TAG=$DOCKER_TAG
     export USE_DOCKER_BUILD_CACHE=${USE_DOCKER_BUILD_CACHE:-1}
 
