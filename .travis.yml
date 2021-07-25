@@ -11,7 +11,7 @@ services:
 
 env:
   global:
-  - DOCKER_REPO=dmwilson1990/baseimage-gui-cac
+  - DOCKER_REPO=dmwilson1990/docker-baseimage-gui-cac
   matrix:
   - DOCKER_TAG=alpine-3.12
   - DOCKER_TAG=alpine-3.12-glibc
