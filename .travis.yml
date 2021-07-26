@@ -39,7 +39,7 @@ before_install:
   - sudo add-apt-repository ppa:duggan/bats --yes
   - sudo apt-get -qq update
   - sudo apt-get install -y bats
-  - sudo apt-get install -y nmap
+#  - sudo apt-get install -y nmap
 
 before_script:
   - hooks/pre_build
