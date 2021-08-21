@@ -2,6 +2,9 @@
 # Travis CI recipe to build, test and push docker images to the Docker Hub.
 #
 
+sudo: required
+dist: focal
+
 language: generic
 
 services:
@@ -32,9 +35,9 @@ env:
 #  - DOCKER_TAG=ubuntu-18.04
 
 before_install:
-  - add-apt-repository ppa:duggan/bats --yes
-  - apt-get -qq update
-  - apt-get install -y bats
+  - sudo add-apt-repository ppa:duggan/bats --yes
+  - sudo apt-get -qq update
+  - sudo apt-get install -y bats
 
 before_script:
   - hooks/pre_build
