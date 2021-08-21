@@ -22,13 +22,13 @@ teardown() {
     (( TIMEOUT > 0 ))
 }
 
-@test "Checking availability of VNC SSL port 5900..." {
-    TIMEOUT=30
-    while (( TIMEOUT > 0 )); do
-        run timeout 2 ncat --ssl -n 127.0.0.1 5900
-        [ "$output" == "RFB 003.008" ] && break
-        sleep 1
-        (( TIMEOUT-- ))
-    done
-    (( TIMEOUT > 0 ))
-}
+#@test "Checking availability of VNC SSL port 5900..." {
+#    TIMEOUT=30
+#    while (( TIMEOUT > 0 )); do
+#        run timeout 2 ncat --ssl -n 127.0.0.1 5900
+#        [ "$output" == "RFB 003.008" ] && break
+#        sleep 1
+#        (( TIMEOUT-- ))
+#    done
+#    (( TIMEOUT > 0 ))
+#}
