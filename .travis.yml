@@ -3,7 +3,6 @@
 #
 
 sudo: required
-dist: focal
 
 language: generic
 
