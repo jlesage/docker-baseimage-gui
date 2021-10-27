@@ -1,2 +1,0 @@
-DOCKERFILE=Dockerfile.alpine
-BASEIMAGE=jlesage/baseimage:alpine-3.6-glibc-v2.4.5
