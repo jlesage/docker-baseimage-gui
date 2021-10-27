@@ -1,0 +1,219 @@
+name: Docker Baseimage CI
+
+env:
+  DOCKERHUB_USERNAME: jlesage
+  DOCKER_IMAGE_NAME: jlesage/baseimage-gui
+
+on:
+  push:
+    branches: '*'
+    tags:
+      - v[0-9]+.[0-9]+.[0-9]+
+      - v[0-9]+.[0-9]+.[0-9]+-pre.[0-9]+
+  pull_request:
+
+jobs:
+  pre-build:
+    name: Pre-build
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Cancel jobs (requested by commit message)
+        uses: andymckay/cancel-action@0.2
+        if: "contains(github.event.head_commit.message, '[skip ci]')"
+
+  build:
+    name: Build image
+    needs: pre-build
+    runs-on: ubuntu-20.04
+
+    services:
+      registry:
+        image: registry:2
+        ports:
+          - 5000:5000
+
+    strategy:
+      fail-fast: false
+      matrix:
+        info:
+          - '{ "tag_prefix": "alpine-3.10",  "baseimage": "jlesage/baseimage:alpine-3.10-v3.0.0-pre.2",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "alpine-3.11",  "baseimage": "jlesage/baseimage:alpine-3.11-v3.0.0-pre.2",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "alpine-3.12",  "baseimage": "jlesage/baseimage:alpine-3.12-v3.0.0-pre.2",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "alpine-3.13",  "baseimage": "jlesage/baseimage:alpine-3.13-v3.0.0-pre.2",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "alpine-3.14",  "baseimage": "jlesage/baseimage:alpine-3.14-v3.0.0-pre.2",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "debian-8",     "baseimage": "jlesage/baseimage:debian-8-v3.0.0-pre.2",     "platforms": "linux/amd64,linux/386,linux/arm/v7" }'
+          - '{ "tag_prefix": "debian-9",     "baseimage": "jlesage/baseimage:debian-9-v3.0.0-pre.2",     "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "debian-10",    "baseimage": "jlesage/baseimage:debian-10-v3.0.0-pre.2",    "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "debian-11",    "baseimage": "jlesage/baseimage:debian-11-v3.0.0-pre.2",    "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "ubuntu-16.04", "baseimage": "jlesage/baseimage:ubuntu-16.04-v3.0.0-pre.2", "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "ubuntu-18.04", "baseimage": "jlesage/baseimage:ubuntu-18.04-v3.0.0-pre.2", "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "ubuntu-20.04", "baseimage": "jlesage/baseimage:ubuntu-20.04-v3.0.0-pre.2", "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v8" }'
+
+    steps:
+      - name: Prepare
+        id: prep
+        run: |
+          # Determine the Docker container version.
+          VERSION=unknown
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+            # Git tag pushed: use tag as the version.
+            VERSION=${GITHUB_REF#refs/tags/}
+          elif [[ $GITHUB_REF =~ refs/heads/* ]]; then
+            # Git commit pushed: use the commit SHA as the version.
+            VERSION=${GITHUB_SHA::8}
+          elif [[ $GITHUB_REF =~ refs/pull/* ]]; then
+            # Pull request: use PR number as the version.
+            VERSION=pr-${{ github.event.number }}
+          else
+            echo "::error::Unexpected GITHUB_REF: $GITHUB_REF"
+            exit 1
+          fi
+          # Determine the version to put in container label.
+          LABEL_VERSION=${VERSION}
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+            LABEL_VERSION=${VERSION:1}
+          fi
+          # Determine the Docker container tags.
+          TAGS="${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-${VERSION}"
+          if [[ $VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            # For version with format vX.Y.Z, we want to add additional tags:
+            #   - vX.Y
+            #   - vX
+            MINOR=${VERSION%.*}
+            MAJOR=${MINOR%.*}
+            TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR}.${MINOR}"
+            TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR}"
+          fi
+          # Determine the Dockerfile to use.
+          if [[ "${{ fromJSON(matrix.info).tag_prefix }}" =~ alpine-* ]]; then
+            DOCKERFILE=Dockerfile.alpine
+          else
+            DOCKERFILE=Dockerfile.debian
+          fi
+          # Determine the release type.
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+              IS_RELEASE=yes
+              if [[ $GITHUB_REF =~ -pre\.[0-9]+ ]]; then
+                  RELEASE_TYPE="pre"
+              else
+                  RELEASE_TYPE="standard"
+              fi
+          else
+              IS_RELEASE=no
+              RELEASE_TYPE="n/a"
+          fi
+          # Print results.
+          echo "::group::Results"
+          echo "Github reference: $GITHUB_REF"
+          echo "Release: $IS_RELEASE"
+          echo "Release type: $RELEASE_TYPE"
+          echo "Docker container version: $VERSION"
+          echo "Docker container version label: $LABEL_VERSION"
+          echo "Docker container tag(s): $TAGS"
+          echo "Dockerfile to use: $DOCKERFILE"
+          echo "::endgroup::"
+          # Export outputs.
+          echo ::set-output name=is_release::${IS_RELEASE}
+          echo ::set-output name=release_type::${RELEASE_TYPE}
+          echo ::set-output name=dockerfile::${DOCKERFILE}
+          echo ::set-output name=version::${VERSION}
+          echo ::set-output name=label_version::${LABEL_VERSION}
+          echo ::set-output name=tags::${TAGS}
+          #echo ::set-output name=build_date::$(date -u +'%Y-%m-%dT%H:%M:%SZ')
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Setup BATS
+        uses: mig4/setup-bats@v1
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+        with:
+          platforms: 386,arm,arm64,ppc64le,mips64,s390x
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
+        with:
+          driver-opts: network=host
+
+      - name: Build and push to local registry
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: ${{ steps.prep.outputs.dockerfile }}
+          platforms: ${{ fromJSON(matrix.info).platforms }}
+          tags: localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci
+          build-args: |
+            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
+            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+
+      - name: Inspect
+        id: inspect
+        run: |
+          docker buildx imagetools inspect localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci
+          echo ::set-output name=raw::$(docker buildx imagetools inspect --raw localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci)
+
+      - name: Test image
+        run: |
+          for SHA in ${{ join(fromJSON(steps.inspect.outputs.raw).manifests.*.digest, ' ') }}
+          do
+            export DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci@$SHA
+            docker pull $DOCKER_IMAGE
+            docker run --rm $DOCKER_IMAGE sh -c 'echo Testing image on $(uname -m)...'
+            bats tests
+          done
+
+      - name: Login to DockerHub
+        if: ${{ steps.prep.outputs.is_release == 'yes' }}
+        uses: docker/login-action@v1
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+
+      - name: Build and push to Dockerhub
+        # NOTE: The `--load` option of `buildx` only works with a single
+        #       platform.  Thus, we cannot build the image with `--load`, test
+        #       the image and then `docker push` it.  We need to build the image
+        #       twice, with different tags.  The second build should however
+        #       be very fast because of cache.  See:
+        #         - https://github.com/docker/buildx/issues/59
+        #         - https://github.com/docker/build-push-action/issues/132
+        if: ${{ steps.prep.outputs.is_release == 'yes' }}
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          file: ${{ steps.prep.outputs.dockerfile }}
+          platforms: ${{ fromJSON(matrix.info).platforms }}
+          tags: ${{ steps.prep.outputs.tags }}
+          build-args: |
+            BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
+            IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+
+  post-build:
+    name: Post-build
+    needs: [ pre-build, build ]
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Dockerhub description
+        if: ${{ steps.prep.outputs.release_type == 'standard' }}
+        uses: peter-evans/dockerhub-description@v2
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: ${{ env.DOCKER_IMAGE_NAME }}
+          readme-filepath: README.md
+
+  notification:
+    name: Notification
+    needs: [ pre-build, build, post-build ]
+    runs-on: ubuntu-20.04
+    if: ${{ always() }}
+
+    steps:
+      - name: Pushover notification
+        uses: desiderati/github-action-pushover@v1
+        with:
+          job-status: ${{ needs.build.result }}
+          pushover-api-token: ${{ secrets.PUSHOVER_API_TOKEN }}
+          pushover-user-key: ${{ secrets.PUSHOVER_USER_KEY }}
