@@ -1,2 +1,0 @@
-DOCKERFILE=Dockerfile.debian
-BASEIMAGE=jlesage/baseimage:debian-8-v2.4.6
