@@ -6,14 +6,17 @@
 
 ARG BASEIMAGE=unknown
 
+# Build the TigerVNC server.
+FROM alpine:3.14 AS tigervnc
+COPY build-tigervnc.sh /tmp/
+RUN /tmp/build-tigervnc.sh
+
 # Pull base image.
 FROM ${BASEIMAGE}
 
 # Define software versions.
-ARG NGINX_VERSION=1.18.0
+ARG NGINX_VERSION=1.20.1
 ARG NGINXWEBSOCKIFYMOD_VERSION=0.0.3
-ARG TIGERVNC_VERSION=1.11.0
-ARG XSERVER_VERSION=1.20.10
 ARG NOVNC_VERSION=fa559b3
 ARG BOOTSTRAP_VERSION=3.3.7
 ARG FONTAWESOME_VERSION=4.7.0
@@ -23,8 +26,7 @@ ARG JQUERY_UI_TOUCH_PUNCH_VERSION=4bc0091
 # Define software download URLs.
 ARG NGINX_URL=http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 ARG NGINXWEBSOCKIFYMOD_URL=https://github.com/tg123/websockify-nginx-module/archive/v${NGINXWEBSOCKIFYMOD_VERSION}.tar.gz
-ARG TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
-ARG XSERVER_URL=https://github.com/freedesktop/xorg-xserver/archive/xorg-server-${XSERVER_VERSION}.tar.gz
+
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=https://fontawesome.com/v${FONTAWESOME_VERSION}/assets/font-awesome-${FONTAWESOME_VERSION}.zip
@@ -41,106 +43,6 @@ RUN \
     curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key --keyring /etc/apt/trusted.gpg.d/nodesource.gpg add - && \
     echo "deb http://deb.nodesource.com/node_12.x $VERSION_CODENAME main" > /etc/apt/sources.list.d/nodesource.list && \
     echo "deb-src http://deb.nodesource.com/node_12.x $VERSION_CODENAME main" >> /etc/apt/sources.list.d/nodesource.list && \
-    # Cleanup
-    del-pkg build-dependencies && \
-    rm -rf /tmp/* /tmp/.[!.]*
-
-# Compile TigerVNC.
-RUN \
-    add-pkg --virtual build-dependencies \
-        build-essential \
-        curl \
-        ca-certificates \
-        cmake \
-        autoconf \
-        automake \
-        libtool \
-        pkg-config \
-        xutils-dev \
-#        xcb-util-dev \
-        xtrans-dev \
-        xfonts-utils \
-#        font-util-dev \
-        libpixman-1-dev \
-        libdrm-dev \
-        libx11-dev \
-#        mesa-common-dev \
-        libgl1-mesa-dev \
-        libgcrypt-dev \
-        libxkbfile-dev \
-        libxfont-dev \
-        libjpeg62-turbo-dev \
-        libpam0g-dev \
-        gnutls-dev \
-        libfltk1.3-dev \
-        libxrandr-dev \
-        libxtst-dev \
-        && \
-    # Download.
-    mkdir tigervnc && \
-    mkdir xserver && \
-    curl -# -L ${TIGERVNC_URL} | tar -xz --strip 1 -C tigervnc && \
-    curl -# -L ${XSERVER_URL} | tar -xz --strip 1 -C xserver && \
-    # Compile.
-    cd tigervnc && \
-    curl -# -L https://github.com/TigerVNC/tigervnc/commit/701605e.patch | patch -p1 && \
-    cmake -G "Unix Makefiles" \
-        -DCMAKE_INSTALL_PREFIX=/usr \
-        -DCMAKE_BUILD_TYPE=Release \
-        -DINSTALL_SYSTEMD_UNITS=OFF \
-        -DENABLE_NLS=OFF \
-        -DENABLE_GNUTLS=ON \
-        -DBUILD_VIEWER=OFF \
-        && \
-    make -j$(nproc) && \
-    cd unix/xserver && \
-    cp -r /tmp/xserver/* . && \
-    patch -p1 < ../xserver120.patch && \
-    autoreconf -fiv && \
-    ./configure \
-        --prefix=/usr \
-        --sysconfdir=/etc/X11 \
-        --localstatedir=/var \
-        --with-xkb-path=/usr/share/X11/xkb \
-        --with-xkb-output=/var/lib/xkb \
-        --with-default-font-path=/usr/share/fonts/misc,/usr/share/fonts/100dpi:unscaled,/usr/share/fonts/75dpi:unscaled,/usr/share/fonts/TTF,/usr/share/fonts/Type1 \
-        --disable-docs \
-        --disable-unit-tests \
-        \
-        --with-pic \
-        --disable-static \
-        --disable-shared \
-        \
-        --disable-listen-tcp \
-        --enable-listen-unix \
-        --disable-listen-local \
-        \
-        --disable-dpms \
-        \
-        --disable-systemd-logind \
-        --disable-config-hal \
-        --disable-xorg \
-        --disable-dmx \
-        --disable-xvfb \
-        --disable-xnest \
-        --disable-xquartz \
-        --disable-xwayland \
-        --disable-xwayland-eglstream \
-        --disable-standalone-xpbproxy \
-        --disable-xwin \
-        --disable-glamor \
-        --disable-kdrive \
-        --disable-xephyr \
-        && \
-    make -j$(nproc) && \
-    cd ../../../ && \
-    # Install.
-    make DESTDIR=/tmp/tigervnc-install -C tigervnc/unix/xserver install && \
-    strip /tmp/tigervnc-install/usr/bin/Xvnc && \
-    cp -v /tmp/tigervnc-install/usr/bin/Xvnc /usr/bin/ && \
-    make DESTDIR=/tmp/tigervnc-install -C tigervnc/unix/vncpasswd install && \
-    strip /tmp/tigervnc-install/usr/bin/vncpasswd && \
-    cp -v /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/ && \
     # Cleanup
     del-pkg build-dependencies && \
     rm -rf /tmp/* /tmp/.[!.]*
@@ -234,21 +136,9 @@ RUN \
     apt-get -q update && \
     LIBPNG="$(apt-cache depends libpng-dev | grep 'Depends: libpng' | awk '{print $2}')" && \
     add-pkg \
-        # TigerVNC dependencies
-        libgl1-mesa-glx \
-        libxfont2 \
-#        xkbcomp \
+        # Needed by the X server.
         x11-xkb-utils \
         xkb-data \
-#        xkeyboard-config \
-        # X11 VNC server dependencies
-#        openssl \
-#        libxtst6 \
-#        libxcomposite1 \
-#        $LIBPNG \
-#        stunnel \
-        # X virtual framebuffer display server
-#        xvfb \
         # Used to determine when the X server is ready
         x11-utils \
         # Used to determine if nginx is ready.
@@ -321,6 +211,8 @@ RUN \
 
 # Add files.
 COPY rootfs/ /
+COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /usr/bin/
+COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/
 
 # Set version to CSS and JavaScript file URLs.
 RUN sed-patch "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/index.vnc
