@@ -9,8 +9,10 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-WORKDIR=/tmp
-ICONSDIR=/opt/novnc/images/icons
+WORKDIR=$(mktemp -d)
+
+APP_ICON_URL="${1:-}"
+ICONS_DIR="${2:-/opt/novnc/images/icons}"
 
 usage() {
     if [ -n "$*" ]; then
@@ -18,28 +20,32 @@ usage() {
         echo
       fi
 
-    echo "usage: $( basename $0 ) URL [DESC]
+    echo "usage: $( basename $0 ) ICON_URL [ICONS_DIR]
 
 Generate and install favicons.
 
 Arguments:
-  URL   URL pointing to the master picture, in PNG format.  All favicons are
-        generated from this picture.
+  ICON_URL   URL pointing to the master picture, in PNG format.  All favicons are
+             generated from this picture.
 
 Options:
-  DESC  Favicons description in JSON format.  This is used by the generator and
-        it describes what to generate and how.
+  ICONS_DIR  Directory where to put the generated icons.  Default: /opt/novnc/images/icons
 "
 
     exit 1
 }
 
+die() {
+    echo "Failed to generate favicons: $*."
+    exit 1
+}
+
 install_build_dependencies_alpine() {
-    add-pkg --virtual rfg-build-dependencies curl npm jq sed
+    add-pkg --virtual rfg-build-dependencies curl jq sed
 }
 
 install_build_dependencies_debian() {
-    add-pkg --virtual rfg-build-dependencies curl ca-certificates jq nodejs
+    add-pkg --virtual rfg-build-dependencies curl ca-certificates jq unzip
 }
 
 install_build_dependencies() {
@@ -55,45 +61,119 @@ uninstall_build_dependencies() {
 }
 
 cleanup() {
-    rm -rf /tmp/.npm \
-           /tmp/*
+    rm -rf "$WORKDIR"
 }
 
-APP_ICON_URL="${1:-UNSET}"
-APP_ICON_DESC=${2:-'{"masterPicture":"/opt/novnc/images/icons/master_icon.png","iconsPath":"images/icons/","design":{"ios":{"pictureAspect":"backgroundAndMargin","backgroundColor":"#ffffff","margin":"14%","assets":{"ios6AndPriorIcons":false,"ios7AndLaterIcons":false,"precomposedIcons":false,"declareOnlyDefaultIcon":true}},"desktopBrowser":{},"windows":{"pictureAspect":"noChange","backgroundColor":"#2d89ef","onConflict":"override","assets":{"windows80Ie10Tile":false,"windows10Ie11EdgeTiles":{"small":false,"medium":true,"big":false,"rectangle":false}}},"androidChrome":{"pictureAspect":"noChange","themeColor":"#ffffff","manifest":{"display":"standalone","orientation":"notSet","onConflict":"override","declared":true},"assets":{"legacyIcon":false,"lowResolutionIcons":false}},"safariPinnedTab":{"pictureAspect":"silhouette","themeColor":"#5bbad5"}},"settings":{"scalingAlgorithm":"Mitchell","errorOnImageTooSmall":false},"versioning":{"paramName":"v","paramValue":"ICON_VERSION"}}'}
+#APP_ICON_DESC=${2:-'{"masterPicture":"/opt/novnc/images/icons/master_icon.png","iconsPath":"images/icons/","design":{"ios":{"pictureAspect":"backgroundAndMargin","backgroundColor":"#ffffff","margin":"14%","assets":{"ios6AndPriorIcons":false,"ios7AndLaterIcons":false,"precomposedIcons":false,"declareOnlyDefaultIcon":true}},"desktopBrowser":{},"windows":{"pictureAspect":"noChange","backgroundColor":"#2d89ef","onConflict":"override","assets":{"windows80Ie10Tile":false,"windows10Ie11EdgeTiles":{"small":false,"medium":true,"big":false,"rectangle":false}}},"androidChrome":{"pictureAspect":"noChange","themeColor":"#ffffff","manifest":{"display":"standalone","orientation":"notSet","onConflict":"override","declared":true},"assets":{"legacyIcon":false,"lowResolutionIcons":false}},"safariPinnedTab":{"pictureAspect":"silhouette","themeColor":"#5bbad5"}},"settings":{"scalingAlgorithm":"Mitchell","errorOnImageTooSmall":false},"versioning":{"paramName":"v","paramValue":"ICON_VERSION"}}'}
 
-[ "$APP_ICON_URL" != "UNSET" ] || usage "Icon URL is missing."
-
-cd $WORKDIR
+[ -n "$APP_ICON_URL" ] || usage "Icon URL is missing."
 
 echo "Installing dependencies..."
 install_build_dependencies
 
-# Reset any previously generated icons.
-rm -rf $ICONSDIR
-mkdir -p $ICONSDIR
+# Clear any previously generated icons.
+rm -rf "$ICONS_DIR"
+mkdir -p "$ICONS_DIR"
 
 # Download the master icon.
-curl -sS -L -o "$ICONSDIR/master_icon.png" "$APP_ICON_URL"
+curl -sS -L -o "$ICONS_DIR"/master_icon.png "$APP_ICON_URL"
 
 # Create the description file.
-echo "$APP_ICON_DESC" > faviconDescription.json
-sed-patch "s/ICON_VERSION/$(date | md5sum | cut -c1-10)/" faviconDescription.json
-
-echo "Installing Real Favicon Generator..."
-mkdir cli-real-favicon
-cd cli-real-favicon
-env HOME=/tmp npm install --cache /tmp/.npm --production cli-real-favicon@0.0.8
-cd ..
+cat <<EOF > "$WORKDIR"/faviconDescription.json
+{
+  "favicon_generation": {
+    "api_key": "402333a17311c9aa68257b9c5fc571276090ee56",
+    "master_picture": {
+      "type": "url",
+      "url": "$APP_ICON_URL"
+    },
+    "files_location": {
+      "type": "path",
+      "path": "images/icons/"
+    },
+    "favicon_design": {
+      "desktop_browser": {},
+      "ios": {
+        "picture_aspect": "background_and_margin",
+        "margin": "14%",
+        "background_color": "#ffffff",
+        "assets": {
+          "ios6_and_prior_icons": false,
+          "ios7_and_later_icons": true,
+          "precomposed_icons": false,
+          "declare_only_default_icon": true
+        }
+      },
+      "windows": {
+        "picture_aspect": "no_change",
+        "background_color": "#2d89ef",
+        "assets": {
+          "windows_80_ie_10_tile": false,
+          "windows_10_ie_11_edge_tiles": {
+            "small": false,
+            "medium": true,
+            "big": false,
+            "rectangle": false
+          }
+        }
+      },
+      "android_chrome": {
+        "picture_aspect": "no_change",
+        "manifest": {
+          "display": "standalone"
+        },
+        "assets": {
+          "legacy_icon": false,
+          "low_resolution_icons": false
+        },
+        "theme_color": "#ffffff"
+      },
+      "safari_pinned_tab": {
+        "picture_aspect": "silhouette",
+        "theme_color": "#5bbad5"
+      }
+    },
+    "settings": {
+      "scaling_algorithm": "Mitchell",
+      "error_on_image_too_small": true
+    },
+    "versioning": {
+      "param_name": "v",
+      "param_value": "$(date | md5sum | cut -c1-10)"
+    }
+  }
+}
+EOF
 
 echo "Generating favicons..." && \
-./cli-real-favicon/node_modules/cli-real-favicon/real-favicon.js generate faviconDescription.json faviconData.json $ICONSDIR && \
+curl -sS -L -X POST -d@"$WORKDIR"/faviconDescription.json https://realfavicongenerator.net/api/favicon > "$WORKDIR"/faviconData.json
+
+RESULT="$(jq --raw-output '.favicon_generation_result.result.status' < "$WORKDIR"/faviconData.json)"
+case "$RESULT" in
+    success) ;;
+    error)
+        ERROR_MESSAGE="$(jq --raw-output '.favicon_generation_result.result.error_message' < "$WORKDIR"/faviconData.json)"
+        die "$ERROR_MESSAGE"
+        ;;
+    *)
+        die "Unexpected result: $RESULT"
+        ;;
+esac
+
+echo "Downloading icons package..."
+PACKAGE_URL="$(jq --raw-output '.favicon_generation_result.favicon.package_url' < "$WORKDIR"/faviconData.json)"
+if [ -z "$PACKAGE_URL" ] || [ "$PACKAGE_URL" = "null" ]; then
+    die "Package URL not provided"
+fi
+
+curl -sS -L -o "$WORKDIR"/package.zip "$PACKAGE_URL"
+
+echo "Extracting icons package..."
+unzip "$WORKDIR"/package.zip -d "$ICONS_DIR"
 
 echo "Adjusting HTML page..."
-jq -r '.favicon.html_code' faviconData.json > htmlCode
-sed-patch -ne '/<!-- BEGIN Favicons -->/ {p; r htmlCode' -e ':a; n; /<!-- END Favicons -->/ {p; b}; ba}; p' /opt/novnc/index.vnc
-
-env HOME=/tmp npm uninstall --cache /tmp/.npm cli-real-favicon
+jq -r '.favicon.html_code' "$WORKDIR"/faviconData.json > "$WORKDIR"/htmlCode
+sed-patch -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" /opt/novnc/index.vnc
 
 echo "Removing dependencies..."
 uninstall_build_dependencies
