@@ -8,13 +8,13 @@ set -u # Treat unset variables as an error.
 
 CERT_DIR=/config/certs
 
-su-exec $USER_ID:$GROUP_ID mkdir -p "$CERT_DIR"
+mkdir -p "$CERT_DIR"
 
 # Generate DH parameters.
 if [ ! -f "$CERT_DIR/dhparam.pem" ]; then
     if [ "${USE_DEFAULT_DH_PARAMS:-0}" -eq 0 ]; then
         echo "generating DH parameters (2048 bits), this is going to take a long time..."
-        env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl dhparam \
+        env HOME=/tmp openssl dhparam \
             -out "$CERT_DIR/dhparam.pem" \
             2048 \
             > /dev/null 2>&1
@@ -26,7 +26,7 @@ fi
 # Generate certificate used by the WEB server (nginx).
 if [ ! -f "$CERT_DIR/web-privkey.pem" ] && [ ! -f "$CERT_DIR/web-fullchain.pem" ]; then
     echo "generating self-signed certificate for WEB server..."
-    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl req \
+    env HOME=/tmp openssl req \
         -x509 \
         -nodes \
         -days 3650 \
@@ -43,17 +43,17 @@ if [ -f "$CERT_DIR/vnc-server.pem" ]; then
     echo "splitting $CERT_DIR/vnc-server.pem..."
 
     # Extract the private key.
-    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl pkey \
+    env HOME=/tmp openssl pkey \
         -in "$CERT_DIR/vnc-server.pem" \
         -out "$CERT_DIR/vnc-privkey.pem"
     chmod 400 "$CERT_DIR/vnc-privkey.pem"
 
     # Extract certificates.
-    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl crl2pkcs7 \
+    env HOME=/tmp openssl crl2pkcs7 \
         -nocrl \
         -certfile "$CERT_DIR/vnc-server.pem" \
         | \
-    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl pkcs7 \
+    env HOME=/tmp openssl pkcs7 \
         -print_certs \
         -out "$CERT_DIR/vnc-fullchain.pem"
 
@@ -63,7 +63,7 @@ fi
 # Generate certificate used by the VNC server.
 if [ ! -f "$CERT_DIR/vnc-privkey.pem" ] && [ ! -f "$CERT_DIR/vnc-fullchain.pem" ] ; then
     echo "generating self-signed certificate for VNC server..."
-    env HOME=/tmp su-exec $USER_ID:$GROUP_ID openssl req \
+    env HOME=/tmp openssl req \
         -x509 \
         -nodes \
         -days 3650 \
