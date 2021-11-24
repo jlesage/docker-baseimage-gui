@@ -15,7 +15,7 @@ if [ "${YAD:-UNSET}" != "UNSET" ]; then
     export XDG_CONFIG_HOME="$XDG_BASE/xdg/config"
     export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
 
-    if [ "$(yad --version | cut -d'.' -f1)" = "0" ]; then
+    if [ "$(yad --version 2>/dev/null | cut -d'.' -f1)" = "0" ]; then
         BUTTON_NAME="gtk-ok"
     else
         MSG="$(echo "$2" | fold -w 80 -s)"
@@ -34,7 +34,7 @@ if [ "${YAD:-UNSET}" != "UNSET" ]; then
         --text "<b>$TITLE</b>" \
         --form \
         --field "$MSG:LBL" \
-        --button=$BUTTON_NAME:0 > /dev/null || true
+        --button=$BUTTON_NAME:0 > /dev/null 2>&1 || true
 
     rm -r "$XDG_BASE"
 fi
