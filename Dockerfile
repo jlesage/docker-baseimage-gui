@@ -222,28 +222,6 @@ RUN \
     # Remove some unneeded stuff.
     rm -rf /var/cache/fontconfig/*
 
-## Install packages.
-#RUN \
-#    add-pkg \
-#        # Needed by the X server.
-#        xkbcomp \
-#        xkeyboard-config \
-#        # Used to determine when the X server is ready
-##        xdpyinfo \
-#        # Openbox window manager
-#        openbox \
-#        xsetroot \
-#        # Font
-#        font-croscore \
-#        # Needed to generate self-signed certificates
-#        openssl \
-#        && \
-#    # Disable unsupported keysym (related to Wayland).
-#    # TODO: Install our own compiled xkeyboard-config ??
-#    find /usr/share/X11/xkb -type f -exec sed '/.* key .*XF86.*/s/^/\/\//' -i {} ';' && \
-#    # Remove some unneeded stuff.
-#    rm -rf /var/cache/fontconfig/*
-
 # Add files.
 COPY helpers/* /usr/bin/
 COPY rootfs/ /
