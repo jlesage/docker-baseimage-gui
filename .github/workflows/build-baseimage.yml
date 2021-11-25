@@ -84,12 +84,6 @@ jobs:
             TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR}.${MINOR}"
             TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR}"
           fi
-          # Determine the Dockerfile to use.
-          if [[ "${{ fromJSON(matrix.info).tag_prefix }}" =~ alpine-* ]]; then
-            DOCKERFILE=Dockerfile.alpine
-          else
-            DOCKERFILE=Dockerfile.debian
-          fi
           # Determine the release type.
           if [[ $GITHUB_REF =~ refs/tags/* ]]; then
               IS_RELEASE=yes
@@ -110,12 +104,10 @@ jobs:
           echo "Docker container version: $VERSION"
           echo "Docker container version label: $LABEL_VERSION"
           echo "Docker container tag(s): $TAGS"
-          echo "Dockerfile to use: $DOCKERFILE"
           echo "::endgroup::"
           # Export outputs.
           echo ::set-output name=is_release::${IS_RELEASE}
           echo ::set-output name=release_type::${RELEASE_TYPE}
-          echo ::set-output name=dockerfile::${DOCKERFILE}
           echo ::set-output name=version::${VERSION}
           echo ::set-output name=label_version::${LABEL_VERSION}
           echo ::set-output name=tags::${TAGS}
@@ -141,7 +133,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          file: ${{ steps.prep.outputs.dockerfile }}
           platforms: ${{ fromJSON(matrix.info).platforms }}
           tags: localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci
           build-args: |
@@ -183,7 +174,6 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          file: ${{ steps.prep.outputs.dockerfile }}
           platforms: ${{ fromJSON(matrix.info).platforms }}
           tags: ${{ steps.prep.outputs.tags }}
           build-args: |
