@@ -11,16 +11,18 @@ set -u # Treat unset variables as an error.
 
 WORKDIR=$(mktemp -d)
 
-APP_ICON_URL="${1:-}"
-ICONS_DIR="${2:-/opt/novnc/images/icons}"
+APP_ICON_URL=""
+ICONS_DIR="/opt/novnc/images/icons"
+HTML_FILE="/opt/novnc/index.vnc"
+INSTALL_MISSING_TOOLS=1
 
 usage() {
     if [ -n "$*" ]; then
         echo "$*"
         echo
-      fi
+    fi
 
-    echo "usage: $( basename $0 ) ICON_URL [ICONS_DIR]
+    echo "usage: $(basename $0) ICON_URL [OPTIONS...]
 
 Generate and install favicons.
 
@@ -29,7 +31,9 @@ Arguments:
              generated from this picture.
 
 Options:
-  ICONS_DIR  Directory where to put the generated icons.  Default: /opt/novnc/images/icons
+  --icons-dir         Directory where to put the generated icons.  Default: /opt/novnc/images/icons
+  --html-page         Path to the HTML file where to insert the HTML code.  Default: /opt/novnc/index.vnc
+  --no-tools-install  Do not automatically install missing tools.
 "
 
     exit 1
@@ -41,30 +45,99 @@ die() {
 }
 
 install_build_dependencies_alpine() {
-    add-pkg --virtual rfg-build-dependencies curl jq sed
+    INSTALLED_PKGS=""
+    if [ -z "$(which curl)" ]; then
+        INSTALLED_PKGS="$INSTALLED_PKGS curl"
+    fi
+    if [ -z "$(which jq)" ]; then
+        INSTALLED_PKGS="$INSTALLED_PKGS jq"
+    fi
+    if [ -z "$(which sed)" ] || ! sed --version | grep -q "(GNU sed)"; then
+        INSTALLED_PKGS="$INSTALLED_PKGS sed"
+    fi
+
+    if [ -n "$INSTALLED_PKGS" ]; then
+        add-pkg --virtual rfg-build-dependencies $INSTALLED_PKGS
+    fi
 }
 
 install_build_dependencies_debian() {
-    add-pkg --virtual rfg-build-dependencies curl ca-certificates jq unzip
+    INSTALLED_PKGS=""
+    if [ -z "$(which curl)" ]; then
+        INSTALLED_PKGS="$INSTALLED_PKGS curl ca-certificates"
+    fi
+    if [ -z "$(which jq)" ]; then
+        INSTALLED_PKGS="$INSTALLED_PKGS jq"
+    fi
+    if [ -z "$(which unzip)" ]; then
+        INSTALLED_PKGS="$INSTALLED_PKGS unzip"
+    fi
+
+    if [ -n "$INSTALLED_PKGS" ]; then
+        add-pkg --virtual rfg-build-dependencies $INSTALLED_PKGS
+    fi
 }
 
 install_build_dependencies() {
-    if [ -n "$(which apk)" ]; then
-        install_build_dependencies_alpine
-    else
-        install_build_dependencies_debian
+    if [ "$INSTALL_MISSING_TOOLS" -eq 1 ]; then
+        if [ -n "$(which apk)" ]; then
+            install_build_dependencies_alpine
+        else
+            install_build_dependencies_debian
+        fi
     fi
 }
 
 uninstall_build_dependencies() {
-  del-pkg rfg-build-dependencies
+    if [ "$INSTALL_MISSING_TOOLS" -eq 1 ]; then
+        if [ -n "$INSTALLED_PKGS" ]; then
+            del-pkg rfg-build-dependencies
+        fi
+    fi
 }
 
 cleanup() {
     rm -rf "$WORKDIR"
 }
 
-#APP_ICON_DESC=${2:-'{"masterPicture":"/opt/novnc/images/icons/master_icon.png","iconsPath":"images/icons/","design":{"ios":{"pictureAspect":"backgroundAndMargin","backgroundColor":"#ffffff","margin":"14%","assets":{"ios6AndPriorIcons":false,"ios7AndLaterIcons":false,"precomposedIcons":false,"declareOnlyDefaultIcon":true}},"desktopBrowser":{},"windows":{"pictureAspect":"noChange","backgroundColor":"#2d89ef","onConflict":"override","assets":{"windows80Ie10Tile":false,"windows10Ie11EdgeTiles":{"small":false,"medium":true,"big":false,"rectangle":false}}},"androidChrome":{"pictureAspect":"noChange","themeColor":"#ffffff","manifest":{"display":"standalone","orientation":"notSet","onConflict":"override","declared":true},"assets":{"legacyIcon":false,"lowResolutionIcons":false}},"safariPinnedTab":{"pictureAspect":"silhouette","themeColor":"#5bbad5"}},"settings":{"scalingAlgorithm":"Mitchell","errorOnImageTooSmall":false},"versioning":{"paramName":"v","paramValue":"ICON_VERSION"}}'}
+# Parse arguments.
+while [ "$#" -ne 0 ]
+do
+    case "$1" in
+        --icons-dir)
+            ICONS_DIR="${2:-}"
+            if [ -z "$ICONS_DIR" ]; then
+                usage "Icons directory missing."
+            fi
+            shift 2
+            ;;
+        --html-file)
+            HTML_FILE="${2:-}"
+            if [ -z "$HTML_FILE" ]; then
+                usage "HTML file path  missing."
+            fi
+            shift 2
+            ;;
+        --no-tools-install)
+            INSTALL_MISSING_TOOLS=0
+            shift
+            ;;
+        -h|--help)
+            usage
+            ;;
+        --*)
+            usage "Unknown argument \"$1\"."
+            ;;
+        *)
+            if [ -z "$APP_ICON_URL"]; then
+                APP_ICON_URL="$1"
+                shift
+            else
+                usage "Unknown argument \"$1\"."
+            fi
+            ;;
+    esac
+done
 
 [ -n "$APP_ICON_URL" ] || usage "Icon URL is missing."
 
@@ -145,7 +218,7 @@ cat <<EOF > "$WORKDIR"/faviconDescription.json
 }
 EOF
 
-echo "Generating favicons..." && \
+echo "Generating favicons..."
 curl -sS -L -X POST -d@"$WORKDIR"/faviconDescription.json https://realfavicongenerator.net/api/favicon > "$WORKDIR"/faviconData.json
 
 RESULT="$(jq --raw-output '.favicon_generation_result.result.status' < "$WORKDIR"/faviconData.json)"
@@ -164,17 +237,31 @@ echo "Downloading icons package..."
 PACKAGE_URL="$(jq --raw-output '.favicon_generation_result.favicon.package_url' < "$WORKDIR"/faviconData.json)"
 if [ -z "$PACKAGE_URL" ] || [ "$PACKAGE_URL" = "null" ]; then
     die "Package URL not provided"
+else
+    curl -sS -L -o "$WORKDIR"/package.zip "$PACKAGE_URL"
 fi
-
-curl -sS -L -o "$WORKDIR"/package.zip "$PACKAGE_URL"
 
 echo "Extracting icons package..."
 unzip "$WORKDIR"/package.zip -d "$ICONS_DIR"
 
 echo "Adjusting HTML page..."
-jq -r '.favicon.html_code' "$WORKDIR"/faviconData.json > "$WORKDIR"/htmlCode
-sed-patch -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" /opt/novnc/index.vnc
+jq -r '.favicon_generation_result.favicon.html_code' "$WORKDIR"/faviconData.json > "$WORKDIR"/htmlCode
+if [ "$(cat "$WORKDIR"/htmlCode)" = "null" ]; then
+    die "HTML code not found"
+fi
+#sed-patch -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" "$HTML_FILE"
+cat "$HTML_FILE" | sed -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" > "$WORKDIR"/tmp.html
+if diff "$WORKDIR"/tmp.html "$HTML_FILE" > /dev/null 2>&1; then
+    die "Could not insert HTML code."
+fi
+mv "$WORKDIR"/tmp.html "$HTML_FILE"
 
 echo "Removing dependencies..."
 uninstall_build_dependencies
+
+echo "Cleaning..."
 cleanup
+
+echo "Favicons successfully generated."
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
