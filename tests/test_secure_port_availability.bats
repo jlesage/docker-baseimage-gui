@@ -25,7 +25,7 @@ teardown() {
 @test "Checking availability of VNC SSL port 5900..." {
     TIMEOUT=30
     while (( TIMEOUT > 0 )); do
-        run timeout 2 ncat --ssl -n 127.0.0.1 5900
+        run no_stderr timeout 2 openssl s_client -quiet -verify_quiet -connect 127.0.0.1:5900 2>/dev/null
         [ "$output" == "RFB 003.008" ] && break
         sleep 1
         (( TIMEOUT-- ))
