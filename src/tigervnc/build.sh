@@ -2,20 +2,21 @@
 #
 # Helper script that builds the TigerVNC server as a static binary.
 #
-# NOTE: This script should run under Alpine Linux 3.14.
+# NOTE: This script is expected to be run under Alpine Linux.
 #
 
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-TIGERVNC_VERSION=1.11.0
+TIGERVNC_VERSION=1.12.0
 XSERVER_VERSION=1.20.13
 
 GNUTLS_VERSION=3.7.1
 LIBXFONT2_VERSION=2.0.4
 LIBFONTENC_VERSION=1.1.4
 LIBTASN1_VERSION=4.17.0
+LIBXSHMFENCE_VERSION=1.3
 
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
@@ -25,39 +26,55 @@ GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-
 LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.bz2
 LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.bz2
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
+LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.bz2
 
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed"
+export LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all"
+
+export CC=xx-clang
 
 function log {
     echo ">>> $*"
 }
 
+#
 # Install required packages.
+#
 log "Installing required Alpine packages..."
 apk --no-cache add \
     curl \
     build-base \
+    clang \
     cmake \
     autoconf \
     automake \
     libtool \
-    xcb-util-dev \
-    xtrans \
+    pkgconf \
+    util-macros \
     font-util-dev \
+    xtrans \
+
+xx-apk --no-cache --no-scripts add \
+    g++ \
+    xcb-util-dev \
     pixman-dev \
     libx11-dev \
     libgcrypt-dev \
     libxkbfile-dev \
     libxfont2-dev \
     libjpeg-turbo-dev \
+    nettle-dev \
+    libunistring-dev \
     gnutls-dev \
     fltk-dev \
     libxrandr-dev \
     libxtst-dev \
+    freetype-dev \
+    libfontenc-dev \
+    zlib-dev \
     libx11-static \
     libxcb-static \
     zlib-static \
@@ -84,41 +101,50 @@ curl -# -L ${GNUTLS_URL} | tar -xJ --strip 1 -C /tmp/gnutls
 log "Configuring GNU TLS..."
 (
     cd /tmp/gnutls && ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
         --disable-openssl-compatibility \
         --disable-rpath \
         --disable-guile \
         --disable-valgrind-tests \
+        --disable-cxx \
         --without-p11-kit \
         --disable-tools \
+        --disable-doc \
         --enable-static \
         --disable-shared \
 )
 log "Compiling GNU TLS..."
 make -C /tmp/gnutls -j$(nproc)
 log "Installing GNU TLS..."
-make DESTDIR=/tmp/static-libs -C /tmp/gnutls install
+make DESTDIR=$(xx-info sysroot) -C /tmp/gnutls install
 
 #
-# Build libxfont2
+# Build libXfont2
 # The static library is not provided by Alpine repository, so we need to build
 # it ourself.
 #
 mkdir /tmp/libxfont2
-log "Downloading libxfont2..."
+log "Downloading libXfont2..."
 curl -# -L ${LIBXFONT2_URL} | tar -xj --strip 1 -C /tmp/libxfont2
-log "Configuring libxfont2..."
+log "Configuring libXfont2..."
 (
     cd /tmp/libxfont2 && ./configure \
-        -prefix=/usr \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
         --without-fop \
+        --without-xmlto \
+        --disable-devel-docs \
         --enable-static \
         --disable-shared \
 )
-log "Compiling libxfont2..."
+log "Compiling libXfont2..."
+sed 's/^noinst_PROGRAMS = /#noinst_PROGRAMS = /' -i /tmp/libxfont2/Makefile.in
 make -C /tmp/libxfont2 -j$(nproc)
-log "Installing libxfont2..."
-make DESTDIR=/tmp/static-libs -C /tmp/libxfont2 install
+log "Installing libXfont2..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libxfont2 install
 
 #
 # Build libfontenc
@@ -131,6 +157,8 @@ curl -# -L ${LIBFONTENC_URL} | tar -xj --strip 1 -C /tmp/libfontenc
 log "Configuring libfontenc..."
 (
     cd /tmp/libfontenc && ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
         --with-encodingsdir=/usr/share/fonts/encodings \
         --enable-static \
@@ -139,7 +167,7 @@ log "Configuring libfontenc..."
 log "Compiling libfontenc..."
 make -C /tmp/libfontenc -j$(nproc)
 log "Installing libfontenc..."
-make DESTDIR=/tmp/static-libs -C /tmp/libfontenc install
+make DESTDIR=$(xx-info sysroot) -C /tmp/libfontenc install
 
 #
 # Build libtasn1
@@ -152,20 +180,39 @@ curl -# -L ${LIBTASN1_URL} | tar -xz --strip 1 -C /tmp/libtasn1
 log "Configuring libtasn1..."
 (
     cd /tmp/libtasn1 && CFLAGS="$CFLAGS -Wno-error=inline" ./configure \
-        -prefix=/usr \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
         --enable-static \
         --disable-shared \
 )
 log "Compiling libtasn1..."
 make -C /tmp/libtasn1 -j$(nproc)
 log "Installing libtasn1..."
-make DESTDIR=/tmp/static-libs -C /tmp/libtasn1 install
+make DESTDIR=$(xx-info sysroot) -C /tmp/libtasn1 install
 
 #
-# Install all static libraries.
+# Build libxshmfence
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
 #
-log "Installing static libraries..."
-cp -av /tmp/static-libs/usr/lib/*.a /usr/lib/
+mkdir /tmp/libxshmfence
+log "Downloading libxshmfence..."
+curl -# -L ${LIBXSHMFENCE_URL} | tar -xj --strip 1 -C /tmp/libxshmfence
+log "Configuring libxshmfence..."
+(
+    cd /tmp/libxshmfence && ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+        --enable-futex \
+)
+log "Compiling libxshmfence..."
+make -C /tmp/libxshmfence -j$(nproc)
+log "Installing libxshmfence..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libxshmfence install
 
 #
 # Build TigerVNC
@@ -179,8 +226,6 @@ curl -# -L ${XSERVER_URL} | tar -xz --strip 1 -C /tmp/tigervnc/unix/xserver
 log "Patching TigerVNC..."
 # Apply the TigerVNC patch against the X server.
 patch -p1 -d /tmp/tigervnc/unix/xserver < /tmp/tigervnc/unix/xserver120.patch
-# Add the ability to listen on both Unix socket and TCP port.
-curl -# -L https://github.com/TigerVNC/tigervnc/commit/701605e.patch | patch -p1 -d /tmp/tigervnc
 # Build a static binary of vncpasswd.
 sed 's/target_link_libraries(vncpasswd tx rfb os)/target_link_libraries(vncpasswd -static tx rfb os)/' -i /tmp/tigervnc/unix/vncpasswd/CMakeLists.txt
 # Disable PAM support.
@@ -192,6 +237,12 @@ sed 's/#elif !defined(__APPLE__)/#elif defined(USE_LINUX_PAM)/' -i  /tmp/tigervn
 log "Configuring TigerVNC..."
 (
     cd /tmp/tigervnc && cmake -G "Unix Makefiles" \
+        $(xx-clang --print-cmake-defines) \
+        -DCMAKE_FIND_ROOT_PATH=$(xx-info sysroot) \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DCMAKE_BUILD_TYPE=Release \
         -DINSTALL_SYSTEMD_UNITS=OFF \
@@ -208,7 +259,9 @@ make -C /tmp/tigervnc/unix/vncpasswd -j$(nproc)
 log "Configuring TigerVNC server..."
 autoreconf -fiv /tmp/tigervnc/unix/xserver
 (
-    cd /tmp/tigervnc/unix/xserver && ./configure \
+    cd /tmp/tigervnc/unix/xserver && CFLAGS="$CFLAGS -Wno-implicit-function-declaration" ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
         --sysconfdir=/etc/X11 \
         --localstatedir=/var \
@@ -256,31 +309,17 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
         --disable-xephyr \
 )
 
+# Remove all automatic dependencies on libraries and manually define them to
+# have the correct order.
+find /tmp/tigervnc -name "*.la" -exec sed 's/^dependency_libs/#dependency_libs/' -i {} ';'
+sed 's/^XSERVER_SYS_LIBS = .*/XSERVER_SYS_LIBS = -lXau -lXdmcp -lpixman-1 -ljpeg -lXfont2 -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lz -lbz2 -lgnutls -lhogweed -lgmp -lnettle -lunistring -ltasn1 -lbsd -lmd/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
+
 log "Compiling TigerVNC server..."
 make -C /tmp/tigervnc/unix/xserver -j$(nproc)
 
-# Now it's time to do a static binary of the TigerVNC server.
-
-log "Preparing creation of TigerVNC server static binary..."
-# First, remove all dependencies on dynamic libraries.
-find /tmp/tigervnc -name "*.la" -exec sed 's/^dependency_libs/#dependency_libs/' -i {} ';'
-# Then, adjust linker flags in the Makefile.
-sed 's/^XSERVER_SYS_LIBS = .*/XSERVER_SYS_LIBS = -l:libXau.a -l:libXdmcp.a -l:libpixman-1.a -l:libjpeg.a -l:libXfont2.a -l:libfreetype.a -l:libfontenc.a -l:libpng16.a -l:libbrotlidec.a -l:libbrotlicommon.a -l:libz.a -l:libbz2.a -l:libgnutls.a -l:libhogweed.a -l:libgmp.a -l:libnettle.a -l:libunistring.a -l:libtasn1.a -l:libbsd.a -l:libmd.a/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
-sed 's/^Xvnc_LDFLAGS = .*/Xvnc_LDFLAGS = -static --static -static-libgcc -static-libstdc++/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
-sed 's/-lX11/-l:libX11.a/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
-
-# Finally, recreate the binary.
-log "Creating TigerVNC server static binary..."
-rm /tmp/tigervnc/unix/xserver/hw/vnc/Xvnc
-make -C /tmp/tigervnc/unix/xserver/hw/vnc/
-
-# Install TigerVNC server.
 log "Installing TigerVNC server..."
 make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/xserver install
-strip /tmp/tigervnc-install/usr/bin/Xvnc
 
-# Install TigerVNC vncpasswd tool.
 log "Installing TigerVNC vncpasswd tool..."
 make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/vncpasswd install
-strip /tmp/tigervnc-install/usr/bin/vncpasswd
 
