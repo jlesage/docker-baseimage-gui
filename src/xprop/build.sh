@@ -37,6 +37,8 @@ apk --no-cache add \
     pkgconfig \
 
 xx-apk --no-cache --no-scripts add \
+    gcc \
+    musl-dev \
     glib-dev \
     libx11-dev \
     libx11-static \

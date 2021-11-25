@@ -38,10 +38,12 @@ apk --no-cache add \
     build-base \
     clang \
     meson \
-    cmake \
+    pkgconfig \
+    glib-dev \
 
 xx-apk --no-cache --no-scripts add \
     glib-dev \
+    g++ \
     fribidi-dev \
     fribidi-static \
     harfbuzz-dev \
@@ -85,11 +87,25 @@ log "Downloading pango..."
 curl -# -L ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
 
 log "Configuring pango..."
+echo "[binaries]
+pkgconfig = '$(xx-info)-pkg-config'
+
+[properties]
+sys_root = '$(xx-info sysroot)'
+pkg_config_libdir = '$(xx-info sysroot)/usr/lib/pkgconfig'
+
+[host_machine]
+system = 'linux'
+cpu_family = '$(xx-info arch)'
+cpu = '$(xx-info arch)'
+endian = 'little'
+" > /tmp/pango/meson-cross.txt
 (
     cd /tmp/pango && LDFLAGS= abuild-meson \
         -Ddefault_library=static \
         -Dintrospection=disabled \
         -Dgtk_doc=false \
+        --cross-file /tmp/pango/meson-cross.txt \
         build \
 )
 
@@ -97,7 +113,7 @@ log "Compiling pango..."
 meson compile -C /tmp/pango/build
 
 log "Installing pango..."
-meson install --no-rebuild -C /tmp/pango/build
+DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pango/build
 
 #
 # Build JWM.
