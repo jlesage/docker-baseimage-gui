@@ -1,4 +1,8 @@
 
+no_stderr() {
+    "$@" 2>/dev/null
+}
+
 get_init_script_exit_code() {
     script=$1
     lines=$2
