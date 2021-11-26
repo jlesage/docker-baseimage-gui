@@ -1,12 +1,19 @@
 <?xml version="1.0"?>
 <JWM>
-    <!-- Options for program groups. -->
+    <!-- Options for program groups.
+         NOTE: A program may match multiple groups.  If an option is defined
+         multiple times, the value of the first defined one is used.
+    -->
     <Group>
         <Type>normal</Type>
         <Option>layer:below</Option>
         <Option>maximized</Option>
         <Option>notitle</Option>
         <Option>noborder</Option>
+    </Group>
+    <Group>
+        <Name>.*</Name>
+        <Option>noshade</Option>
     </Group>
 
     <!-- Visual Styles -->
@@ -59,7 +66,7 @@
 
     <!-- Virtual Desktops -->
     <!-- Desktop tags can be contained within Desktops for desktop names. -->
-    <Desktops width="4" height="1">
+    <Desktops width="1" height="1">
         <!-- Default background. Note that a Background tag can be
               contained within a Desktop tag to give a specific background
               for that desktop.

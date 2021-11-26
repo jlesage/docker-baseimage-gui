@@ -122,6 +122,31 @@ mkdir /tmp/jwm
 log "Downloading JWM..."
 curl -# -L ${JWM_URL} | tar -xJ --strip 1 -C /tmp/jwm
 
+log "Patching JVM..."
+cat << 'EOF' > /tmp/jwm/winmenu.patch
+--- a/src/winmenu.c
++++ b/src/winmenu.c
+@@ -46,7 +46,7 @@
+
+    if(!(np->state.status & STAT_WMDIALOG)) {
+       AddWindowMenuItem(menu, _("Close"), MA_CLOSE, np, 0);
+-      AddWindowMenuItem(menu, _("Kill"), MA_KILL, np, 0);
++      //AddWindowMenuItem(menu, _("Kill"), MA_KILL, np, 0);
+       AddWindowMenuItem(menu, NULL, MA_NONE, np, 0);
+    }
+
+@@ -115,7 +115,7 @@
+          }
+       }
+
+-      CreateWindowLayerMenu(menu, np);
++      //CreateWindowLayerMenu(menu, np);
+
+       if(settings.desktopCount > 1) {
+          if(!(np->state.status & STAT_STICKY)) {
+EOF
+patch -p1 -d /tmp/jwm < /tmp/jwm/winmenu.patch
+
 log "Configuring JWM..."
 (
     cd /tmp/jwm && LIBS="$LDFLAGS" ./configure \
