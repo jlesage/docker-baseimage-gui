@@ -7,36 +7,26 @@ TITLE="$1"
 MSG="$2"
 LEVEL="$3"
 
-YAD="$(which yad)"
-if [ "${YAD:-UNSET}" != "UNSET" ]; then
-    XDG_BASE="$(mktemp -d)"
+XDG_BASE="$(mktemp -d)"
 
-    export XDG_DATA_HOME="$XDG_BASE/xdg/data"
-    export XDG_CONFIG_HOME="$XDG_BASE/xdg/config"
-    export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
+export XDG_DATA_HOME="$XDG_BASE/xdg/data"
+export XDG_CONFIG_HOME="$XDG_BASE/xdg/config"
+export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
 
-    if [ "$(yad --version 2>/dev/null | cut -d'.' -f1)" = "0" ]; then
-        BUTTON_NAME="gtk-ok"
-    else
-        MSG="$(echo "$2" | fold -w 80 -s)"
-        BUTTON_NAME="yad-ok"
-    fi
+yad \
+    --on-top \
+    --fixed \
+    --center \
+    --title "$APP_NAME" \
+    --window-icon /opt/novnc/images/icons/master_icon.png \
+    --borders 10 \
+    --image dialog-warning \
+    --image-on-top \
+    --text "<b>$TITLE</b>" \
+    --form \
+    --field "$MSG:LBL" \
+    --button=gtk-ok:0 > /dev/null 2>&1 || true
 
-    yad \
-        --on-top \
-        --fixed \
-        --center \
-        --title "$APP_NAME" \
-        --window-icon /opt/novnc/images/icons/master_icon.png \
-        --borders 10 \
-        --image dialog-warning \
-        --image-on-top \
-        --text "<b>$TITLE</b>" \
-        --form \
-        --field "$MSG:LBL" \
-        --button=$BUTTON_NAME:0 > /dev/null 2>&1 || true
-
-    rm -r "$XDG_BASE"
-fi
+rm -r "$XDG_BASE"
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
