@@ -5,6 +5,15 @@
          multiple times, the value of the first defined one is used.
     -->
     <Group>
+        <Name>yad</Name>
+        <Option>layer:above</Option>
+        <Option>nomax</Option>
+        <Option>nomin</Option>
+        <Option>noresize</Option>
+        <Option>title</Option>
+        <Option>border</Option>
+    </Group>
+    <Group>
         <Type>normal</Type>
         <Option>layer:below</Option>
         <Option>maximized</Option>

@@ -91,6 +91,16 @@ RUN xx-verify --static /tmp/xprop-install/usr/bin/xprop
 COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/xprop-install/usr/bin/xprop
 
+# Build yad.
+FROM --platform=$BUILDPLATFORM alpine:3.14 AS yad
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/yad/build.sh /tmp/build-yad.sh
+RUN /tmp/build-yad.sh
+RUN xx-verify --static /tmp/yad-install/usr/bin/yad
+COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+RUN upx /tmp/yad-install/usr/bin/yad
+
 # Build Nginx.
 FROM --platform=$BUILDPLATFORM alpine:3.14 AS nginx
 ARG TARGETPLATFORM
@@ -230,6 +240,7 @@ COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/
 COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /usr/bin/
 COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /usr/bin/
 COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /usr/bin/
+COPY --from=yad /tmp/yad-install/usr/bin/yad /usr/bin/
 COPY --from=nginx /tmp/nginx-install /
 COPY --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --from=novnc /opt/novnc /opt/novnc
