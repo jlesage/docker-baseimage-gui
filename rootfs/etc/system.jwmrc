@@ -1,8 +1,9 @@
 <?xml version="1.0"?>
 <JWM>
-    <!-- Options for program groups.
-         NOTE: A program may match multiple groups.  If an option is defined
-         multiple times, the value of the first defined one is used.
+    <!--
+        Options for program groups.
+        NOTE: A program may match multiple groups.  If an option is defined
+        multiple times, the value of the first one is used.
     -->
     <Group>
         <Name>yad</Name>
@@ -26,60 +27,24 @@
     </Group>
 
     <!-- Visual Styles -->
-    <WindowStyle decorations="motif">
-        <Font>Sans-12:bold</Font>
-        <Width>4</Width>
-        <Corner>0</Corner>
-        <Foreground>#FFFFFF</Foreground>
-        <Background>#555555</Background>
-        <Opacity>0.5</Opacity>
-        <Active>
-            <Foreground>#FFFFFF</Foreground>
-            <Background>#0077CC</Background>
-            <Opacity>1.0</Opacity>
-        </Active>
-    </WindowStyle>
-    <MenuStyle decorations="motif">
-        <Font>Sans-12</Font>
-        <Foreground>#FFFFFF</Foreground>
-        <Background>#333333</Background>
-        <Active>
-            <Foreground>#FFFFFF</Foreground>
-            <Background>#0077CC</Background>
-        </Active>
-        <Opacity>0.85</Opacity>
-    </MenuStyle>
+    <Include>exec:/etc/jwm/select-style.sh</Include>
 
-    <!-- Path where icons can be found.
-         IconPath can be listed multiple times to allow searching
-         for icons in multiple paths.
-      -->
+    <!--
+        Path where icons can be found.
+        IconPath can be listed multiple times to allow searching
+        for icons in multiple paths.
+    -->
     <IconPath>
-      /usr/local/share/icons/Tango/scalable/actions
-    </IconPath>
-    <IconPath>
-      /usr/local/share/icons/Tango/scalable/apps
-    </IconPath>
-    <IconPath>
-      /usr/local/share/icons/Tango/scalable/places
-    </IconPath>
-    <IconPath>
-      /usr/local/share/icons/Tango/scalable/status
-    </IconPath>
-    <IconPath>
-      /usr/local/share/icons/Tango/scalable/mimetypes
-    </IconPath>
-    <IconPath>
-      /usr/local/share/jwm
+      /usr/share/jwm
     </IconPath>
 
     <!-- Virtual Desktops -->
-    <!-- Desktop tags can be contained within Desktops for desktop names. -->
     <Desktops width="1" height="1">
-        <!-- Default background. Note that a Background tag can be
-              contained within a Desktop tag to give a specific background
-              for that desktop.
-         -->
+        <!--
+            Default background. Note that a Background tag can be
+            contained within a Desktop tag to give a specific background
+            for that desktop.
+        -->
         <Background type="solid">#111111</Background>
     </Desktops>
 
@@ -106,61 +71,8 @@
     <Key key="Down">down</Key>
     <Key key="Right">right</Key>
     <Key key="Left">left</Key>
-    <!--
-    <Key key="h">left</Key>
-    <Key key="j">down</Key>
-    <Key key="k">up</Key>
-    <Key key="l">right</Key>
--->
     <Key key="Return">select</Key>
     <Key key="Escape">escape</Key>
-
-<!--
-    <Key mask="A" key="Tab">nextstacked</Key>
     <Key mask="A" key="F4">close</Key>
-    <Key mask="A" key="#">desktop#</Key>
-    <Key mask="A" key="F1">root:1</Key>
-    <Key mask="A" key="F2">window</Key>
-    <Key mask="A" key="F10">maximize</Key>
-    <Key mask="A" key="Right">rdesktop</Key>
-    <Key mask="A" key="Left">ldesktop</Key>
-    <Key mask="A" key="Up">udesktop</Key>
-    <Key mask="A" key="Down">ddesktop</Key>
--->
-
-    <!-- Mouse bindings -->
-    <!--
-    <Mouse context="root" button="4">ldesktop</Mouse>
-    <Mouse context="root" button="5">rdesktop</Mouse>
-
-    <Mouse context="title" button="1">move</Mouse>
-    <Mouse context="title" button="2">move</Mouse>
-    <Mouse context="title" button="3">window</Mouse>
-    <Mouse context="title" button="4">shade</Mouse>
-    <Mouse context="title" button="5">shade</Mouse>
-    <Mouse context="title" button="11">maximize</Mouse>
-
-    <Mouse context="icon" button="1">window</Mouse>
-    <Mouse context="icon" button="2">move</Mouse>
-    <Mouse context="icon" button="3">window</Mouse>
-    <Mouse context="icon" button="4">shade</Mouse>
-    <Mouse context="icon" button="5">shade</Mouse>
-
-    <Mouse context="border" button="1">resize</Mouse>
-    <Mouse context="border" button="2">move</Mouse>
-    <Mouse context="border" button="3">window</Mouse>
-
-    <Mouse context="close" button="-1">close</Mouse>
-    <Mouse context="close" button="2">move</Mouse>
-    <Mouse context="close" button="-3">close</Mouse>
-
-    <Mouse context="maximize" button="-1">maximize</Mouse>
-    <Mouse context="maximize" button="-2">maxv</Mouse>
-    <Mouse context="maximize" button="-3">maxh</Mouse>
-
-    <Mouse context="minimize" button="-1">minimize</Mouse>
-    <Mouse context="minimize" button="2">move</Mouse>
-    <Mouse context="minimize" button="-3">shade</Mouse>
--->
 
 </JWM>
