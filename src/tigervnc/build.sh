@@ -295,7 +295,6 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
         --disable-xvfb \
         --disable-glx \
         --disable-xinerama \
-        --disable-screensaver \
         --disable-record \
         --disable-xf86vidmode \
         --disable-xnest \
