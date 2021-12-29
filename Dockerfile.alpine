@@ -63,6 +63,10 @@ RUN \
     cd .. && \
     # Compile x11vnc
     cd x11vnc && \
+    sed-patch 's|^MUTEX(|extern MUTEX(|g' src/util.h && \
+    sed-patch '/#ifdef LIBVNCSERVER_HAVE_LIBPTHREAD/a MUTEX(pointerMutex);' src/util.c && \
+    sed-patch '/#ifdef LIBVNCSERVER_HAVE_LIBPTHREAD/a MUTEX(inputMutex);' src/util.c && \
+    sed-patch '/#ifdef LIBVNCSERVER_HAVE_LIBPTHREAD/a MUTEX(clientMutex);' src/util.c && \
     autoreconf -v --install && \
     PKG_CONFIG_PATH=/tmp/install/lib/pkgconfig/ ./configure --prefix=/tmp/install --with-websockets && \
     make install && \
