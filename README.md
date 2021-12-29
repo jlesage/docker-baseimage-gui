@@ -50,11 +50,6 @@ Different docker images are available:
 
 | Base distribution  | Tag              | Size |
 |--------------------|------------------|------|
-| [Alpine 3.5]       | alpine-3.5       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5 "Get your own image badge on microbadger.com") |
-| [Alpine 3.6]       | alpine-3.6       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.6.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.6 "Get your own image badge on microbadger.com") |
-| [Alpine 3.7]       | alpine-3.7       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.7.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.7 "Get your own image badge on microbadger.com") |
-| [Alpine 3.8]       | alpine-3.8       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.8 "Get your own image badge on microbadger.com") |
-| [Alpine 3.9]       | alpine-3.9       | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.9.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.9 "Get your own image badge on microbadger.com") |
 | [Alpine 3.10]      | alpine-3.10      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.10.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.10 "Get your own image badge on microbadger.com") |
 | [Alpine 3.11]      | alpine-3.11      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.11.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.11 "Get your own image badge on microbadger.com") |
 | [Alpine 3.12]      | alpine-3.12      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.12.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.12 "Get your own image badge on microbadger.com") |
@@ -72,11 +67,6 @@ Different docker images are available:
 | [Ubuntu 16.04 LTS] | ubuntu-16.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-16.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-16.04 "Get your own image badge on microbadger.com") |
 | [Ubuntu 18.04 LTS] | ubuntu-18.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-18.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-18.04 "Get your own image badge on microbadger.com") |
 
-[Alpine 3.5]: https://alpinelinux.org
-[Alpine 3.6]: https://alpinelinux.org
-[Alpine 3.7]: https://alpinelinux.org
-[Alpine 3.8]: https://alpinelinux.org
-[Alpine 3.9]: https://alpinelinux.org
 [Alpine 3.10]: https://alpinelinux.org
 [Alpine 3.11]: https://alpinelinux.org
 [Alpine 3.12]: https://alpinelinux.org
