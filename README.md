@@ -53,6 +53,9 @@ Different docker images are available:
 | [Alpine 3.10]      | alpine-3.10      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.10.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.10 "Get your own image badge on microbadger.com") |
 | [Alpine 3.11]      | alpine-3.11      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.11.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.11 "Get your own image badge on microbadger.com") |
 | [Alpine 3.12]      | alpine-3.12      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.12.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.12 "Get your own image badge on microbadger.com") |
+| [Alpine 3.13]      | alpine-3.13      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.13.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.13 "Get your own image badge on microbadger.com") |
+| [Alpine 3.14]      | alpine-3.14      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.14.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.14 "Get your own image badge on microbadger.com") |
+| [Alpine 3.15]      | alpine-3.15      | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.15.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.15 "Get your own image badge on microbadger.com") |
 | [Alpine 3.5]       | alpine-3.5-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.5-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.5-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.6]       | alpine-3.6-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.6-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.6-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.7]       | alpine-3.7-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.7-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.7-glibc "Get your own image badge on microbadger.com") |
@@ -61,22 +64,32 @@ Different docker images are available:
 | [Alpine 3.10]       | alpine-3.10-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.10-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.10-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.11]       | alpine-3.11-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.11-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.11-glibc "Get your own image badge on microbadger.com") |
 | [Alpine 3.12]       | alpine-3.12-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.12-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.12-glibc "Get your own image badge on microbadger.com") |
+| [Alpine 3.13]       | alpine-3.13-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.13-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.13-glibc "Get your own image badge on microbadger.com") |
+| [Alpine 3.14]       | alpine-3.14-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.14-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.14-glibc "Get your own image badge on microbadger.com") |
+| [Alpine 3.15]       | alpine-3.15-glibc | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:alpine-3.15-glibc.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:alpine-3.15-glibc "Get your own image badge on microbadger.com") |
 | [Debian 8]         | debian-8         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-8.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-8/ "Get your own image badge on microbadger.com") |
 | [Debian 9]         | debian-9         | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-9.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-9/ "Get your own image badge on microbadger.com") |
 | [Debian 10]        | debian-10        | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-10.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-10/ "Get your own image badge on microbadger.com") |
+| [Debian 11]        | debian-11        | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:debian-11.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:debian-11/ "Get your own image badge on microbadger.com") |
 | [Ubuntu 16.04 LTS] | ubuntu-16.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-16.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-16.04 "Get your own image badge on microbadger.com") |
 | [Ubuntu 18.04 LTS] | ubuntu-18.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-18.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-18.04 "Get your own image badge on microbadger.com") |
+| [Ubuntu 20.04 LTS] | ubuntu-20.04     | [![](https://images.microbadger.com/badges/image/jlesage/baseimage-gui:ubuntu-20.04.svg)](http://microbadger.com/#/images/jlesage/baseimage-gui:ubuntu-20.04 "Get your own image badge on microbadger.com") |
 
 [Alpine 3.10]: https://alpinelinux.org
 [Alpine 3.11]: https://alpinelinux.org
 [Alpine 3.12]: https://alpinelinux.org
+[Alpine 3.13]: https://alpinelinux.org
+[Alpine 3.14]: https://alpinelinux.org
+[Alpine 3.15]: https://alpinelinux.org
 [Debian 8]: https://www.debian.org/releases/jessie/
 [Debian 9]: https://www.debian.org/releases/stretch/
 [Debian 10]: https://www.debian.org/releases/buster/
+[Debian 11]: https://www.debian.org/releases/bullseye/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
 [Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18.04/
+[Ubuntu 20.04 LTS]: http://releases.ubuntu.com/20.04/
 
-Due to its size, the `Alpine` image is recommended.  However, it may be harder
+Due to its size, an `Alpine` image is recommended.  However, it may be harder
 to integrate your application (especially third party ones without source code),
 because:
  1. Packages repository may not be as complete as `Ubuntu`/`Debian`.
@@ -84,13 +97,12 @@ because:
  3. The `Alpine` distribution uses the [musl] C standard library instead of
  GNU C library ([glibc]).
 
-Note that using the `Alpine` image with glibc integrated (`alpine-3.5-glibc`
+Note that using an `Alpine` image with glibc integrated (`alpine-3.5-glibc`
 tag) may ease integration of applications.
 
-The next choice is to use the `Debian` image.  It provides a great compatibility
+The next choice is to use a `Debian` image.  It provides a great compatibility
 and its size is smaller than the `Ubuntu` one.  Finally, if for any reason you
-prefer an `Ubuntu` image, one based on the stable `16.04 LTS` version is
-provided.
+prefer an `Ubuntu` image, stable `LTS` versions are provided.
 
 [musl]: https://www.musl-libc.org/
 [glibc]: https://www.gnu.org/software/libc/
