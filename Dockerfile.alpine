@@ -22,7 +22,7 @@ ARG JQUERY_UI_TOUCH_PUNCH_VERSION=4bc0091
 # Define software download URLs.
 ARG LIBVNCSERVER_URL=https://github.com/jlesage/libvncserver/archive/${LIBVNCSERVER_VERSION}.tar.gz
 ARG X11VNC_URL=https://github.com/jlesage/x11vnc/archive/${X11VNC_VERSION}.tar.gz
-ARG STUNNEL_URL=https://www.usenix.org.uk/mirrors/stunnel/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz
+ARG STUNNEL_URL=https://www.stunnel.org/archive/5.x/stunnel-${STUNNEL_VERSION}.tar.gz
 ARG NOVNC_URL=https://github.com/jlesage/novnc/archive/${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=https://fontawesome.com/v${FONTAWESOME_VERSION}/assets/font-awesome-${FONTAWESOME_VERSION}.zip
