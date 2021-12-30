@@ -152,6 +152,15 @@ container.
     <!-- Changelog. -->
     <history>
       <release>
+        <version>3.5.8</version>
+        <date>2021-12-29</date>
+        <change>Updated installed packages to get latest security fixes.</change>
+        <change>Added images based on Alpine 3.13, 3.14 and 3.15.</change>
+        <change>Added images based on Debian 11.</change>
+        <change>Added images based on Ubuntu 20.04.</change>
+        <change>Removed support for images based on Alpine 3.5, 3.6, 3.7, 3.8 and 3.8.</change>
+      </release>
+      <release>
         <version>3.5.7</version>
         <date>2021-04-06</date>
         <change>Now using version 2.4.5 of `jlesage/baseimage`, which bring the following changes:</change>
