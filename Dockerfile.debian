@@ -104,6 +104,7 @@ RUN \
         openssl \
         libxtst6 \
         libxcomposite1 \
+        libxdamage1 \
         $LIBPNG \
         stunnel \
         # X virtual framebuffer display server

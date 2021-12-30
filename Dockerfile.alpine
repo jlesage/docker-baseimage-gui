@@ -114,6 +114,7 @@ RUN \
         libxi \
         libjpeg-turbo \
         libxcomposite \
+        libxdamage \
         # X virtual framebuffer display server
         xvfb \
         xdpyinfo \
@@ -178,9 +179,9 @@ RUN \
 RUN \
     add-pkg nginx && \
     rm /etc/nginx/nginx.conf \
-       /etc/init.d/nginx \
        /etc/logrotate.d/nginx \
        && \
+    rm -f /etc/init.d/nginx \
     rm -r /etc/nginx/conf.d \
           /etc/nginx/modules \
           /var/lib/nginx/* \
@@ -223,7 +224,7 @@ RUN sed-patch "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" /opt/novnc/inde
 
 # Minify noVNC UI JS files
 RUN \
-    NODEJS_NPM=$(apk -q --no-cache search nodejs-npm) && \
+    NODEJS_NPM=$(apk -q --no-cache search npm | head -n1) && \
     add-pkg --virtual build-dependencies ${NODEJS_NPM:-nodejs} && \
     NOVNC_UI="\
         /opt/novnc/app/modulemgr.js \
