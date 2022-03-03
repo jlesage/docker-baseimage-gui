@@ -22,13 +22,14 @@ if [ -f /config/.vncpass ]; then
 elif [ -n "${VNC_PASSWORD:-}" ]; then
     echo "creating VNC password file from environment variable..."
     echo "$VNC_PASSWORD" | /usr/bin/vncpasswd -f  > /tmp/.vncpass
-    chmod 400 /tmp/.vncpass
 fi
 
 # Adjust ownership and permissions of password files.
-if [ -f /config/.vncpass ]; then
-   chown $USER_ID:$GROUP_ID /config/.vncpass
-   chmod 400 /config/.vncpass
-fi
+for FILE in /config/.vncpass /tmp/.vncpass; do
+    if [ -f "$FILE" ]; then
+        chown $USER_ID:$GROUP_ID "$FILE"
+        chmod 400 "$FILE"
+    fi
+done
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
