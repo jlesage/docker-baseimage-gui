@@ -247,6 +247,8 @@ echo "Adjusting HTML page..."
 jq -r '.favicon_generation_result.favicon.html_code' "$WORKDIR"/faviconData.json > "$WORKDIR"/htmlCode
 if [ "$(cat "$WORKDIR"/htmlCode)" = "null" ]; then
     die "HTML code not found"
+else
+    sed -i 's/^/    /' "$WORKDIR"/htmlCode
 fi
 #sed-patch -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" "$HTML_FILE"
 cat "$HTML_FILE" | sed -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" > "$WORKDIR"/tmp.html
