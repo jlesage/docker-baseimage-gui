@@ -161,8 +161,7 @@ cat <<EOF > "$WORKDIR"/faviconDescription.json
       "url": "$APP_ICON_URL"
     },
     "files_location": {
-      "type": "path",
-      "path": "images/icons/"
+      "type": "root"
     },
     "favicon_design": {
       "desktop_browser": {},
