@@ -314,7 +314,7 @@ var UI = {
     }
   },
 
-  // Gets the the size of the available viewport in the browser window.
+  // Gets the size of the available viewport in the browser window.
   screenSize: function() {
     var navbar_h = ModuleMgr.isActive('HideableNavbar') ? 0 : 51;
     return {w: $(window).width(), h: $(window).height() - navbar_h };
