@@ -59,8 +59,6 @@ Different docker images are available:
 
 | Base Distribution  | Docker Image Base Tag | Size |
 |--------------------|-----------------------|------|
-| [Alpine 3.10]      | alpine-3.10           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.10)  |
-| [Alpine 3.11]      | alpine-3.11           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.11)  |
 | [Alpine 3.12]      | alpine-3.12           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.12)  |
 | [Alpine 3.13]      | alpine-3.13           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.13)  |
 | [Alpine 3.14]      | alpine-3.14           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14)  |
@@ -73,8 +71,6 @@ Different docker images are available:
 | [Ubuntu 18.04 LTS] | ubuntu-18.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-18.04) |
 | [Ubuntu 20.04 LTS] | ubuntu-20.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04) |
 
-[Alpine 3.10]: https://alpinelinux.org
-[Alpine 3.11]: https://alpinelinux.org
 [Alpine 3.12]: https://alpinelinux.org
 [Alpine 3.13]: https://alpinelinux.org
 [Alpine 3.14]: https://alpinelinux.org
