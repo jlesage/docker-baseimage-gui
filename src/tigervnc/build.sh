@@ -2,6 +2,11 @@
 #
 # Helper script that builds the TigerVNC server as a static binary.
 #
+# This also builds a customized version of XKeyboard config files and the
+# compiler (xkbcomp).  By using a different instance/version of XKeyboard, we
+# prevent version mismatch issues thay could occur by using packages from the
+# distro of the baseimage.
+#
 # NOTE: This script is expected to be run under Alpine Linux.
 #
 
@@ -18,6 +23,13 @@ LIBFONTENC_VERSION=1.1.4
 LIBTASN1_VERSION=4.17.0
 LIBXSHMFENCE_VERSION=1.3
 
+# If the XKeyboardConfig version is too recent compared to xorgproto/libX11,
+# xkbcomp will complain with warnings like "Could not resolve keysym ...".  With
+# Alpine 3.15, XKeyboardConfig version 2.32 is the latest version that doesn't
+# produces these warnings.
+XKEYBOARDCONFIG_VERSION=2.32
+XKBCOMP_VERSION=1.4.5
+
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
 XSERVER_URL=https://github.com/freedesktop/xorg-xserver/archive/xorg-server-${XSERVER_VERSION}.tar.gz
@@ -27,6 +39,9 @@ LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION
 LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.bz2
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
 LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.bz2
+
+XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.bz2
+XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.bz2
 
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
@@ -53,6 +68,7 @@ apk --no-cache add \
     automake \
     libtool \
     pkgconf \
+    meson \
     util-macros \
     font-util-dev \
     xtrans \
@@ -265,9 +281,9 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
         --prefix=/usr \
         --sysconfdir=/etc/X11 \
         --localstatedir=/var \
-        --with-xkb-path=/opt/xkb \
+        --with-xkb-path=/opt/tigervnc/xkb \
         --with-xkb-output=/var/lib/xkb \
-        --with-xkb-bin-directory=/opt/xkb \
+        --with-xkb-bin-directory=/opt/tigervnc/xkb \
         --with-default-font-path=/usr/share/fonts/misc,/usr/share/fonts/100dpi:unscaled,/usr/share/fonts/75dpi:unscaled,/usr/share/fonts/TTF,/usr/share/fonts/Type1 \
         --disable-docs \
         --disable-unit-tests \
@@ -322,4 +338,79 @@ make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/xserver install
 
 log "Installing TigerVNC vncpasswd tool..."
 make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/vncpasswd install
+
+#
+# Build XKeyboardConfig.
+#
+mkdir /tmp/xkb
+log "Downloading XKeyboardConfig..."
+curl -# -L ${XKEYBOARDCONFIG_URL} | tar -xj --strip 1 -C /tmp/xkb
+log "Configuring XKeyboardConfig..."
+(
+    cd /tmp/xkb && abuild-meson . build
+)
+log "Compiling XKeyboardConfig..."
+meson compile -C /tmp/xkb/build
+log "Installing XKeyboardConfig..."
+DESTDIR="/tmp/xkb-install" meson install --no-rebuild -C /tmp/xkb/build
+
+log "Stripping XKeyboardConfig..."
+# We keep only the files needed by Xvnc.
+TO_KEEP="
+    geometry/pc
+    symbols/pc
+    symbols/us
+    symbols/srvr_ctrl
+    symbols/keypad
+    symbols/altwin
+    symbols/inet
+    compat/accessx
+    compat/basic
+    compat/caps
+    compat/complete
+    compat/iso9995
+    compat/ledcaps
+    compat/lednum
+    compat/ledscroll
+    compat/level5
+    compat/misc
+    compat/mousekeys
+    compat/xfree86
+    keycodes/evdev
+    keycodes/aliases
+    types/basic
+    types/complete
+    types/extra
+    types/iso9995
+    types/level5
+    types/mousekeys
+    types/numpad
+    types/pc
+    rules/evdev
+"
+find /tmp/xkb-install/usr/share/X11/xkb -mindepth 2 -maxdepth 2 -type d -print -exec rm -r {} ';'
+find /tmp/xkb-install/usr/share/X11/xkb -mindepth 1 ! -type d $(printf "! -wholename /tmp/xkb-install/usr/share/X11/xkb/%s " $(echo "$TO_KEEP")) -print -delete
+
+#
+# Build xkbcomp.
+#
+mkdir /tmp/xkbcomp
+log "Downloading xkbcomp..."
+curl -# -L ${XKBCOMP_URL} | tar -xj --strip 1 -C /tmp/xkbcomp
+
+log "Configuring xkbcomp..."
+(
+    LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all -Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -Wl,--end-group" && \
+    cd /tmp/xkbcomp && \
+    LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all -Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -Wl,--end-group" LIBS="$LDFLAGS" ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+)
+
+log "Compiling xkbcomp..."
+make -C /tmp/xkbcomp -j$(nproc)
+
+log "Installing xkbcomp..."
+make DESTDIR=/tmp/xkbcomp-install -C /tmp/xkbcomp install
 

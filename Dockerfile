@@ -231,10 +231,10 @@ RUN \
 # Add files.
 COPY helpers/* /usr/bin/
 COPY rootfs/ /
-COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /usr/bin/
-COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/
-COPY --from=xkb /tmp/xkb-install/usr/share/X11/xkb /opt/xkb
-COPY --from=xkb /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/xkb/
+COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/tigervnc/bin/
+COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /usr/tigervnc/bin/
+COPY --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/tigervnc/xkb
+COPY --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/tigervnc/xkb/
 COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/jwm/bin/jwm
 COPY --from=jwm /opt/jwm/fonts /opt/jwm/fonts
 COPY --from=jwm /opt/jwm/fontconfig /opt/jwm/fontconfig
