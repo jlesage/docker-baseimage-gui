@@ -8,9 +8,6 @@ ARG BASEIMAGE=unknown
 
 # Define the Alpine packages to be installed into the image.
 ARG ALPINE_PKGS="\
-    # Needed by the X server.
-    xkbcomp \
-    xkeyboard-config \
     # Font and its config used by the window manager.
     # NOTE: Package automatically pulls font config.
     font-croscore \
@@ -20,9 +17,6 @@ ARG ALPINE_PKGS="\
 
 # Define the Debian/Ubuntu packages to be installed into the image.
 ARG DEBIAN_PKGS="\
-    # Needed by the X server.
-    x11-xkb-utils \
-    xkb-data \
     # Used to determine if nginx is ready.
     netcat \
     # Font and its config used by the window manager.
@@ -58,7 +52,17 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/tigervnc-install/usr/bin/Xvnc
 RUN upx /tmp/tigervnc-install/usr/bin/vncpasswd
 
-# Build JWM
+# Build XKeyboard.
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS xkb
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/xkb/build.sh /tmp/build-xkb.sh
+RUN /tmp/build-xkb.sh
+RUN xx-verify --static /tmp/xkbcomp-install/usr/bin/xkbcomp
+COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
+
+# Build JWM.
 FROM --platform=$BUILDPLATFORM alpine:3.14 AS jwm
 ARG TARGETPLATFORM
 COPY --from=xx / /
@@ -227,8 +231,6 @@ RUN \
     else \
         add-pkg ${DEBIAN_PKGS}; \
     fi && \
-    # Disable unsupported keysym (related to Wayland).
-    find /usr/share/X11/xkb -type f -exec sed '/.* key .*XF86.*/s/^/\/\//' -i {} ';' && \
     # Remove some unneeded stuff.
     rm -rf /var/cache/fontconfig/*
 
@@ -237,6 +239,8 @@ COPY helpers/* /usr/bin/
 COPY rootfs/ /
 COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /usr/bin/
 COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/
+COPY --from=xkb /tmp/xkb-install/usr/share/X11/xkb /opt/xkb
+COPY --from=xkb /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/xkb/
 COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /usr/bin/
 COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /usr/bin/
 COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /usr/bin/
