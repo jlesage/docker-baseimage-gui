@@ -146,7 +146,7 @@ mkdir /tmp/fontconfig
 log "Downloading fontconfig..."
 curl -# -L ${FONTCONFIG_URL} | tar -xz --strip 1 -C /tmp/fontconfig
 
-log "Configuring fontconfig (target)..."
+log "Configuring fontconfig..."
 (
     cd /tmp/fontconfig && LDFLAGS= ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
@@ -164,10 +164,11 @@ log "Configuring fontconfig (target)..."
         --disable-cache-build \
 )
 
-log "Compiling fontconfig (target)..."
+log "Compiling fontconfig..."
 make -C /tmp/fontconfig -j$(nproc)
 
-log "Installing fontconfig (target)..."
+log "Installing fontconfig..."
+make DESTDIR=/tmp/fontconfig-install -C /tmp/fontconfig install
 make DESTDIR=$(xx-info sysroot) -C /tmp/fontconfig install
 
 #
