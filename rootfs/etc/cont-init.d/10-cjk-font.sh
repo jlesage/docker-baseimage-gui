@@ -4,7 +4,8 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 if [ "${ENABLE_CJK_FONT:-0}" -eq 1 ]; then
-    if fc-list | grep -q "WenQuanYi Zen Hei"; then
+    if [ -d /usr/share/fonts/truetype/wqy ] || [ -d /usr/share/fonts/wenquanyi ]
+    then
         echo "CJK font already installed."
     else
         echo "installing CJK font..."
