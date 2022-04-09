@@ -8,9 +8,6 @@ ARG BASEIMAGE=unknown
 
 # Define the Alpine packages to be installed into the image.
 ARG ALPINE_PKGS="\
-    # Font and its config used by the window manager.
-    # NOTE: Package automatically pulls font config.
-    font-croscore \
     # Needed to generate self-signed certificates
     openssl \
 "
@@ -19,9 +16,6 @@ ARG ALPINE_PKGS="\
 ARG DEBIAN_PKGS="\
     # Used to determine if nginx is ready.
     netcat \
-    # Font and its config used by the window manager.
-    # NOTE: Package automatically pulls a font.
-    fontconfig-config \
     # For ifconfig
     net-tools \
     # Needed to generate self-signed certificates
@@ -241,7 +235,9 @@ COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /usr/bin/
 COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /usr/bin/
 COPY --from=xkb /tmp/xkb-install/usr/share/X11/xkb /opt/xkb
 COPY --from=xkb /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/xkb/
-COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /usr/bin/
+COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/jwm/bin/jwm
+COPY --from=jwm /opt/jwm/fonts /opt/jwm/fonts
+COPY --from=jwm /opt/jwm/fontconfig /opt/jwm/fontconfig
 COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /usr/bin/
 COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /usr/bin/
 COPY --from=yad /tmp/yad-install/usr/bin/yad /usr/bin/
