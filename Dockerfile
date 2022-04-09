@@ -28,14 +28,14 @@ FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 # Build UPX.
 # NOTE: The latest official release of UPX (version 3.96) produces binaries that
 # crash on ARM.  We need to manually compile it with all latest fixes.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS upx
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS upx
 RUN apk --no-cache add build-base git bash perl ucl-dev zlib-dev zlib-static && \
     git clone --recurse-submodules https://github.com/upx/upx.git /tmp/upx && \
     git -C /tmp/upx checkout f75ad8b && \
     make LDFLAGS=-static CXXFLAGS_OPTIMIZE= -C /tmp/upx -j$(nproc) all
 
 # Build TigerVNC server.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS tigervnc
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS tigervnc
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/tigervnc/build.sh /tmp/build-tigervnc.sh
@@ -57,7 +57,7 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
 
 # Build JWM.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS jwm
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS jwm
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/jwm/build.sh /tmp/build-jwm.sh
@@ -67,7 +67,8 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/jwm-install/usr/bin/jwm
 
 # Build xdpyprobe.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS xdpyprobe
+# Used to determine if the X server (Xvnc) is ready.
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS xdpyprobe
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/xdpyprobe /tmp/xdpyprobe
@@ -80,7 +81,7 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/xdpyprobe/xdpyprobe
 
 # Build xprop.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS xprop
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS xprop
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/xprop/build.sh /tmp/build-xprop.sh
@@ -90,7 +91,7 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/xprop-install/usr/bin/xprop
 
 # Build yad.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS yad
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS yad
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/yad/build.sh /tmp/build-yad.sh
@@ -100,7 +101,7 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/yad-install/usr/bin/yad
 
 # Build Nginx.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS nginx
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS nginx
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/nginx/build.sh /tmp/build-nginx.sh
@@ -110,7 +111,7 @@ COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/nginx-install//usr/sbin/nginx
 
 # Build noVNC.
-FROM  --platform=$BUILDPLATFORM alpine:3.14 AS novnc
+FROM  --platform=$BUILDPLATFORM alpine:3.15 AS novnc
 ARG NOVNC_VERSION=fa559b3
 ARG BOOTSTRAP_VERSION=3.3.7
 ARG FONTAWESOME_VERSION=4.7.0
@@ -190,7 +191,7 @@ RUN \
     sed "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" -i /opt/novnc/index.vnc
 
 # Generate favicons.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS favicons
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS favicons
 COPY helpers/* /usr/bin/
 COPY rootfs/opt/novnc/index.vnc /tmp/index.vnc
 RUN apk --no-cache add curl sed jq
@@ -202,7 +203,7 @@ RUN \
         --no-tools-install
 
 # Generate default DH params.
-FROM --platform=$BUILDPLATFORM alpine:3.14 AS dhparam
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS dhparam
 RUN apk --no-cache add openssl
 RUN echo "Generating default DH parameters (2048 bits)..."
 RUN openssl dhparam \
