@@ -39,7 +39,7 @@ teardown() {
     exec_container_daemon sh -c "echo TriggerWord        >> /tmp/test1.log"
     exec_container_daemon sh -c "echo ThisIsALine2       >> /tmp/test2.log"
     exec_container_daemon sh -c "echo TriggerAnotherWord >> /tmp/test2.log"
-    sleep 5
+    sleep 10
 
     # Dump docker logs before proceeding to validations.
     echo "====================================================================="
