@@ -1,6 +1,6 @@
 #!/bin/env bats
 
-DOCKER_EXTRA_OPTS="-p 5900:5900 -p 5800:5800 -e SECURE_CONNECTION=1 -e USE_DEFAULT_DH_PARAMS=1"
+DOCKER_EXTRA_OPTS=("-p" "5900:5900" "-p" "5800:5800" "-e" "SECURE_CONNECTION=1" "-"e "USE_DEFAULT_DH_PARAMS=1")
 
 setup() {
     load setup_common

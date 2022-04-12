@@ -64,7 +64,7 @@ chmod a+rx "$TESTS_WORKDIR"/startapp.sh
 
 # Start the container in daemon mode.
 echo "Starting docker container daemon..."
-docker_run -d --name "$CONTAINER_DAEMON_NAME" -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh $DOCKER_EXTRA_OPTS $DOCKER_IMAGE "${DOCKER_CMD[@]}" 2>/dev/null
+docker_run -d --name "$CONTAINER_DAEMON_NAME" -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh "${DOCKER_EXTRA_OPTS[@]}" $DOCKER_IMAGE "${DOCKER_CMD[@]}" 2>/dev/null
 echo "$output"
 [ "$status" -eq 0 ]
 
