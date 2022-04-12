@@ -156,7 +156,7 @@ log "Configuring fontconfig..."
         --with-baseconfigdir=/opt/jwm/fontconfig \
         --with-configdir=/opt/jwm/fontconfig/conf.d \
         --with-templatedir=/opt/jwm/fontconfig/conf.avail \
-        --with-cache-dir=/opt/jwm/fontconfig/cache \
+        --with-cache-dir=/config/xdg/cache/fontconfig \
         --disable-shared \
         --enable-static \
         --disable-docs \
