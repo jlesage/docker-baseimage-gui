@@ -3,6 +3,10 @@
 setup() {
     load setup_common
 
+    # This will be used to disabled YAD.
+    echo "#!/bin/sh" > "$TESTS_WORKDIR"/yad-send
+    chmod +x "$TESTS_WORKDIR"/yad-send
+
     # Create logmonitor config file.
     echo "STATUS_FILES=/tmp/test1.status,/tmp/test2.status" > "$TESTS_WORKDIR"/logmonitor.conf
 
@@ -31,6 +35,7 @@ EOF
     chmod +x "$TESTS_WORKDIR"/test2/filter
 
     DOCKER_EXTRA_OPTS=()
+    DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/yad-send:/etc/logmonitor/targets.d/yad/send")
     DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/logmonitor.conf:/etc/logmonitor/logmonitor.conf")
     DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/test1:/etc/logmonitor/notifications.d/test1")
     DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/test2:/etc/logmonitor/notifications.d/test2")
