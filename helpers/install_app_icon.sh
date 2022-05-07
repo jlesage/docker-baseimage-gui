@@ -12,8 +12,8 @@ set -u # Treat unset variables as an error.
 WORKDIR=$(mktemp -d)
 
 APP_ICON_URL=""
-ICONS_DIR="/opt/novnc/images/icons"
-HTML_FILE="/opt/novnc/index.vnc"
+ICONS_DIR="/opt/noVNC/app/images/icons"
+HTML_FILE="/opt/noVNC/index.html"
 INSTALL_MISSING_TOOLS=1
 
 usage() {
@@ -31,8 +31,8 @@ Arguments:
              generated from this picture.
 
 Options:
-  --icons-dir         Directory where to put the generated icons.  Default: /opt/novnc/images/icons
-  --html-page         Path to the HTML file where to insert the HTML code.  Default: /opt/novnc/index.vnc
+  --icons-dir         Directory where to put the generated icons.  Default: /opt/noVNC/app/images/icons
+  --html-page         Path to the HTML file where to insert the HTML code.  Default: /opt/noVNC/index.html
   --no-tools-install  Do not automatically install missing tools.
 "
 
@@ -250,7 +250,6 @@ if [ "$(cat "$WORKDIR"/htmlCode)" = "null" ]; then
 else
     sed -i 's/^/    /' "$WORKDIR"/htmlCode
 fi
-#sed-patch -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" "$HTML_FILE"
 cat "$HTML_FILE" | sed -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" > "$WORKDIR"/tmp.html
 if diff "$WORKDIR"/tmp.html "$HTML_FILE" > /dev/null 2>&1; then
     die "Could not insert HTML code."
