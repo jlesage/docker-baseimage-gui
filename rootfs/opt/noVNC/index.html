@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en" class="noVNC_loading">
+<head>
+
+    <!--
+    noVNC example: simple example using default UI
+    Copyright (C) 2019 The noVNC Authors
+    noVNC is licensed under the MPL 2.0 (see LICENSE.txt)
+    This file is licensed under the 2-Clause BSD license (see LICENSE.txt).
+    -->
+
+    <title></title>
+
+    <meta charset="utf-8">
+
+    <!-- BEGIN Favicons -->
+    <!-- END Favicons -->
+
+    <!-- Always force latest IE rendering engine -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <!-- Apple iOS Safari settings -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="app/styles/font-awesome.min.css?v=UNIQUE_VERSION">
+    <link rel="stylesheet" href="app/styles/bootstrap-nightshade.min.css?v=UNIQUE_VERSION">
+    <link rel="stylesheet" href="app/styles/base.css?v=UNIQUE_VERSION">
+
+    <!-- Images that will later appear via CSS -->
+    <link rel="preload" as="image" href="app/images/info.svg">
+    <link rel="preload" as="image" href="app/images/error.svg">
+    <link rel="preload" as="image" href="app/images/warning.svg">
+
+    <!-- Scripts -->
+    <script src="app/bootstrap.bundle.min.js?v=UNIQUE_VERSION"></script>
+    <script src="app/error-handler.js?v=UNIQUE_VERSION"></script>
+    <script type="module" crossorigin="anonymous" src="app/ui.js?v=UNIQUE_VERSION"></script>
+</head>
+
+<body>
+    <!-- Fatal error message box -->
+    <div id="noVNC_fallback_error" class="noVNC_center">
+        <div>
+            <div>Unexpected error encountered:</div>
+            <br>
+            <div id="noVNC_fallback_errormsg"></div>
+        </div>
+    </div>
+
+    <!-- Control Bar -->
+    <div id="noVNC_control_bar_anchor" class="noVNC_vcenter noVNC_hidden">
+        <div id="noVNC_control_bar" class="d-flex flex-row">
+            <!-- Control bar content. -->
+            <div class="card noVNC_scroll" style="width: 21rem; font-size: 14px;">
+                <!-- Control bar header -->
+                <div class="card-header d-flex align-items-center">
+                    <img class="pe-2" style="height: 25px;" src="app/images/icons/master_icon.png?v=UNIQUE_VERSION" id="noVNC_app_logo">
+                    <h5 class="m-0" name="noVNC_app_name">DockerApp</h5>
+                    <div class="ms-auto"><!--<i class="fa fa-unlock-alt fs-4"></i>--></div>
+                </div>
+                <!-- Control bar body -->
+                <ul class="list-group list-group-flush">
+                    <!-- Action icons -->
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-around align-items-center">
+                            <a class="btn shadow-none p-0" href="#" title="Show Keyboard" id="noVNC_keyboard_button"><i class="fa fa-keyboard-o fa-fw fs-4"></i></a>
+                            <a class="btn shadow-none p-0 noVNC_hidden" href="#" title="Fullscreen" id="noVNC_fullscreen_button"><i class="fa fa-arrows-alt fa-fw fs-4"></i></a>
+                            <a class="btn shadow-none p-0 noVNC_hidden" href="#" title="Move/Drag Viewport" id="noVNC_view_drag_button"><i class="fa fa-hand-rock-o fa-fw fs-4"></i></a>
+                        </div>
+                    </li>
+                    <!-- Clipboard -->
+                    <li class="list-group-item">
+                        <!--                        <label for="noVNC_clipboard_text" class="custom-accordion-button text-nowrap" data-bs-toggle="collapse" data-bs-target="#clipboardCollapse">Clipboard</label>-->
+                        <label class="custom-accordion-button text-nowrap" data-bs-toggle="collapse" data-bs-target="#clipboardCollapse">Clipboard</label>
+                        <div class="input-group input-group-sm collapse show" id="clipboardCollapse">
+                            <textarea class="form-control" wrap="off" rows="3" id="noVNC_clipboard_text"></textarea>
+                            <button class="btn btn-outline-secondary" type="button" id="noVNC_clipboard_clear_button">Clear</button>
+                        </div>
+                    </li>
+                    <!-- Settings -->
+                    <li class="list-group-item">
+                        <label class="custom-accordion-button text-nowrap" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">Settings</label>
+                        <div class="collapse show" id="settingsCollapse">
+                            <!-- Clip to window -->
+                            <div class="form-check form-switch mb-2">
+                                <input class="form-check-input" type="checkbox" role="switch" id="noVNC_setting_view_clip">
+                                <label class="form-check-label text-nowrap" for="noVNC_setting_view_clip">Clip to Window</label>
+                            </div>
+                            <!-- Scaling mode -->
+                            <div class="input-group input-group-sm mb-2">
+                                <label class="input-group-text" for="noVNC_setting_resize">Scaling Mode</label>
+                                <select class="form-select" id="noVNC_setting_resize">
+                                    <option value="off">None</option>
+                                    <option value="scale">Local Scaling</option>
+                                    <option value="remote">Remote Resizing</option>
+                                </select>
+                            </div>
+                            <!-- Quality -->
+                            <div>
+                                <label for="noVNC_setting_quality" class="text-nowrap">Quality</label>
+                                <input type="range" min="0" max="9" value="6" class="form-range" id="noVNC_setting_quality">
+                            </div>
+                            <!-- Compression level -->
+                            <div class="mb-1">
+                                <label for="noVNC_setting_compression" class="text-nowrap">Compression Level</label>
+                                <input type="range" min="0" max="9" value="2" class="form-range" id="noVNC_setting_compression">
+                            </div>
+                            <!-- Logging -->
+                            <div class="input-group input-group-sm">
+                                <label class="input-group-text" for="noVNC_setting_logging">Logging</label>
+                                <select class="form-select" id="noVNC_setting_logging">
+                                    <option value="error">Error</option>
+                                    <option value="warn">Warning</option>
+                                    <option value="info">Info</option>
+                                    <option value="debug">Debug</option>
+                                </select>
+                            </div>
+                        </div>
+                    </li>
+                </ul>
+                <!-- Control bar footer -->
+                <div id="noVNC_version_footer" class="card-footer noVNC_hidden">
+                    <div id="noVNC_version_app" class="noVNC_hidden"><small class="text-muted text-nowrap">Application vX.Y.Z</small></div>
+                    <div id="noVNC_version_docker_image" class="noVNC_hidden"><small class="text-muted text-nowrap">Docker Image vX.Y.Z</small></div>
+                </div>
+            </div>
+            <!-- Control bar handle -->
+            <div id="noVNC_control_bar_handle" class="handle">
+                <div class="dots"></div>
+            </div>
+        </div>
+    </div> <!-- End of Control Bar -->
+
+    <!-- Status Dialog -->
+    <div id="noVNC_status"></div>
+
+    <!-- Password Dialog -->
+    <div class="noVNC_center noVNC_connect_layer">
+        <div id="noVNC_credentials_dlg">
+            <div class="card">
+                <div class="card-header" name="noVNC_app_name">DockerApp</div>
+                    <div class="card-body">
+                        <h5 class="card-title">Credentials needed</h5>
+                        <p class="card-text">Please enter the credentials to connect.</p>
+                        <form>
+                            <div id="noVNC_username_block" mclass="mb-3">
+                                <input type="text" class="form-control" placeholder="Username" id="noVNC_username_input">
+                            </div>
+                            <div id="noVNC_password_block" class="mb-3">
+                                <input type="password" class="form-control" placeholder="Password" id="noVNC_password_input">
+                            </div>
+                            <button type="submit" id="noVNC_credentials_button" class="btn btn-primary">Submit</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Transition Screens -->
+    <div id="noVNC_transition">
+        <div id="noVNC_transition_text"></div>
+        <div class="noVNC_spinner"></div>
+    </div>
+
+    <!-- This is where the RFB elements will attach -->
+    <div id="noVNC_container">
+        <!-- Note that Google Chrome on Android doesn't respect any of these,
+             html attributes which attempt to disable text suggestions on the
+             on-screen keyboard. Let's hope Chrome implements the ime-mode
+             style for example -->
+        <textarea id="noVNC_keyboardinput" autocapitalize="off"
+            autocomplete="off" spellcheck="false" tabindex="-1"></textarea>
+    </div>
+
+</body>
+</html>
