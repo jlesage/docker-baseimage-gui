@@ -37,7 +37,7 @@ needed on the client side) or via any VNC client.
          * [Configuration Directory](#configuration-directory)
             * [Application's Data Directories](#applications-data-directories)
          * [Adding/Removing Packages](#addingremoving-packages)
-         * [System Logging](#system-logging)
+         * [Container Log](#container-log)
          * [Log Monitor](#log-monitor)
             * [Monitored Files](#monitored-files)
             * [Notification Definition](#notification-definition)
@@ -91,14 +91,14 @@ Here are the main components of the baseimage:
   * A process supervisor, with proper PID 1 functionality (proper reaping of
     processes).
   * [TigerVNC], a X server with an integrated VNC server.
-  * [openbox], a windows manager.
+  * [JWM], a window manager.
   * [noVNC], a HTML5 VNC client.
   * [NGINX], a high-performance HTTP server.
   * Useful tools to ease container building.
   * Environment to better support dockerized applications.
 
 [TigerVNC]: https://tigervnc.org
-[openbox]: http://openbox.org
+[JWM]: https://joewing.net/projects/jwm
 [noVNC]: https://github.com/novnc/noVNC
 [NGINX]: https://www.nginx.com
 
@@ -138,8 +138,10 @@ terminal.
 
 In `Dockerfile`:
 ```Dockerfile
+ARG APP_NAME=Xterm
+
 # Pull base image.
-FROM jlesage/baseimage-gui:alpine-3.13-v4
+FROM jlesage/baseimage-gui:alpine-3.15-v4
 
 # Install xterm.
 RUN add-pkg xterm
@@ -148,10 +150,8 @@ RUN add-pkg xterm
 COPY startapp.sh /startapp.sh
 
 # Set the name of the application.
-RUN echo "Xterm" > /etc/cont-env.d/APP_NAME
+RUN set-cont-env APP_NAME "$APP_NAME"
 
-# Expose ports.
-EXPOSE 8080
 ```
 
 In `startapp.sh`:
@@ -179,9 +179,9 @@ http://[HOST IP ADDR]:5800
 ### Selecting a Baseimage
 
 Using a baseimage based on Alpine Linux is the recommended choice.  Not only
-because of its small size, but also because Alpine Linux is a Linux distribution
-based on [musl] and [BusyBox] that is designed for security, simplicity and
-resource efficiency.
+because of its small size, but also because Alpine Linux is a distribution based
+on [musl] and [BusyBox] that is designed for security, simplicity and resource
+efficiency.
 
 However, using this baseimage to integrate an application not part of the
 Alpine's software repository or without its source code available may be harder.
@@ -240,13 +240,13 @@ and its application.
 
 There are two types of environment variables:
 
-  - **Public**: These variables are meant to be used by users of your
-    application.  They provide them a way configure the container.  They are
-    declared in the `Dockerfile`, via the `ENV` instruction.  Their value can be
-    set by users during the creation of the container, via the
-    `-e "<VAR>=<VALUE>"` argument of the `docker run` command.  Many Docker
-    container management systems use these variables to automatically provide
-    configuration parameters to the users.
+  - **Public**: These variables are targeted to people using the container.
+    They provide a way to configure it.  They are declared in the `Dockerfile`,
+    via the `ENV` instruction.  Their value can be set by users during the
+    creation of the container, via the `-e "<VAR>=<VALUE>"` argument of the
+    `docker run` command.  Also, many Docker container management systems use
+    these variables to automatically provide configuration parameters to the
+    users.
 
   - **Internal**: These variables are the ones thay don't need to be exposed to
     users.  They are useful for the application itself, but are not intended to
@@ -263,17 +263,19 @@ The following public environment variables are provided by the baseimage:
 |----------------|----------------------------------------------|---------|
 |`USER_ID`| ID of the user the application runs as.  See [User/Group IDs](#usergroup-ids) to better understand when this should be set. | `1000` |
 |`GROUP_ID`| ID of the group the application runs as.  See [User/Group IDs](#usergroup-ids) to better understand when this should be set. | `1000` |
-|`SUP_GROUP_IDS`| Comma-separated list of supplementary group IDs of the application. | (unset) |
+|`SUP_GROUP_IDS`| Comma-separated list of supplementary group IDs of the application. | `""` |
 |`UMASK`| Mask that controls how file permissions are set for newly created files. The value of the mask is in octal notation.  By default, the default umask value is `0022`, meaning that newly created files are readable by everyone, but only writable by the owner.  See the online umask calculator at http://wintelguy.com/umask-calc.pl. | `0022` |
 |`TZ`| [TimeZone](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones) used by the container.  Timezone can also be set by mapping `/etc/localtime` between the host and the container. | `Etc/UTC` |
-|`KEEP_APP_RUNNING`| When set to `1`, the application will be automatically restarted when it crashes or terminates. | (unset) |
-|`APP_NICENESS`| Priority at which the application should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority.  The default niceness value is 0.  **NOTE**: A negative niceness (priority increase) requires additional permissions.  In this case, the container should be run with the docker option `--cap-add=SYS_NICE`. | (unset) |
+|`KEEP_APP_RUNNING`| When set to `1`, the application will be automatically restarted when it crashes or terminates. | `0` |
+|`APP_NICENESS`| Priority at which the application should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority.  The default niceness value is 0.  **NOTE**: A negative niceness (priority increase) requires additional permissions.  In this case, the container should be run with the docker option `--cap-add=SYS_NICE`. | `0` |
+|`INSTALL_PACKAGES`| Space-separated list of packages to install during the startup of the container.  Packages are installed from the repository of the Linux distribution this container is based on.  **ATTENTION**: Container functionality can be affected when installing a package that overrides existing container files (e.g. binaries). | `""` |
+|`CONTAINER_DEBUG`| Set to `1` to enable debug logging. | `0` |
 |`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1280` |
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `768` |
-|`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details. | (unset) |
+|`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details. | `0` |
 |`VNC_PASSWORD`| Password needed to connect to the application's GUI.  See the [VNC Password](#vnc-password) section for more details. | (unset) |
 |`X11VNC_EXTRA_OPTS`| Extra options to pass to the x11vnc server running in the Docker container.  **WARNING**: For advanced users. Do not use unless you know what you are doing. | (unset) |
-|`ENABLE_CJK_FONT`| When set to `1`, open-source computer font `WenQuanYi Zen Hei` is installed.  This font contains a large range of Chinese/Japanese/Korean characters. | (unset) |
+|`ENABLE_CJK_FONT`| When set to `1`, open-source computer font `WenQuanYi Zen Hei` is installed.  This font contains a large range of Chinese/Japanese/Korean characters. | `0` |
 
 #### Internal Environment Variables
 
@@ -281,18 +283,28 @@ The following internal environment variables are provided by the baseimage:
 
 | Variable       | Description                                  | Default |
 |----------------|----------------------------------------------|---------|
-|`APP_NAME`| Name of the application. | `DockerApp` |
-|`TAKE_CONFIG_OWNERSHIP`| When set to `1`, owner and group of `/config` (including all its files and subfolders) are automatically set during container startup to `USER_ID` and `GROUP_ID` respectively. | `1` |
-|`CLEAN_TMP_DIR`| When set to `1`, all files in the `/tmp` directory are deleted during the container startup. | `1` |
+|`APP_NAME`| Name of the implemented application. | `DockerApp` |
+|`APP_VERSION`| Version of the implemented application. | (unset) |
+|`DOCKER_IMAGE_VERSION`| Version of the Docker image that implements the application. | (unset) |
+|`HOME`| Home directory. | `""` |
+|`XDG_CONFIG_HOME`| Defines the base directory relative to which user specific configuration files should be stored. | `/config/xdg/config` |
+|`XDG_DATA_HOME`| Defines the base directory relative to which user specific data files should be stored. | `/config/xdg/data` |
+|`XDG_CACHE_HOME`| Defines the base directory relative to which user specific non-essential data files should be stored. | `/config/xdg/cache` |
+|`TAKE_CONFIG_OWNERSHIP`| When set to `0`, ownership of the content of the `/config` directory is not taken during startup of the container. | `1` |
 
 #### Adding/Removing Internal Environment Variables
 
-Internal environment variables can be defined by adding a file to
+Internal environment variables are defined by adding a file to
 `/etc/cont-env.d/` inside the container, where the name of the file is the name
-of the variable and its value is defined by the content of the file.  If the
-file has execute permission, the init process will execute the program and the
-value of the environment variable is expected to be printed to its standard
-output.
+of the variable and its value is defined by the content of the file.
+
+If the file has execute permission, the init process will execute the program
+and the value of the environment variable is expected to be printed to its
+standard output.  If the script exits with the return code `100`, the
+environment variable is not set.
+
+**NOTE**: The helper `set-cont-env` can be used to set internal environment
+          variables from the Dockerfile.
 
 #### Availability
 
@@ -314,11 +326,11 @@ This baseimage automatically exports, as environment variables, Docker secrets
 that follow this naming convention:
 
 ```
-ENV__<environment variable name>
+CONT_ENV_<environment variable name>
 ```
 
-For example, for a secret named `ENV__MY_SECRET`, the environment variable
-`MY_SECRET` is created, with its content matching the one of the secret.
+For example, for a secret named `CONT_ENV_MY_PASSWORD`, the environment variable
+`MY_PASSWORD` is created, with its content matching the one of the secret.
 
 ## Ports
 
@@ -335,7 +347,7 @@ container cannot be changed, but you are free to use any port on the host side.
 
 When using data volumes (`-v` flags), permissions issues can occur between the
 host and the container.  For example, the user within the container may not
-exists on the host.  This could prevent the host from properly accessing files
+exists on the host.  This could prevent the container from properly accessing files
 and folders on the shared volume.
 
 To avoid any problem, you can specify the user the application should run as.
@@ -382,8 +394,9 @@ alphabetical order.  They are executed before starting services.
 Initialization scripts are located at `/etc/cont-init.d/` inside the container.
 
 To have a better predictability of the execution order, name of the scripts
-follows the `XX-name.sh` format, where `XX` is a sequence number.  The following
-ranges are used by the baseimage:
+follows the `XX-name.sh` format, where `XX` is a sequence number.
+
+The following ranges are used by the baseimage:
 
   - 10-29
   - 70-89
@@ -425,17 +438,17 @@ setting.
 | sync                   | Boolean          | Whether or not the process supervisor waits until the service ends.  This is mutually exclusive with `respawn`. | `FALSE` |
 | ready_timeout          | Unsigned integer | Maximum amount of time (in milliseconds) to wait for the service to be ready. | `5000` |
 | interval               | Interval         | Interval, in seconds, at which the service should be executed.  This is mutually exclusive with `respawn`. | No interval |
-| uid                    | Unsigned integer | The user ID under which the service will run. | `1000` |
-| gid                    | Unsigned integer | The group ID under which the service will run. | `1000` |
-| sgid                   | Unsigned integer | List of supplementary group IDs of the service.  One group ID per line. | No supplementary group IDs |
-| umask                  | Octal integer    | The umask value of the service. | `0022` |
+| uid                    | Unsigned integer | The user ID under which the service will run. | `$USER_ID` |
+| gid                    | Unsigned integer | The group ID under which the service will run. | `$GROUP_ID` |
+| sgid                   | Unsigned integer | List of supplementary group IDs of the service.  One group ID per line. | Empty list |
+| umask                  | Octal integer    | The umask value (in octal notation) of the service. | `0022` |
 | priority               | Signed integer   | Priority at which the service should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority. | `0` |
 | workdir                | String           | The working directory of the service. | Service's directory path  |
 | ignore_failure         | Boolean          | When set, the inability to start the service won't prevent the container to start. | `FALSE` |
 | shutdown_on_terminate  | Boolean          | Indicates that the container should be shutted down when the service terminates. | `FALSE` |
 | min_running_time       | Unsigned integer | The minimum amount of time (in milliseconds) the service should be running before considering it as ready. | `500` |
 | disabled               | Boolean          | Indicates that the service is disabled, meaning that it won't be loaded nor started. | `FALSE` |
-| &lt;service&gt;.dep    | Boolean          | Indicates that the service depends on another one.  For example, having `srvB.dep` means that `srvB` should be started before this service. | N/A |
+| <service>.dep          | Boolean          | Indicates that the service depends on another one.  For example, having `srvB.dep` means that `srvB` should be started before this service. | N/A |
 
 The following table provides more details about some value types:
 
@@ -472,15 +485,20 @@ This behavior can be adjusted with the following methods:
 
 ### Configuration Directory
 
-Applications often needs to write configuration, data, states, logs, etc.
-Inside the container, this data should be stored in the `/config` directory.
+Applications often need to write configuration, data, states, logs, etc.
+Inside the container, this data should be stored under the `/config` directory.
 
 This directory is intended to be mapped to a folder on the host.  The goal is to
 write stuff outside the container to keep this data persistent.
 
+NOTE: During the container startup, ownership of this folder and all its content
+      is taken.  This is to make sure that `/config` can be accessed by the user
+      configured through `USER_ID`/`GROUP_ID`.  This behavior can be adjusted
+      via the `TAKE_CONFIG_OWNERSHIP` environment variable.
+
 #### Application's Data Directories
 
-A lot of applications use the environment variables defined in the
+A lot of applications use the environment variables defined by the
 [XDG Base Directory Specification] to determine where to store
 various data.  The baseimage sets these variables so they all fall under
 `/config/`:
@@ -505,14 +523,14 @@ packages).
 
 Note that if a specified package is already installed, it will be ignored and
 will not be removed automatically.  For example, the following commands could be
-added to `Dockerfile` to compile project:
+added to `Dockerfile` to compile a project:
 
 ```Dockerfile
 RUN \
     add-pkg --virtual build-dependencies build-base cmake git && \
-    # Compile your project here...
     git clone https://myproject.com/myproject.git
-    ... && \
+    make -C myproject && \
+    make -C myproject install && \
     del-pkg build-dependencies
 ```
 
@@ -520,7 +538,7 @@ Supposing that, in the example above, the `git` package was already installed
 when the call to `add-pkg` is performed, running `del-pkg build-dependencies`
 doesn't remove it.
 
-### System Logging
+### Container Log
 
 Everything written to the standard output and standard error output of scripts
 executed by the init process and services is saved into the container's log.
@@ -529,7 +547,7 @@ The container log can be viewed with the command
 
 To ease consultation of the log, all messages are prefixed with the name of the
 service or script.  Also, it is a good idea to limit the number of information
-written to this log.  If an program's output is too verbose, it is preferable
+written to this log.  If a program's output is too verbose, it is preferable
 to redirect it to a file.  For example, the `run` command of a service that
 redirects the standard output and standard error output to different files
 could be:
@@ -541,7 +559,7 @@ exec /usr/bin/my_service > /config/log/my_service_out.log 2> /config/log/my_serv
 
 ### Log Monitor
 
-This baseimage include a simple log monitor.  This monitor allows sending
+The baseimage include a simple log monitor.  This monitor allows sending
 notification(s) when a particular message is detected in a log or status file.
 
 This system has two main components: notification definitions and notifications
@@ -578,7 +596,7 @@ The following table describe files part of the definition:
 
 #### Notification Backend
 
-Definition of notification backend is stored in a directory under
+Definition of a notification backend is stored in a directory under
 `/etc/logmonitor/targets.d`.  For example, definition of `STDOUT` backend is
 found under `/etc/logmonitor/notifications.d/STDOUT/`.  The following table
 describe files part of the definition:
@@ -586,13 +604,18 @@ describe files part of the definition:
 | File         | Mandatory? | Description |
 |--------------|------------|-------------|
 | `send`       | Yes        | Program (script or binary with executable permission) that sends the notification.  It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level. |
-| `debouncing` | No         | File containing the minimum amount time (in seconds) that must elapse before sending the same notification with the current backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done. |
+| `debouncing` | No         | File containing the minimum amount time (in seconds) that must elapse before sending the same notification with this backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done. |
+
+**NOTE**: The log monitor invokes the notification backend and then waits for
+its termination.  So to prevent the log monitor from being blocked indefinitely,
+it is important to make sure that the execution of the `send` program terminates
+after a reasonable amount of time.
 
 By default, the baseimage contains the following notification backends:
 
 | Backend  | Description | Debouncing time |
 |----------|-------------|-----------------|
-| `stdout` | Display a message to the standard output, make it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) || `yad`    | Display the notification in a window box, visible in the application's GUI.  **NOTE**: `yad` must be installed for this to work. | Infinite |
+| `stdout` | Display a message to the standard output, make it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) || `yad`    | Display the notification in a window box, visible in the application's GUI. | Infinite |
 ### Adding glibc
 
 For baseimages based on Alpine Linux, glibc can be installed to the image by
@@ -604,9 +627,9 @@ RUN install-glibc
 
 ### Modifying Files With Sed
 
-`sed` is a useful tool and is often used in container builds to modify files.
-However, one downside of this method is that there is no easy way to determine
-if `sed` actually modified the file or not.
+`sed` is a useful tool often used in container builds to modify files.  However,
+one downside of this method is that there is no easy way to determine if `sed`
+actually modified the file or not.
 
 It's for this reason that the baseimage includes a helper that gives `sed` a
 "patch-like" behavior:  if the application of a sed expression results in no
@@ -632,12 +655,14 @@ command fails and thus, the Docker build also.
 ### Application Icon
 
 A picture of your application can be added to the image.  This picture is
-displayed in the WEB interface's navigation bar.  Also, multiple favicons are
-generated, supporting all browsers and platforms.
+displayed in the WEB interface's navigation bar.  This is also the master
+picture used to generate favicons that support differents browsers and
+platforms.
 
 Add the following command to your `Dockerfile`, with the proper URL pointing to
 your master icon:  The master icon should be a square PNG image with a size of
 at least 260x260 for optimal results.
+
 ```Dockerfile
 # Generate and install favicons.
 RUN \
@@ -645,30 +670,9 @@ RUN \
     install_app_icon.sh "$APP_ICON_URL"
 ```
 
-Favicons are generated by [RealFaviconGenerator].  You can tweak yourself their
-display with the following method:
-  * Generate favicons yourself with [RealFaviconGenerator].
-    * Set the path to `/images/icons/`.
-    * Enable versioning and set it to `v=ICON_VERSION`.
-  * At the installation page, choose the `Node CLI` tab.
-  * Copy the content of `faviconDescription.json`.
-  * Minify the JSON using an online [JSON minifier].
-    * Before running the minifier, modify the `masterPicture` field to
-      `/opt/novnc/images/icons/master_icon.png`.
-  * Copy-paste the result in your `Dockerfile`.  It will be passed to the
-    install script.
-  * Your Dockerfile should have something like:
-
-```Dockerfile
-# Generate and install favicons.
-RUN \
-    APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
-    APP_ICON_DESC='{"masterPicture":"/opt/novnc/images/icons/master_icon.png","iconsPath":"/images/icons/","design":{"ios":{"pictureAspect":"backgroundAndMargin","backgroundColor":"#ffffff","margin":"14%","assets":{"ios6AndPriorIcons":false,"ios7AndLaterIcons":false,"precomposedIcons":false,"declareOnlyDefaultIcon":true}},"desktopBrowser":{},"windows":{"pictureAspect":"noChange","backgroundColor":"#2d89ef","onConflict":"override","assets":{"windows80Ie10Tile":false,"windows10Ie11EdgeTiles":{"small":false,"medium":true,"big":false,"rectangle":false}}},"androidChrome":{"pictureAspect":"noChange","themeColor":"#ffffff","manifest":{"display":"standalone","orientation":"notSet","onConflict":"override","declared":true},"assets":{"legacyIcon":false,"lowResolutionIcons":false}},"safariPinnedTab":{"pictureAspect":"silhouette","themeColor":"#5bbad5"}},"settings":{"scalingAlgorithm":"Mitchell","errorOnImageTooSmall":false},"versioning":{"paramName":"v","paramValue":"ICON_VERSION"}}' && \
-    install_app_icon.sh "$APP_ICON_URL" "$APP_ICON_DESC"
-```
+Note that favicons are generated by [RealFaviconGenerator].
 
 [RealFaviconGenerator]: https://realfavicongenerator.net/
-[JSON minifier]: http://www.cleancss.com/json-minify/
 
 ### Tips and Best Practices
 
@@ -736,41 +740,44 @@ COPY rootfs/ /
 #### Maximizing Only the Main Window
 
 By default, the application's window is maximized and decorations are hidden.
-However, when the application has multiple windows, this behavior may need to
-be restricted only to the main one.
+When the application has multiple windows, this behavior may need to be
+restricted to only the main one.
 
-This can be achieved by matching on more window parameters: class, name, role,
-title and type.  By default, only the `type` parameter is used and must equal to
-`normal`.
+The window manager configuration allows setting behaviour for different
+windows of the application.  A specific window is identified by matching one or
+more of its properties:
+  - Name of the window.
+  - Class of the window.
+  - Type of the window.
 
-To find all parameters of the main window:
-  - While the application is running and the main window is focused, login to
-    the container.
+To find the value of a property for a particular window:
+  - While the container is running, start the `xprop` tool on it:
 ```shell
-docker exec -ti [container name or id] sh
+docker exec [container name or id] env DISPLAY=:0 xprop
 ```
-  - Execute `obxprop --root | grep "^_NET_ACTIVE_WINDOW"`.  The output will look
-    like:
-```
-_NET_ACTIVE_WINDOW(WINDOW) = 16777220
-```
-  - Using this ID, show the parameters by executing
-    `obxprop --id [MAIN WINDOW ID] | grep "^_OB_APP"`. The output will look
-    like:
-```
-_OB_APP_TYPE(UTF8_STRING) = "normal"
-_OB_APP_CLASS(UTF8_STRING) = "Google-chrome"
-_OB_APP_NAME(UTF8_STRING) = "google-chrome"
-_OB_APP_ROLE(UTF8_STRING) =
-_OB_APP_TITLE(UTF8_STRING) = "Google Chrome"
-```
+  - Then, access the GUI of the application and click somewhere on the
+    interested window.
+  - A lot of information about that window will then be dumped.
 
-Finally, in the `Dockerfile` of your container, modify the configuration file of
-`openbox` (located at `/etc/xdg/openbox/rc.xml`) to apply window restriction.
-Usually, specifying the window's title is enough.
+The following table shows where the find the relevant information:
+
+| Property | Value |
+|----------|-------|
+| Name     | The first string of `WM_CLASS`.
+| Class    | The second string of `WM_CLASS`.
+| Type     | The type of the window is given by `_NET_WM_WINDOW_TYPE`. Property's value should be translated to one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`.
+
+The default window manager configuration matches only on the type of the window,
+which must be `normal`.  So if more restriction is needed, matching the name of
+the window can help.
+
+To do this, the configuration file of the JVM window manager (located at
+`/etc/system.jwmrc` inside the container) needs to be adjusted.  For example,
+adding the following instruction to the `Dockerfile` adds match against the name
+of the window:
 
 ```shell
-sed-patch 's/<application type="normal">/<application type="normal" title="Google Chrome">/' /etc/xdg/openbox/rc.xml
+sed-patch '/<Type>normal<\/Type>/a\        <Name>My Application<\/Name>' /etc/system.jwmrc
 ```
 
-See the openbox's documentation for more details: http://openbox.org/wiki/Help:Applications
+See the JWM documentation for more details: https://joewing.net/projects/jwm/config.html
