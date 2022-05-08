@@ -1,1 +1,8 @@
-10
+#!/bin/sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+echo "${SECURE_CONNECTION_CERTS_CHECK_INTERVAL:-10}"
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
