@@ -5,6 +5,8 @@ set -u # Treat unset variables as an error.
 
 if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
     echo "true"
+elif [ "${SECURE_CONNECTION_CERTS_CHECK_INTERVAL:-10}" -eq 0 ]; then
+    echo "true"
 else
     echo "false"
 fi
