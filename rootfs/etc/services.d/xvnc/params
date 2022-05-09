@@ -2,6 +2,14 @@
 
 set -u # Treat unset variables as an error.
 
+# Make sure the X server listens on Unix only.
+echo "-nolisten"
+echo "tcp"
+echo "-nolisten"
+echo "local"
+echo "-listen"
+echo "unix"
+
 # Window size.
 echo "-geometry"
 echo "${DISPLAY_WIDTH}x${DISPLAY_HEIGHT}"
