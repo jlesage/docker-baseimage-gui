@@ -76,13 +76,5 @@ fi
 # Desktop (app) name.
 echo "-desktop=$APP_NAME"
 
-# Extra options.
-if [ -n "${XVNC_EXTRA_OPTS:-}" ]; then
-    for OPT in $XVNC_EXTRA_OPTS
-    do
-        echo "$OPT"
-    done
-fi
-
 # X11 display.
 echo "$DISPLAY"
