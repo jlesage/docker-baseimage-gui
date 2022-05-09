@@ -1,1 +1,19 @@
-/usr/sbin/nginx
+#!/bin/sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+if [ "${WEB_LISTENING_PORT:-5800}" -eq -1 ]; then
+    echo "Not listening for web connections."
+else
+    if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
+        CONN_TYPE="HTTP"
+    else
+        CONN_TYPE="HTTPs"
+    fi
+    echo "Listening for $CONN_TYPE connections on port ${WEB_LISTENING_PORT:-5800}."
+fi
+
+exec /usr/sbin/nginx "$@"
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
