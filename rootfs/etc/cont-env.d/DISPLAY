@@ -1,1 +1,25 @@
-:0
+#!/bin/sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+# When running the container with host network mode, the Unix sockets from the
+# host somehow interfere with the container: event though they are not visible
+# in the container's file system, they can be seen by netstat.  If the container
+# creates a socket matching one of the host, data written to it are handled by
+# the host, not the container.
+# Thus, we need to select a X display that is not already used.
+
+for D in $(seq 0 16)
+do
+    if ! netstat -x | grep -q "/tmp/.X11-unix/X$D"
+    then
+        echo ":$D"
+        exit 0
+    fi
+done
+
+echo "ERROR: Could not find available display."
+exit 1
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
