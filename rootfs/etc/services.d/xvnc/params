@@ -11,23 +11,27 @@ echo "-depth"
 echo "24"
 
 # VNC listening port.
-if [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
-    # SSL secure connection enabled: disable TCP listening.
+if [ "${VNC_LISTENING_PORT:-5900}" -eq -1 ]; then
+    # VNC port is disabled.
+    echo "-rfbport=-1"
+elif [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+    # SSL secure connection enabled: disable TCP listening.  Nginx is handling
+    # the SSL connection and forward VNC to Xvnc via Unix socket.
     echo "-rfbport=-1"
 else
-    echo "-rfbport=5900"
+    echo "-rfbport=${VNC_LISTENING_PORT:-5900}"
+
+    # Support for IPv6.
+    if ifconfig -a | grep -wq inet6; then
+        echo "-UseIPv6=yes"
+    else
+        echo "-UseIPv6=no"
+    fi
 fi
 
 # VNC Unix socket.
 echo "-rfbunixpath=/tmp/vnc.sock"
 echo "-rfbunixmode=0660"
-
-# Support for IPv6.
-if ifconfig -a | grep -wq inet6; then
-    echo "-UseIPv6=yes"
-else
-    echo "-UseIPv6=no"
-fi
 
 # VNC security.
 PASSWORD_FILE=

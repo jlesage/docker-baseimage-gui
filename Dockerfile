@@ -10,6 +10,8 @@ ARG BASEIMAGE=unknown
 ARG ALPINE_PKGS="\
     # Needed to generate self-signed certificates
     openssl \
+    # Needed to use netcat with unix socket.
+    netcat-openbsd \
 "
 
 # Define the Debian/Ubuntu packages to be installed into the image.
@@ -108,7 +110,8 @@ COPY src/nginx/build.sh /tmp/build-nginx.sh
 RUN /tmp/build-nginx.sh
 RUN xx-verify --static /tmp/nginx-install/usr/sbin/nginx
 COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
-RUN upx /tmp/nginx-install//usr/sbin/nginx
+RUN upx /tmp/nginx-install/usr/sbin/nginx
+RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-install/usr/sbin/nginx
 
 # Build noVNC.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS noVNC

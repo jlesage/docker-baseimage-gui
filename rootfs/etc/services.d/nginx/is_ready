@@ -2,6 +2,10 @@
 
 set -u # Treat unset variables as an error.
 
-nc -w5 -z 127.0.0.1 5800
+if [ "${WEB_LISTENING_PORT:-5800}" -eq -1 ]; then
+    [ -S /var/run/nginx/nginx.sock ]
+else
+    nc -w5 -z 127.0.0.1 "${WEB_LISTENING_PORT:-5800}"
+fi
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
