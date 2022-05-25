@@ -111,6 +111,8 @@ RUN /tmp/build-nginx.sh
 RUN xx-verify --static /tmp/nginx-install/usr/sbin/nginx
 COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
 RUN upx /tmp/nginx-install/usr/sbin/nginx
+# NOTE: Extended attributes are kept by buildx when using the COPY command.
+#       See https://wildwolf.name/multi-stage-docker-builds-and-xattrs/.
 RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-install/usr/sbin/nginx
 
 # Build noVNC.
