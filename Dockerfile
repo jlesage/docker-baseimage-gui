@@ -223,8 +223,8 @@ COPY --from=noVNC /opt/noVNC /opt/noVNC
 
 # Set environment variables.
 ENV \
-    DISPLAY_WIDTH=1280 \
-    DISPLAY_HEIGHT=768
+    DISPLAY_WIDTH=1920 \
+    DISPLAY_HEIGHT=1080
 
 # Expose ports.
 #   - 5800: VNC web interface
