@@ -63,6 +63,7 @@ Different docker images are available:
 | [Alpine 3.13]      | alpine-3.13           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.13)  |
 | [Alpine 3.14]      | alpine-3.14           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14)  |
 | [Alpine 3.15]      | alpine-3.15           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.15)  |
+| [Alpine 3.16]      | alpine-3.16           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16)  |
 | [Debian 8]         | debian-8              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-8)     |
 | [Debian 9]         | debian-9              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-9)     |
 | [Debian 10]        | debian-10             | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10)    |
@@ -75,6 +76,7 @@ Different docker images are available:
 [Alpine 3.13]: https://alpinelinux.org
 [Alpine 3.14]: https://alpinelinux.org
 [Alpine 3.15]: https://alpinelinux.org
+[Alpine 3.16]: https://alpinelinux.org
 [Debian 8]: https://www.debian.org/releases/jessie/
 [Debian 9]: https://www.debian.org/releases/stretch/
 [Debian 10]: https://www.debian.org/releases/buster/
@@ -273,7 +275,10 @@ The following public environment variables are provided by the baseimage:
 |`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1280` |
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `768` |
 |`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details. | `0` |
+|`SECURE_CONNECTION_VNC_METHOD`| Method used to perform the secure VNC connection.  Possible values are `SSL` or `TLS`.  See the [Security](#security) section for more details. | `SSL` |
 |`SECURE_CONNECTION_CERTS_CHECK_INTERVAL`| Interval, in seconds, at which the system verifies if web or VNC certificates have changed.  When a change is detected, the affected services are nautomatically restarted.  A value of `0` disables the check. | `10` |
+|`WEB_LISTENING_PORT`| Port used by the web server to serve the UI of the application.  This port is used internally by the container and it is usually not required to be changed.  By default, a container is created with the default bridge network, meaning that, to be accessible, each internal container port must be mapped to an external port (using the `-p` or `--publish` argument).  However, if the container is created with another network type, changing the port used by the container might be useful to prevent conflict with other services/containers.  **NOTE**: a value of `-1` disables listening, meaning that the application's UI won't be accessible over HTTP/HTTPs. | `5800` |
+|`VNC_LISTENING_PORT`| Port used by the VNC server to serve the UI of the application.  This port is used internally by the container and it is usually not required to be changed.  By default, a container is created with the default bridge network, meaning that, to be accessible, each internal container port must be mapped to an external port (using the `-p` or `--publish` argument).  However, if the container is created with another network type, changing the port used by the container might be useful to prevent conflict with other services/containers.  **NOTE**: a value of `-1` disables listening, meaning that the application's UI won't be accessible over VNC. | `5900` |
 |`VNC_PASSWORD`| Password needed to connect to the application's GUI.  See the [VNC Password](#vnc-password) section for more details. | (unset) |
 |`ENABLE_CJK_FONT`| When set to `1`, open-source computer font `WenQuanYi Zen Hei` is installed.  This font contains a large range of Chinese/Japanese/Korean characters. | `0` |
 
