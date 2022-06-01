@@ -22,7 +22,7 @@ echo "24"
 if [ "${VNC_LISTENING_PORT:-5900}" -eq -1 ]; then
     # VNC port is disabled.
     echo "-rfbport=-1"
-elif [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+elif [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
     # SSL secure connection enabled: disable TCP listening.  Nginx is handling
     # the SSL connection and forward VNC to Xvnc via Unix socket.
     echo "-rfbport=-1"
@@ -42,6 +42,17 @@ echo "-rfbunixpath=/tmp/vnc.sock"
 echo "-rfbunixmode=0660"
 
 # VNC security.
+#
+# None:      No authentication, no encryption.
+# VncAuth:   Standard VNC authentication, no encryption.
+# Plain:
+# TLSNone:   No authentication, TLS encryption.
+# TLSVnc:    Standard VNC authentication, TLS encryption
+# TLSPlain:
+# X509None:  No authentication, TLS encryption with server certificate verification.
+# X509Vnc:   Standard VNC authentication, TLS encryption with server certificate verification.
+# X509Plain:
+#
 PASSWORD_FILE=
 if [ -f /config/.vncpass ] && [ -n "$( cat /config/.vncpass )" ]; then
     PASSWORD_FILE=/config/.vncpass
@@ -51,7 +62,7 @@ fi
 
 if [ -n "$PASSWORD_FILE" ]; then
     # With password.
-    if [ "${SECURE_CONNECTION:-0}" -eq 0 ] || [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+    if [ "${SECURE_CONNECTION:-0}" -eq 0 ] || [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
         echo "-SecurityTypes=VncAuth"
     else
         echo "-SecurityTypes=X509Vnc,TLSVnc"
@@ -59,14 +70,14 @@ if [ -n "$PASSWORD_FILE" ]; then
     echo "-rfbauth=$PASSWORD_FILE"
 else
     # Without password.
-    if [ "${SECURE_CONNECTION:-0}" -eq 0 ] || [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+    if [ "${SECURE_CONNECTION:-0}" -eq 0 ] || [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
         echo "-SecurityTypes=None"
     else
         echo "-SecurityTypes=X509None,TLSNone"
     fi
 fi
 
-if [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" != "SSL" ]; then
+if [ "${SECURE_CONNECTION:-0}" -eq 1 ] && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" != "SSL" ]; then
     echo "-X509Key"
     echo "/config/certs/vnc-privkey.pem"
     echo "-X509Cert"
