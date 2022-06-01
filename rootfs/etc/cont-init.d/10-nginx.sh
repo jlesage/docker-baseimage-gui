@@ -18,7 +18,7 @@ if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
     sed-patch 's/ssl default_server/default_server/g' /etc/nginx/default_site.conf
     sed-patch '/^[\t]ssl_certificate/d' /etc/nginx/default_site.conf
     sed-patch '/^[\t]ssl_dhparam/d' /etc/nginx/default_site.conf
-elif [ "${SECURE_VNC_CONNECTION_TYPE:-SSL}" = "SSL" ]; then
+elif [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
     # SSL secure connection enabled: activate the default stream config.
     if [ "${VNC_LISTENING_PORT:-5900}" -ne -1 ]; then
         cp /defaults/default_stream.conf /etc/nginx/default_stream.conf
