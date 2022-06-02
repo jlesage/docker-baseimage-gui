@@ -25,9 +25,15 @@ needed on the client side) or via any VNC client.
             * [Adding/Removing Internal Environment Variables](#addingremoving-internal-environment-variables)
             * [Availability](#availability)
             * [Docker Secrets](#docker-secrets)
-      * [Ports](#ports)
+         * [Ports](#ports)
          * [User/Group IDs](#usergroup-ids)
          * [Locales](#locales)
+         * [Accessing the GUI](#accessing-the-gui)
+         * [Security](#security)
+            * [SSVNC](#ssvnc)
+            * [Certificates](#certificates)
+            * [VNC Password](#vnc-password)
+            * [DH Parameters](#dh-parameters)
          * [Initialization Scripts](#initialization-scripts)
          * [Finalization Scripts](#finalization-scripts)
          * [Services](#services)
@@ -250,7 +256,7 @@ There are two types of environment variables:
     these variables to automatically provide configuration parameters to the
     users.
 
-  - **Internal**: These variables are the ones thay don't need to be exposed to
+  - **Internal**: These variables are the ones that don't need to be exposed to
     users.  They are useful for the application itself, but are not intended to
     be changed by users.
 
@@ -272,11 +278,11 @@ The following public environment variables are provided by the baseimage:
 |`APP_NICENESS`| Priority at which the application should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority.  The default niceness value is 0.  **NOTE**: A negative niceness (priority increase) requires additional permissions.  In this case, the container should be run with the docker option `--cap-add=SYS_NICE`. | `0` |
 |`INSTALL_PACKAGES`| Space-separated list of packages to install during the startup of the container.  Packages are installed from the repository of the Linux distribution this container is based on.  **ATTENTION**: Container functionality can be affected when installing a package that overrides existing container files (e.g. binaries). | `""` |
 |`CONTAINER_DEBUG`| Set to `1` to enable debug logging. | `0` |
-|`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1280` |
-|`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `768` |
+|`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1920` |
+|`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
 |`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details. | `0` |
 |`SECURE_CONNECTION_VNC_METHOD`| Method used to perform the secure VNC connection.  Possible values are `SSL` or `TLS`.  See the [Security](#security) section for more details. | `SSL` |
-|`SECURE_CONNECTION_CERTS_CHECK_INTERVAL`| Interval, in seconds, at which the system verifies if web or VNC certificates have changed.  When a change is detected, the affected services are nautomatically restarted.  A value of `0` disables the check. | `10` |
+|`SECURE_CONNECTION_CERTS_CHECK_INTERVAL`| Interval, in seconds, at which the system verifies if web or VNC certificates have changed.  When a change is detected, the affected services are automatically restarted.  A value of `0` disables the check. | `60` |
 |`WEB_LISTENING_PORT`| Port used by the web server to serve the UI of the application.  This port is used internally by the container and it is usually not required to be changed.  By default, a container is created with the default bridge network, meaning that, to be accessible, each internal container port must be mapped to an external port (using the `-p` or `--publish` argument).  However, if the container is created with another network type, changing the port used by the container might be useful to prevent conflict with other services/containers.  **NOTE**: a value of `-1` disables listening, meaning that the application's UI won't be accessible over HTTP/HTTPs. | `5800` |
 |`VNC_LISTENING_PORT`| Port used by the VNC server to serve the UI of the application.  This port is used internally by the container and it is usually not required to be changed.  By default, a container is created with the default bridge network, meaning that, to be accessible, each internal container port must be mapped to an external port (using the `-p` or `--publish` argument).  However, if the container is created with another network type, changing the port used by the container might be useful to prevent conflict with other services/containers.  **NOTE**: a value of `-1` disables listening, meaning that the application's UI won't be accessible over VNC. | `5900` |
 |`VNC_PASSWORD`| Password needed to connect to the application's GUI.  See the [VNC Password](#vnc-password) section for more details. | (unset) |
@@ -337,16 +343,16 @@ CONT_ENV_<environment variable name>
 For example, for a secret named `CONT_ENV_MY_PASSWORD`, the environment variable
 `MY_PASSWORD` is created, with its content matching the one of the secret.
 
-## Ports
+### Ports
 
-Here is the list of ports used by the baseimage.  They can be mapped to the host
-via the `-p <HOST_PORT>:<CONTAINER_PORT>` parameter.  The port number inside the
-container cannot be changed, but you are free to use any port on the host side.
+Here is the list of ports used by the baseimage.  With a container using the
+default bridge network, these ports can be mapped to the host via the
+`-p <HOST_PORT>:<CONTAINER_PORT>` parameter.
 
 | Port | Mapping to host | Description |
 |------|-----------------|-------------|
-| 5800 | Optional        | Port used to access the application's GUI via the web interface. Optional if access through the web interface is not wanted.
-| 5900 | Optional        | Port used to access the application's GUI via the VNC protocol.  Optional if access through the VNC protocol is not wanted.
+| 5800 | Optional        | Port to access the application's GUI via the web interface.  Mapping to the host is optional if access through the web interface is not wanted.  For a container not using the default bridge network, the port can be changed with the `WEB_LISTENING_PORT` environment variable. |
+| 5900 | Optional        | Port to access the application's GUI via the VNC protocol.  Mapping to the host is optional if access through the VNC protocol is not wanted.  For a container not using the default bridge network, the port can be changed with the `VNC_LISTENING_PORT` environment variable. |
 
 ### User/Group IDs
 
@@ -390,6 +396,117 @@ ENV LANG=en_US.UTF-8
 See:
   * http://wiki.musl-libc.org/wiki/Open_Issues#C_locale_conformance
   * https://github.com/gliderlabs/docker-alpine/issues/144
+
+### Accessing the GUI
+
+Assuming that container's ports are mapped to the same host's ports, the
+graphical interface of the application can be accessed via:
+
+  * A web browser:
+```
+http://<HOST IP ADDR>:5800
+```
+
+  * Any VNC client:
+```
+<HOST IP ADDR>:5900
+```
+### Security
+
+By default, access to the application's GUI is done over an unencrypted
+connection (HTTP or VNC).
+
+Secure connection can be enabled via the `SECURE_CONNECTION` environment
+variable.  See the [Environment Variables](#environment-variables) section for
+more details on how to set an environment variable.
+
+When enabled, application's GUI is performed over an HTTPs connection when
+accessed with a browser.  All HTTP accesses are automatically redirected to
+HTTPs.
+
+When using a VNC client, the VNC connection is performed over SSL.  Note that
+few VNC clients support this method.  [SSVNC] is one of them.
+
+#### SSVNC
+
+[SSVNC] is a VNC viewer that adds encryption security to VNC connections.
+
+While the Linux version of [SSVNC] works well, the Windows version has some
+issues.  At the time of writing, the latest version `1.0.30` is not functional,
+as a connection fails with the following error:
+
+```
+ReadExact: Socket error while reading
+```
+
+However, for your convienence, an unoffical and working version is provided
+here:
+
+https://github.com/jlesage/docker-baseimage-gui/raw/master/tools/ssvnc_windows_only-1.0.30-r1.zip
+
+The only difference with the offical package is that the bundled version of
+`stunnel` has been upgraded to version `5.49`, which fixes the connection
+problems.
+
+[SSVNC]: http://www.karlrunge.com/x11vnc/ssvnc.html
+
+#### Certificates
+ 
+Here are the certificate files needed by the container.  By default, when they
+are missing, self-signed certificates are generated and used.  All files have
+PEM encoded, x509 certificates.
+
+| Container Path                  | Purpose                    | Content |
+|---------------------------------|----------------------------|---------|
+|`/config/certs/vnc-server.pem`   |VNC connection encryption.  |VNC server's private key and certificate, bundled with any root and intermediate certificates.|
+|`/config/certs/web-privkey.pem`  |HTTPs connection encryption.|Web server's private key.|
+|`/config/certs/web-fullchain.pem`|HTTPs connection encryption.|Web server's certificate, bundled with any root and intermediate certificates.|
+
+**NOTE**: To prevent any certificate validity warnings/errors from the browser
+or VNC client, make sure to supply your own valid certificates.
+
+**NOTE**: Certificate files are monitored and relevant daemons are automatically
+restarted when changes are detected.
+
+#### VNC Password
+
+To restrict access to your application, a password can be specified.  This can
+be done via two methods:
+  * By using the `VNC_PASSWORD` environment variable.
+  * By creating a `.vncpass_clear` file at the root of the `/config` volume.
+    This file should contains the password in clear-text.  During the container
+    startup, content of the file is obfuscated and moved to `.vncpass`.
+
+The level of security provided by the VNC password depends on two things:
+  * The type of communication channel (encrypted/unencrypted).
+  * How secure access to the host is.
+
+When using a VNC password, it is highly desirable to enable the secure
+connection to prevent sending the password in clear over an unencrypted channel.
+
+Access to the host by unexpected users with sufficient privileges can be
+dangerous as they can retrieve the password with the following methods:
+  * By looking at the `VNC_PASSWORD` environment variable value via the
+    `docker inspect` command.  By defaut, the `docker` command can be run only
+    by the root user.  However, it is possible to configure the system to allow
+    the `docker` command to be run by any users part of a specific group.
+  * By decrypting the `/config/.vncpass` file.  This requires the user to have
+    the appropriate permission to read the file: it has to be root or be the
+    user defined by the `USER_ID` environment variable.
+
+#### DH Parameters
+
+Diffie-Hellman (DH) parameters define how the [DH key-exchange] is performed.
+More details about this algorithm can be found on the [OpenSSL Wiki].
+
+DH Parameters are saved into the PEM encoded file located inside the container
+at `/config/certs/dhparam.pem`.  By default, when this file is missing, 2048
+bits DH parameters are automatically generated.  Note that this one-time
+operation takes some time to perform and increases the startup time of the
+container.
+
+[DH key-exchange]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
+[OpenSSL Wiki]: https://wiki.openssl.org/index.php/Diffie_Hellman
 
 ### Initialization Scripts
 
@@ -450,7 +567,7 @@ setting.
 | priority               | Signed integer   | Priority at which the service should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority. | `0` |
 | workdir                | String           | The working directory of the service. | Service's directory path  |
 | ignore_failure         | Boolean          | When set, the inability to start the service won't prevent the container to start. | `FALSE` |
-| shutdown_on_terminate  | Boolean          | Indicates that the container should be shutted down when the service terminates. | `FALSE` |
+| shutdown_on_terminate  | Boolean          | Indicates that the container should be shut down when the service terminates. | `FALSE` |
 | min_running_time       | Unsigned integer | The minimum amount of time (in milliseconds) the service should be running before considering it as ready. | `500` |
 | disabled               | Boolean          | Indicates that the service is disabled, meaning that it won't be loaded nor started. | `FALSE` |
 | <service>.dep          | Boolean          | Indicates that the service depends on another one.  For example, having `srvB.dep` means that `srvB` should be started before this service. | N/A |
@@ -661,7 +778,7 @@ command fails and thus, the Docker build also.
 
 A picture of your application can be added to the image.  This picture is
 displayed in the WEB interface's navigation bar.  This is also the master
-picture used to generate favicons that support differents browsers and
+picture used to generate favicons that support different browsers and
 platforms.
 
 Add the following command to your `Dockerfile`, with the proper URL pointing to
@@ -748,7 +865,7 @@ By default, the application's window is maximized and decorations are hidden.
 When the application has multiple windows, this behavior may need to be
 restricted to only the main one.
 
-The window manager configuration allows setting behaviour for different
+The window manager configuration allows setting behavior for different
 windows of the application.  A specific window is identified by matching one or
 more of its properties:
   - Name of the window.
