@@ -14,7 +14,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-JWM_VERSION=2.4.0
+JWM_VERSION=2.4.2
 PANGO_VERSION=1.49.3
 FONTCONFIG_VERSION=2.14.0
 
