@@ -18,7 +18,7 @@ yad \
     --fixed \
     --center \
     --title "$APP_NAME" \
-    --window-icon /opt/novnc/images/icons/master_icon.png \
+    --window-icon /opt/noVNC/app/images/icons/master_icon.png \
     --borders 10 \
     --image dialog-warning \
     --image-on-top \
