@@ -976,8 +976,8 @@ const UI = {
     updateViewClip() {
         if (!UI.rfb) return;
 
-        // TODO: Do the same thing for remote sclaling ?
-        const scaling = UI.getSetting('resize') === 'scale';
+        let resize_val = UI.getSetting('resize')
+        const scaling = resize_val === 'scale' || resize_val === 'remote';
 
         if (scaling) {
             // Can't be clipping if viewport is scaled to fit
