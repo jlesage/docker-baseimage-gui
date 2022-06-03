@@ -129,6 +129,27 @@ const UI = {
         document.getElementById("noVNC_status")
             .addEventListener('click', UI.hideStatus);
 
+        // Setup observer to detect when all action icons are hidden.
+        const mutationObserver = new MutationObserver(function (mutationsList, observer) {
+            mutationsList.every(mutation => {
+                if (mutation.attributeName === 'class') {
+                    UI.updateActionIconsSection();
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            })
+        });
+        // Observe all actions buttons.  Note that the keyboard button is hidden
+        // in CSS via the 'noVNC_touch' class.  Thus, this button doesn't have
+        // the 'noVNC_hidden' class.
+        // mutationObserver.observe(document.getElementById('noVNC_keyboard_button'), { attributes: true });
+        mutationObserver.observe(document.getElementById('noVNC_fullscreen_button'), { attributes: true });
+        mutationObserver.observe(document.getElementById('noVNC_view_drag_button'), { attributes: true });
+
+        UI.updateActionIconsSection();
+
         // Bootstrap fallback input handler
         UI.keyboardinputReset();
 
@@ -601,6 +622,21 @@ const UI = {
         e.stopPropagation();
         UI.keepControlbar();
         UI.activateControlbar();
+    },
+
+    updateActionIconsSection(mutationsList, observer) {
+        // Hide the action icons section if all icons are hidden.
+        // NOTE: The keyboard button is hidden in CSS via the 'noVNC_touch'
+        // class.
+        if (!document.documentElement.classList.contains('noVNC_touch') &&
+            document.getElementById('noVNC_fullscreen_button').classList.contains('noVNC_hidden') &&
+            document.getElementById('noVNC_view_drag_button').classList.contains('noVNC_hidden')) {
+            // All icons hidden: also hide the section.
+            document.getElementById('noVNC_action_icons_section').classList.add('noVNC_hidden');
+        }
+        else {
+            document.getElementById('noVNC_action_icons_section').classList.remove('noVNC_hidden');
+        }
     },
 
 /* ------^-------
