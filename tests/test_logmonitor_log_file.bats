@@ -24,14 +24,26 @@ EOF
 
     # Create second notification definition.
     mkdir "$TESTS_WORKDIR"/test2
-    echo 'Test2 title' > "$TESTS_WORKDIR"/test2/title
-    echo 'Test description' > "$TESTS_WORKDIR"/test2/desc
-    echo ERROR > "$TESTS_WORKDIR"/test2/level
+    cat << EOF > "$TESTS_WORKDIR"/test2/title
+#!/bin/sh
+echo 'Test2 title'
+EOF
+    cat << EOF > "$TESTS_WORKDIR"/test2/desc
+#!/bin/sh
+echo 'Test description'
+EOF
+    cat << EOF > "$TESTS_WORKDIR"/test2/level
+#!/bin/sh
+echo ERROR
+EOF
     cat << EOF > "$TESTS_WORKDIR"/test2/filter
 #!/bin/sh
 echo RUNNING_FILTER2 on: \$1
 echo "\$1" | grep -q TriggerAnotherWord
 EOF
+    chmod +x "$TESTS_WORKDIR"/test2/title
+    chmod +x "$TESTS_WORKDIR"/test2/desc
+    chmod +x "$TESTS_WORKDIR"/test2/level
     chmod +x "$TESTS_WORKDIR"/test2/filter
 
     DOCKER_EXTRA_OPTS=()
