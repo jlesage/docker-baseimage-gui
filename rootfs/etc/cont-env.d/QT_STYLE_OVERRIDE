@@ -5,7 +5,7 @@ set -u # Treat unset variables as an error.
 
 if [ "${DARK_MODE:-0}" -eq 1 ]; then
     # Dark mode enabled.
-    echo "qt5ct"
+    echo "Adwaita-Dark"
 else
     # Dark mode *not* enabled.  Do not set the variable.
     exit 100
