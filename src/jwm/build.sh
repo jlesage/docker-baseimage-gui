@@ -214,7 +214,6 @@ log "Configuring JWM..."
         --disable-xpm \
         --disable-xbm \
         --disable-rsvg \
-        --disable-png \
         --disable-jpeg \
         --disable-xinerama \
         --disable-confirm \
@@ -226,6 +225,7 @@ log "Configuring JWM..."
         --enable-shape \
         --enable-xmu \
         --enable-xft \
+        --enable-png \
 )
 
 log "Compiling JWM..."
