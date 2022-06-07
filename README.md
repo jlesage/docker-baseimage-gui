@@ -61,6 +61,7 @@ needed on the client side) or via any VNC client.
             * [Referencing Linux User/Group](#referencing-linux-usergroup)
             * [Using rootfs Directory](#using-rootfs-directory)
             * [Maximizing Only the Main Window](#maximizing-only-the-main-window)
+            * [Missing Icon from Window Title Bar](#missing-icon-from-window-title-bar)
 
 ## Images
 
@@ -902,7 +903,7 @@ By default, the application's window is maximized and decorations are hidden.
 When the application has multiple windows, this behavior may need to be
 restricted to only the main one.
 
-The window manager configuration allows setting behavior for different
+The window manager can be configured to apply different behaviors for different
 windows of the application.  A specific window is identified by matching one or
 more of its properties:
   - Name of the window.
@@ -910,7 +911,7 @@ more of its properties:
   - Type of the window.
 
 To find the value of a property for a particular window:
-  - While the container is running, start the `xprop` tool on it:
+  - While the container is running, start the `xprop` tool:
 ```shell
 docker exec [container name or id] env DISPLAY=:0 xprop
 ```
@@ -918,25 +919,47 @@ docker exec [container name or id] env DISPLAY=:0 xprop
     interested window.
   - A lot of information about that window will then be dumped.
 
-The following table shows where the find the relevant information:
+The following table shows how to find the relevant information:
 
 | Property | Value |
 |----------|-------|
-| Name     | The first string of `WM_CLASS`.
-| Class    | The second string of `WM_CLASS`.
-| Type     | The type of the window is given by `_NET_WM_WINDOW_TYPE`. Property's value should be translated to one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`.
+| Name     | The first string of `WM_CLASS`. |
+| Class    | The second string of `WM_CLASS`. |
+| Type     | The type of the window is given by `_NET_WM_WINDOW_TYPE`. Property's value should be translated to one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`. |
+| WmName   | The value of `WM_NAME`. |
 
-The default window manager configuration matches only on the type of the window,
-which must be `normal`.  So if more restrictions are needed, matching the name of
-the window can help.
+By default, the window manager configuration matches only the type of the
+window, which must be `normal`.  If more restrictions are needed, matching the
+name of the window can help.
 
-To do this, the configuration file of the JVM window manager (located at
-`/etc/system.jwmrc` inside the container) needs to be adjusted.  For example,
-adding the following instruction to the `Dockerfile` adds match against the name
-of the window:
+To do this, matching criterias can be defined using the file located at
+`/etc/jwm/main-window-selection.jwmrc` in the container.  This file should have
+one matching critera per line, in XML format.  For example, to match against
+both the type and the name of the window, the file content should be:
 
-```shell
-sed-patch '/<Type>normal<\/Type>/a\        <Name>My Application<\/Name>' /etc/system.jwmrc
+```
+<Type>normal</Type>
+<Name>My Application</Name>
 ```
 
+Note that a regex can be used as a property's value.
+
 See the JWM documentation for more details: https://joewing.net/projects/jwm/config.html
+
+#### Missing Icon from Window Title Bar
+
+If a window of the application does not supply an icon via the _NET_WM_ICON
+hint, the window manager will look for an icon whose name (minus the extension)
+matches the instance name of the window as returned in the WM_CLASS hint.
+
+So to make sure the icon is found, a symbolic link to the master icon can be
+created under `/opt/jwm/share` in the container.  This can be done by adding the
+symbolic link to your `rootfs`, or by addding the following lines to your
+Dockerfile:
+
+```
+RUN \
+    mkdir /opt/jwm/share && \
+    ln -s /opt/noVNC/app/images/icons/master_icon.png /opt/jwm/share/<First string of WM_CLASS>.png
+```
+
