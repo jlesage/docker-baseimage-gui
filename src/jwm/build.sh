@@ -202,6 +202,7 @@ cat << 'EOF' > /tmp/jwm/winmenu.patch
           if(!(np->state.status & STAT_STICKY)) {
 EOF
 patch -p1 -d /tmp/jwm < /tmp/jwm/winmenu.patch
+patch -p1 -d /tmp/jwm < /tmp/wmname_group.patch
 
 log "Configuring JWM..."
 (

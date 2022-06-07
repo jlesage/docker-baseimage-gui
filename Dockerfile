@@ -63,6 +63,7 @@ FROM --platform=$BUILDPLATFORM alpine:3.15 AS jwm
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/jwm/build.sh /tmp/build-jwm.sh
+COPY src/jwm/*.patch /tmp/
 RUN /tmp/build-jwm.sh
 RUN xx-verify --static /tmp/jwm-install/usr/bin/jwm
 COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
