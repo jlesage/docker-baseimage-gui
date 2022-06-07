@@ -25,6 +25,7 @@
     <Group>
         <Name>.*</Name>
         <Option>noshade</Option>
+        <Option>nomin</Option>
     </Group>
 
     <!-- Visual Styles -->
