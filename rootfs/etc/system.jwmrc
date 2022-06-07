@@ -14,13 +14,14 @@
         <Option>title</Option>
         <Option>border</Option>
     </Group>
-    <Group>
-        <Type>normal</Type>
-        <Option>layer:below</Option>
-        <Option>maximized</Option>
-        <Option>notitle</Option>
-        <Option>noborder</Option>
-    </Group>
+    <!--
+        Group of the main application's window.  Since the matching criterias of
+        the main window differ for every application, we offer an easy way to
+        define them in a separate file (/etc/jwm/main-window-selection.jwmrc).
+        This file is included via a shell script that will produce the right
+        group configuration.
+    -->
+    <Include>exec:/etc/jwm/main-window-group.sh</Include>
     <Group>
         <Name>.*</Name>
         <Option>noshade</Option>
