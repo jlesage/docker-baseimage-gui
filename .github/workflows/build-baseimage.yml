@@ -1,4 +1,4 @@
-name: Docker Baseimage CI
+name: Docker Baseimage CI/CD
 
 env:
   DOCKER_IMAGE_NAME: jlesage/baseimage-gui
@@ -137,6 +137,8 @@ jobs:
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Inspect
         id: inspect
@@ -178,6 +180,8 @@ jobs:
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   post-build:
     name: Post-build
