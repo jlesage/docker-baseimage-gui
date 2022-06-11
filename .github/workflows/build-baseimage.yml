@@ -156,8 +156,8 @@ jobs:
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ fromJSON(matrix.info).tag_prefix }}
+          cache-to: type=gha,mode=max,scope=${{ fromJSON(matrix.info).tag_prefix }}
 
       - name: Inspect
         id: inspect
@@ -199,8 +199,7 @@ jobs:
           build-args: |
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=${{ fromJSON(matrix.info).tag_prefix }}
 
   post-build:
     name: Post-build
