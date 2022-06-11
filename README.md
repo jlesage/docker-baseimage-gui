@@ -55,7 +55,7 @@ needed on the client side) or via any VNC client.
             * [GTK](#gtk)
             * [QT](#qt)
          * [Tips and Best Practices](#tips-and-best-practices)
-            * [Do Not Modifying Baseimage Content](#do-not-modifying-baseimage-content)
+            * [Do Not Modify Baseimage Content](#do-not-modify-baseimage-content)
             * [Default Configuration Files](#default-configuration-files)
             * [The $HOME Variable](#the-home-variable)
             * [Referencing Linux User/Group](#referencing-linux-usergroup)
@@ -742,7 +742,9 @@ By default, the baseimage contains the following notification backends:
 
 | Backend  | Description | Debouncing time |
 |----------|-------------|-----------------|
-| `stdout` | Display a message to the standard output, make it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) || `yad`    | Display the notification in a window box, visible in the application's GUI. | Infinite |
+| `stdout` | Display a message to the standard output, make it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
+| `yad`    | Display the notification in a window box, visible in the application's GUI. | Infinite |
+
 ### Adding glibc
 
 For baseimages based on Alpine Linux, glibc can be installed to the image by
@@ -808,7 +810,7 @@ enabled, the web interface used to display the application is automatically
 adjusted accordingly.
 
 For the application itself, supporting dark mode is more complicated.
-Applications don't use the same toolkit to build the UI and each toolkit has
+Applications don't use the same toolkit to build their UI and each toolkit has
 its own way to activate the dark mode.
 
 The baseimage provides support for the [GTK] and [QT] toolkits.
@@ -828,15 +830,15 @@ When dark mode is enabled, the baseimage automatically setup the environment
 to force the application to use a dark theme.  Under the hood, this is done by
 setting the `QT_STYLE_OVERRIDE` environment variable to `Adwaita-Dark`.
 
-In addition, the applications's Dockerfile should install the Adwaita
+In addition, the application's Dockerfile should install the Adwaita
 style/theme.  It is provided by the `adwaita-qt` package, available from the
-Ubuntu, Debian or Apline Linux software repositories.
+Ubuntu, Debian or Alpine Linux software repositories.
 
-NOTE: Dark mode is currently supported for QT5 and QT6 applications.
+NOTE: Dark mode is currently supported by QT5 and QT6.
 
 ### Tips and Best Practices
 
-#### Do Not Modifying Baseimage Content
+#### Do Not Modify Baseimage Content
 
 Try to avoid modifications to files provided by the baseimage.  This minimizes
 the risk of breaking your container after using a new version of the baseimage.
@@ -911,13 +913,14 @@ more of its properties:
   - Type of the window.
 
 To find the value of a property for a particular window:
-  - While the container is running, start the `xprop` tool:
+  - Create and start an instance of the container.
+  - From the host, start the `xprop` tool:
 ```shell
 docker exec [container name or id] env DISPLAY=:0 xprop
 ```
-  - Then, access the GUI of the application and click somewhere on the
+  - Access the GUI of the application and click somewhere on the
     interested window.
-  - A lot of information about that window will then be dumped.
+  - Information about that window will be printed.
 
 The following table shows how to find the relevant information:
 
@@ -937,7 +940,7 @@ To do this, matching criterias can be defined using the file located at
 one matching critera per line, in XML format.  For example, to match against
 both the type and the name of the window, the file content should be:
 
-```
+```xml
 <Type>normal</Type>
 <Name>My Application</Name>
 ```
@@ -948,11 +951,12 @@ See the JWM documentation for more details: https://joewing.net/projects/jwm/con
 
 #### Missing Icon from Window Title Bar
 
-If a window of the application does not supply an icon via the _NET_WM_ICON
-hint, the window manager will look for an icon whose name (minus the extension)
-matches the instance name of the window as returned in the WM_CLASS hint.
+The icon of a window title bar can be missing when this window does not supply
+an icon via the _NET_WM_ICON hint.  In this case, the window manager will look
+for an icon whose name (minus the extension) matches the instance name of the
+window as returned in the WM_CLASS hint.
 
-So to make sure the icon is found, a symbolic link to the master icon can be
+To make sure the icon is found, a symbolic link to the master icon should be
 created under `/opt/jwm/share` in the container.  This can be done by adding the
 symbolic link to your `rootfs`, or by addding the following lines to your
 Dockerfile:
