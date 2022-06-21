@@ -31,6 +31,9 @@
     <!-- Visual Styles -->
     <Include>exec:/etc/jwm/select-style.sh</Include>
 
+    <!-- The default icon to use for windows that do not specify an icon. -->
+    <DefaultIcon>default_icon</DefaultIcon>
+
     <!--
         Path where icons can be found.
         IconPath can be listed multiple times to allow searching
