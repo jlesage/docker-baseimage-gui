@@ -61,7 +61,6 @@ needed on the client side) or via any VNC client.
             * [Referencing Linux User/Group](#referencing-linux-usergroup)
             * [Using rootfs Directory](#using-rootfs-directory)
             * [Maximizing Only the Main Window](#maximizing-only-the-main-window)
-            * [Missing Icon from Window Title Bar](#missing-icon-from-window-title-bar)
 
 ## Images
 
@@ -948,22 +947,4 @@ both the type and the name of the window, the file content should be:
 Note that a regex can be used as a property's value.
 
 See the JWM documentation for more details: https://joewing.net/projects/jwm/config.html
-
-#### Missing Icon from Window Title Bar
-
-The icon of a window title bar can be missing when this window does not supply
-an icon via the _NET_WM_ICON hint.  In this case, the window manager will look
-for an icon whose name (minus the extension) matches the instance name of the
-window as returned in the WM_CLASS hint.
-
-To make sure the icon is found, a symbolic link to the master icon should be
-created under `/opt/jwm/share` in the container.  This can be done by adding the
-symbolic link to your `rootfs`, or by addding the following lines to your
-Dockerfile:
-
-```
-RUN \
-    mkdir /opt/jwm/share && \
-    ln -s /opt/noVNC/app/images/icons/master_icon.png /opt/jwm/share/<First string of WM_CLASS>.png
-```
 
