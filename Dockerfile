@@ -32,8 +32,10 @@ FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 # crash on ARM.  We need to manually compile it with all latest fixes.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS upx
 RUN apk --no-cache add build-base git bash perl ucl-dev zlib-dev zlib-static && \
-    git clone --recurse-submodules https://github.com/upx/upx.git /tmp/upx && \
+    git clone https://github.com/upx/upx.git /tmp/upx && \
     git -C /tmp/upx checkout f75ad8b && \
+    git -C /tmp/upx submodule init && \
+    git -C /tmp/upx submodule update --recursive && \
     make LDFLAGS=-static CXXFLAGS_OPTIMIZE= -C /tmp/upx -j$(nproc) all
 
 # Build TigerVNC server.
