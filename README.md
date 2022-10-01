@@ -8,59 +8,57 @@ needed on the client side) or via any VNC client.
 
 ## Table of Content
 
-   * [A minimal docker baseimage to ease creation of X graphical application containers](#a-minimal-docker-baseimage-to-ease-creation-of-x-graphical-application-containers)
-      * [Table of Content](#table-of-content)
-      * [Images](#images)
-         * [Content](#content)
-         * [Versioning](#versioning)
-         * [Tags](#tags)
-      * [Getting started](#getting-started)
-      * [Using the Baseimage](#using-the-baseimage)
-         * [Selecting a Baseimage](#selecting-a-baseimage)
-         * [Container Startup Sequence](#container-startup-sequence)
-         * [Container Shutdown Sequence](#container-shutdown-sequence)
-         * [Environment Variables](#environment-variables)
-            * [Public Environment Variables](#public-environment-variables)
-            * [Internal Environment Variables](#internal-environment-variables)
-            * [Adding/Removing Internal Environment Variables](#addingremoving-internal-environment-variables)
-            * [Availability](#availability)
-            * [Docker Secrets](#docker-secrets)
-         * [Ports](#ports)
-         * [User/Group IDs](#usergroup-ids)
-         * [Locales](#locales)
-         * [Accessing the GUI](#accessing-the-gui)
-         * [Security](#security)
-            * [SSVNC](#ssvnc)
-            * [Certificates](#certificates)
-            * [VNC Password](#vnc-password)
-            * [DH Parameters](#dh-parameters)
-         * [Initialization Scripts](#initialization-scripts)
-         * [Finalization Scripts](#finalization-scripts)
-         * [Services](#services)
-            * [Service Group](#service-group)
-            * [Default Service](#default-service)
-            * [Service Readiness](#service-readiness)
-         * [Configuration Directory](#configuration-directory)
-            * [Application's Data Directories](#applications-data-directories)
-         * [Adding/Removing Packages](#addingremoving-packages)
-         * [Container Log](#container-log)
-         * [Log Monitor](#log-monitor)
-            * [Monitored Files](#monitored-files)
-            * [Notification Definition](#notification-definition)
-            * [Notification Backend](#notification-backend)
-         * [Adding glibc](#adding-glibc)
-         * [Modifying Files With Sed](#modifying-files-with-sed)
-         * [Application Icon](#application-icon)
-         * [Dark Mode](#dark-mode)
-            * [GTK](#gtk)
-            * [QT](#qt)
-         * [Tips and Best Practices](#tips-and-best-practices)
-            * [Do Not Modify Baseimage Content](#do-not-modify-baseimage-content)
-            * [Default Configuration Files](#default-configuration-files)
-            * [The $HOME Variable](#the-home-variable)
-            * [Referencing Linux User/Group](#referencing-linux-usergroup)
-            * [Using rootfs Directory](#using-rootfs-directory)
-            * [Maximizing Only the Main Window](#maximizing-only-the-main-window)
+   * [Images](#images)
+      * [Content](#content)
+      * [Versioning](#versioning)
+      * [Tags](#tags)
+   * [Getting started](#getting-started)
+   * [Using the Baseimage](#using-the-baseimage)
+      * [Selecting a Baseimage](#selecting-a-baseimage)
+      * [Container Startup Sequence](#container-startup-sequence)
+      * [Container Shutdown Sequence](#container-shutdown-sequence)
+      * [Environment Variables](#environment-variables)
+         * [Public Environment Variables](#public-environment-variables)
+         * [Internal Environment Variables](#internal-environment-variables)
+         * [Adding/Removing Internal Environment Variables](#addingremoving-internal-environment-variables)
+         * [Availability](#availability)
+         * [Docker Secrets](#docker-secrets)
+      * [Ports](#ports)
+      * [User/Group IDs](#usergroup-ids)
+      * [Locales](#locales)
+      * [Accessing the GUI](#accessing-the-gui)
+      * [Security](#security)
+         * [SSVNC](#ssvnc)
+         * [Certificates](#certificates)
+         * [VNC Password](#vnc-password)
+         * [DH Parameters](#dh-parameters)
+      * [Initialization Scripts](#initialization-scripts)
+      * [Finalization Scripts](#finalization-scripts)
+      * [Services](#services)
+         * [Service Group](#service-group)
+         * [Default Service](#default-service)
+         * [Service Readiness](#service-readiness)
+      * [Configuration Directory](#configuration-directory)
+         * [Application's Data Directories](#applications-data-directories)
+      * [Adding/Removing Packages](#addingremoving-packages)
+      * [Container Log](#container-log)
+      * [Log Monitor](#log-monitor)
+         * [Monitored Files](#monitored-files)
+         * [Notification Definition](#notification-definition)
+         * [Notification Backend](#notification-backend)
+      * [Adding glibc](#adding-glibc)
+      * [Modifying Files With Sed](#modifying-files-with-sed)
+      * [Application Icon](#application-icon)
+      * [Dark Mode](#dark-mode)
+         * [GTK](#gtk)
+         * [QT](#qt)
+      * [Tips and Best Practices](#tips-and-best-practices)
+         * [Do Not Modify Baseimage Content](#do-not-modify-baseimage-content)
+         * [Default Configuration Files](#default-configuration-files)
+         * [The $HOME Variable](#the-home-variable)
+         * [Referencing Linux User/Group](#referencing-linux-usergroup)
+         * [Using rootfs Directory](#using-rootfs-directory)
+         * [Maximizing Only the Main Window](#maximizing-only-the-main-window)
 
 ## Images
 
@@ -68,7 +66,6 @@ Different docker images are available:
 
 | Base Distribution  | Docker Image Base Tag | Size |
 |--------------------|-----------------------|------|
-| [Alpine 3.12]      | alpine-3.12           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.12)  |
 | [Alpine 3.13]      | alpine-3.13           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.13)  |
 | [Alpine 3.14]      | alpine-3.14           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14)  |
 | [Alpine 3.15]      | alpine-3.15           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.15)  |
@@ -81,7 +78,6 @@ Different docker images are available:
 | [Ubuntu 18.04 LTS] | ubuntu-18.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-18.04) |
 | [Ubuntu 20.04 LTS] | ubuntu-20.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04) |
 
-[Alpine 3.12]: https://alpinelinux.org
 [Alpine 3.13]: https://alpinelinux.org
 [Alpine 3.14]: https://alpinelinux.org
 [Alpine 3.15]: https://alpinelinux.org
@@ -149,8 +145,6 @@ terminal.
 
 In `Dockerfile`:
 ```Dockerfile
-ARG APP_NAME=Xterm
-
 # Pull base image.
 FROM jlesage/baseimage-gui:alpine-3.15-v4
 
@@ -161,7 +155,7 @@ RUN add-pkg xterm
 COPY startapp.sh /startapp.sh
 
 # Set the name of the application.
-RUN set-cont-env APP_NAME "$APP_NAME"
+RUN set-cont-env APP_NAME "Xterm"
 
 ```
 
@@ -317,9 +311,12 @@ If the file has execute permission, the init process will execute the program
 and the value of the environment variable is expected to be printed to its
 standard output.
 
-**NOTE**: If the script exits with the return code `100`, the environment
+**NOTE**: If the program exits with the return code `100`, the environment
           variable is not set (this is different than being set with an empty
           value).
+
+**NOTE**: Any output to stderr performed by the program is redirected to the
+          container's log.
 
 **NOTE**: The helper `set-cont-env` can be used to set internal environment
           variables from the Dockerfile.
