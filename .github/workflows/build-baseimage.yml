@@ -96,9 +96,10 @@ jobs:
             # For version with format vX.Y.Z, we want to add additional tags:
             #   - vX.Y
             #   - vX
-            MINOR=${VERSION%.*}
-            MAJOR=${MINOR%.*}
-            TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR}.${MINOR}"
+            V=${VERSION:1}
+            MAJOR_MINOR=${V%.*}
+            MAJOR=${MAJOR_MINOR%.*}
+            TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR_MINOR}"
             TAGS="$TAGS,${{ env.DOCKER_IMAGE_NAME }}:${{ fromJSON(matrix.info).tag_prefix }}-v${MAJOR}"
           fi
           # Determine the release type.
