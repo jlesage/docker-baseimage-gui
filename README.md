@@ -59,6 +59,7 @@ needed on the client side) or via any VNC client.
          * [Referencing Linux User/Group](#referencing-linux-usergroup)
          * [Using rootfs Directory](#using-rootfs-directory)
          * [Maximizing Only the Main Window](#maximizing-only-the-main-window)
+         * [Adaptations from the 3.x Version](#adaptations-from-the-3x-version)
 
 ## Images
 
@@ -66,17 +67,17 @@ Different docker images are available:
 
 | Base Distribution  | Docker Image Base Tag | Size |
 |--------------------|-----------------------|------|
-| [Alpine 3.13]      | alpine-3.13           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.13)  |
-| [Alpine 3.14]      | alpine-3.14           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14)  |
-| [Alpine 3.15]      | alpine-3.15           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.15)  |
-| [Alpine 3.16]      | alpine-3.16           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16)  |
-| [Debian 8]         | debian-8              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-8)     |
-| [Debian 9]         | debian-9              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-9)     |
-| [Debian 10]        | debian-10             | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10)    |
-| [Debian 11]        | debian-11             | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11)    |
-| [Ubuntu 16.04 LTS] | ubuntu-16.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-16.04) |
-| [Ubuntu 18.04 LTS] | ubuntu-18.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-18.04) |
-| [Ubuntu 20.04 LTS] | ubuntu-20.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04) |
+| [Alpine 3.13]      | alpine-3.13           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.13-v4)  |
+| [Alpine 3.14]      | alpine-3.14           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14-v4)  |
+| [Alpine 3.15]      | alpine-3.15           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.15-v4)  |
+| [Alpine 3.16]      | alpine-3.16           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16-v4)  |
+| [Debian 8]         | debian-8              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-8-v4)     |
+| [Debian 9]         | debian-9              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-9-v4)     |
+| [Debian 10]        | debian-10             | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4)    |
+| [Debian 11]        | debian-11             | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4)    |
+| [Ubuntu 16.04 LTS] | ubuntu-16.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-16.04-v4) |
+| [Ubuntu 18.04 LTS] | ubuntu-18.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-18.04-v4) |
+| [Ubuntu 20.04 LTS] | ubuntu-20.04          | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04-v4) |
 
 [Alpine 3.13]: https://alpinelinux.org
 [Alpine 3.14]: https://alpinelinux.org
@@ -719,7 +720,7 @@ notification `MYNOTIF` is found under
 
 The following table describe files part of the definition:
 
-| File     | Mandatory? | Description |
+| File     | Mandatory  | Description |
 |----------|------------|-------------|
 | `filter` | Yes        | Program (script or binary with executable permission) used to filter messages from a log file.  It is invoked by the log monitor with a single argument: a line from the log file.  On a match, the program should exit with a value of `0`.  Any other values is interpreted as non-match. |
 | `title`  | Yes        | File containing the title of the notification.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's title. |
@@ -733,7 +734,7 @@ Definition of a notification backend is stored in a directory under
 found under `/etc/logmonitor/notifications.d/STDOUT/`.  The following table
 describe files part of the definition:
 
-| File         | Mandatory? | Description |
+| File         | Mandatory  | Description |
 |--------------|------------|-------------|
 | `send`       | Yes        | Program (script or binary with executable permission) that sends the notification.  It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level. |
 | `debouncing` | No         | File containing the minimum amount time (in seconds) that must elapse before sending the same notification with this backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done. |
@@ -952,4 +953,25 @@ both the type and the name of the window, the file content should be:
 Note that a regex can be used as a property's value.
 
 See the JWM documentation for more details: https://joewing.net/projects/jwm/config.html
+
+#### Adaptations from the 3.x Version
+
+For existing applications using the previous version of the baseimage, few
+adaptations are needed when updating to the new baseimage.  Here are a few
+tips:
+
+  - Verify exposed environment variables: each of them should be categorized as
+    a public or private one.  See the
+    [Environment Variables](#environment-variables) section.
+  - Initialization scripts should be renamed to have the proper naming format.
+    See the [Initialization Scripts](#initialization-scripts) section.
+  - Parameters/definition of services should be adjusted for the new system.
+    See the [Services](#services) section.
+  - Verify that no scripts are using `with-contenv` in their shebang (e.g. from
+    init scripts).
+  - Set the `APP_VERSION` and `DOCKER_IMAGE_VERSION` internal environment
+    variables when/if needed.
+  - Any adjustment to the window manager config (e.g. to maximize only the main
+    window) should be readapted to the new window manager.  See the
+    [Maximizing Only the Main Window](#maximizing-only-the-main-window) section.
 
