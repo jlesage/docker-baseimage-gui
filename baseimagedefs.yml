@@ -1,0 +1,546 @@
+---
+
+#
+# Definitions for docker-baseimage-gui.
+#
+# This file is used as data source to generate README.md and unRAID template
+# files from Jinja2 templates.
+#
+
+baseimage:
+  name: baseimage-gui
+  title: >-
+    A minimal docker baseimage to ease creation of X graphical application
+    containers
+  description: |-
+    This is a docker baseimage that can be used to create containers able to run
+    any X application on a headless server very easily.  The application's GUI
+    is accessed through a modern web browser (no installation or configuration
+    needed on the client side) or via any VNC client.
+  gui: true
+  history:
+    - version: 4.0.0
+      date: 2022-10-06
+      changes:
+        added:
+          - 'Multi-arch support of baseimages.'
+          - 'Baseimage based on Alpine Linux 3.16.'
+          - 'Support for dark mode.'
+          - 'Support for remote window resize.'
+          - 'Configurable WEB and VNC ports.'
+        changed:
+          - 'Size of Docker images has been reduced.'
+          - 'S6 overlay has been replaced with a simpler init system and process supervisor.'
+          - 'Simplified and improved the container startup and shutdown sequences.'
+          - 'Definition of services are more flexible and powerful.'
+          - 'Definition of environment variables are more flexible and powerful.'
+          - 'Environment variables are automatically passed to init scripts and services.'
+          - 'Environment variables can be public or internal ones.'
+          - 'Improved management of service dependencies.'
+          - 'The log monitor has been rewritten in C.'
+          - 'Improved logging to container''s log.'
+          - 'Updated the web UI with a new, simplified, less intrusive look.'
+          - 'Changed the VNC/X server to TigherVNC.'
+          - 'Changed the window manager to JWM.'
+          - 'Updated noVNC to version 1.3.0'
+          - 'Multiple miscellaneous improvements.'
+          - 'Make sure to read the documentation to understand how to adjust applications built with version 3.x of the baseimage.'
+        removed:
+          - 'Baseimages based on Alpine Linux 3.10, 3.11 and 3.12.'
+          - 'Glibc version of Alpine Linux Docker images.  Glibc can instead be installed manually with the provided install script.'
+          - 'The `with-contenv` script: its usage is no longer needed.'
+    - version: 3.5.8
+      date: 2021-12-29
+      changes:
+        - 'Updated installed packages to get latest security fixes.'
+        - 'Added images based on Alpine 3.13, 3.14 and 3.15.'
+        - 'Added images based on Debian 11.'
+        - 'Added images based on Ubuntu 20.04.'
+        - 'Removed support for images based on Alpine 3.5, 3.6, 3.7, 3.8 and 3.8.'
+    - version: 3.5.7
+      date: 2021-04-06
+      changes:
+        - 'Now using version 2.4.5 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Updated installed packages to get latest security fixes.'
+    - version: 3.5.6
+      date: 2020-07-19
+      changes:
+        - 'Other small adjustments for the YAD log monitor target.'
+    - version: 3.5.5
+      date: 2020-06-29
+        - 'Adjusted the log monitor target for recent versions of YAD.'
+    - version: 3.5.4
+      date: 2020-06-26
+      changes:
+        - 'Now using version 2.4.4 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Upgraded glibc to version 2.31 on Alpine Linux images with glibc integrated.'
+        - '2:Updated installed packages to get latest security fixes.'
+    - version: 3.5.3
+      date: 2019-10-04
+      changes:
+        - 'Now using version 2.4.3 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Updated installed packages to get latest security fixes.'
+        - '2:Make sure the tzdata is installed.'
+    - version: 3.5.2
+      date: 2019-04-24
+      changes:
+        - 'Now using version 2.4.2 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Updated installed packages to get latest security fixes.'
+        - 'Fixed issue where the container could have a zombie process.'
+        - 'Fixed issue where the password would not be submitted when pressing the enter key in the password modal.'
+        - 'Use relative path for favicon ressources to be more friendly with reverse proxy senarios.'
+    - version: 3.5.1
+      date: 2018-09-18
+      changes:
+        - 'Now using version 2.4.1 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Updated installed packages to get latest security fixes.'
+    - version: 3.5.0
+      date: 2018-08-14
+      changes:
+        - 'Added baseimage based on Ubuntu 18.04.'
+    - version: 3.4.0
+      date: 2018-07-06
+      changes:
+        - 'Added images based on Alpine Linux 3.8.'
+        - 'Added images based on Debian 9.'
+    - version: 3.3.6
+      date: 2018-04-12
+      changes:
+        - 'Now using version 2.2.8 of jlesage/baseimage, which brings the following changes:'
+        - '2:Fixed architecture of ubuntu baseimage: it is meant to be 64-bit.'
+    - version: 3.3.5
+      date: 2018-04-03
+      changes:
+        - 'Now using version 2.2.7 of jlesage/baseimage, which brings the following changes:'
+        - '2:Upgraded s6-overlay to version 1.21.4.0.'
+        - '2:Wait for a limited time when terminating a service.'
+        - '2:Set and create the XDG_RUNTIME_DIR directory.'
+    - version: 3.3.4
+      date: 2018-03-02
+      changes:
+        - 'Now using version 2.2.6 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Fixed issue where log monitor states were not cleared during container startup.'
+    - version: 3.3.3
+      date: 2018-02-15
+      changes:
+        - 'Make sure the log monitor is started after the X server.'
+        - 'Fixed an issue where the log monitor `yad` target would use XDG folders of the application.'
+    - version: 3.3.2
+      date: 2018-02-02
+      changes:
+        - 'Now using version 2.2.5 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Restored timezone support in Alpine Linux images with glibc.'
+        - '2:Fixed issue in `add-pkg` helper where a package could be incorrectly detected as installed.'
+    - version: 3.3.1
+      date: 2018-01-30
+      changes:
+        - 'Adjusted the way some ressources are accessed to better support reverse proxy to containers.'
+    - version: 3.3.0
+      date: 2018-01-22
+      changes:
+        - 'Now using version 2.2.4 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Fixed the LANG environment variable not being set properly.'
+        - 'Added the ability to automatically install a CJK (Chinese/Japanese/Korean) font.'
+    - version: 3.2.3
+      date: 2018-01-12
+      changes:
+        - 'Now using version 2.2.3 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:For Alpine Linux images with glibc, automatically update dynamic linker''s cache after new libraries are installed.'
+    - version: 3.2.2
+      date: 2018-01-11
+      changes:
+        - 'Now using version 2.2.2 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Adjusted the way ownership of /config is taken to better support cases where the folder is mapped to a network share.'
+    - version: 3.2.1
+      date: 2018-01-04
+      changes:
+        - 'Now using version 2.2.1 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Upgraded S6 overlay to version 1.21.2.2.'
+        - '2:Upgraded glibc to version 2.26 (Alpine Linux glibc images).'
+    - version: 3.2.0
+      date: 2017-12-08
+      changes:
+        - 'Added images based on Alpine Linux 3.7.'
+    - version: 3.1.4
+      date: 2017-11-30
+      changes:
+        - 'Set 2 worker processes for nginx.'
+    - version: 3.1.3
+      date: 2017-11-19
+      changes:
+        - 'Now using version 2.1.4 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Upgraded S6 overlay to version 1.21.2.1.'
+    - version: 3.1.2
+      date: 2017-11-06
+      changes:
+        - 'Now using version 2.1.3 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Upgraded S6 overlay to version 1.21.2.0.'
+        - '2:Use a more efficient way to monitor status files.'
+    - version: 3.1.1
+      date: 2017-10-31
+      changes:
+        - 'Now using version 2.1.2 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Fixed an issue where a self-disabled service could be restarted.'
+    - version: 3.1.0
+      date: 2017-10-28
+      changes:
+        - 'Now using version 2.1.1 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Upgraded S6 overlay to version 1.21.1.1.'
+        - '2:Enhanced integration of service dependencies functionality.'
+        - '2:Added a simple log monitor.'
+        - '2:Fixed race condition where container''s exit code would not be the expected one.'
+        - 'Fixed issue where application''s GUI fails to displayed when accessing it through the web interface via standard ports 80/443.'
+    - version: 3.0.2
+      date: 2017-10-09
+      changes:
+        - 'Fixed issue where nginx config change was not applied correctly on systems without IPV6 support and secure connection disabled.'
+    - version: 3.0.1
+      date: 2017-10-08
+      changes:
+        - 'Fixed nginx config on systems without IPV6 support.'
+    - version: 3.0.0
+      date: 2017-10-06
+      changes:
+        - 'Now using version 2.0.0 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Added better support for service dependencies.'
+        - '3:Services startup order is automatically determined.'
+        - '3:Services are stopped in reverse order.'
+        - '3:The application''s service is always started last.'
+        - '3:The following elements are no longer needed and have been removed:'
+        - '4:`s6-svrunning` and `s6-waitdeps` programs.'
+        - '4:Pre-stage3 with pre-finish scripts support.'
+        - 'Added support for secure access to the application''s GUI:'
+        - '2:Via HTTPs or VNC over SSL.'
+        - '2:Secure connection is enabled via the `SECURE_CONNECTION` environment variable.'
+        - 'Note that these changes can break building and/or execution of containers based on v2.x or earlier of this baseimage.'
+    - version: 2.0.9
+      date: 2017-09-20
+      changes:
+        - 'Now using version 1.1.6 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Restore default `/etc/shadow` during container startup.'
+    - version: 2.0.8
+      date: 2017-09-08
+      changes:
+        - 'Now using version 1.1.5 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Fixed duplicated entries in /etc/passwd and /etc/group that were created after a restart of the container.'
+    - version: 2.0.7
+      date: 2017-09-06
+      changes:
+        - 'Now using version 1.1.4 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Fixed timezone support on alpine-glibc images.'
+    - version: 2.0.6
+      date: 2017-08-13
+      changes:
+        - 'Now using version 1.1.3 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Upgraded S6 overlay to version 1.20.0.0.'
+    - version: 2.0.5
+      date: 2017-07-31
+      changes:
+        - 'Now using version 1.1.2 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Clear the environment of the container during startup.'
+        - '2:Clear the `/tmp` folder during startup.'
+        - 'Cleanly terminate the X server when container is restarted/stopped.'
+        - 'Improved robustness of X server starting process.'
+    - version: 2.0.4
+      date: 2017-07-28
+      changes:
+        - 'Now using version 1.1.1 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Make sure to remove the container shutdown indication during startup.  This fixes the behavior of `KEEP_APP_RUNNING` variable after a restart of the container.'
+        - 'Removed unneeded files from the image.'
+    - version: 2.0.3
+      date: 2017-07-27
+      changes:
+        - 'Improved robustness of the X server starting process.'
+    - version: 2.0.2
+      date: 2017-07-21
+      changes:
+        - 'Fixed exposed VNC port.'
+    - version: 2.0.1
+      date: 2017-07-17
+      changes:
+        - 'Now using version 1.1.0 of `jlesage/baseimage`, which brings the following changes:'
+        - '2:Added declaration of XDG environment variables.'
+        - 'Thus, declaration of these variables are no longer needed.'
+        - 'Clean temporary files left by npm'
+    - version: 2.0.0
+      date: 2017-07-16
+      changes:
+        - 'Now using `jlesage/baseimage` as the baseimage.'
+        - 'Removed all non-GUI related stuff that has been moved to `jlesage/baseimage`.'
+        - '[*] Configuration used by openbox is now located at `/etc/xdg/openboxrc.xml` (instead of `/home/guiapp/.config/openbox/rc.xml`).'
+        - '[*] Moved the application''s icon install script from `/opt/install_app_icon.sh` to `/usr/local/bin/install_app_icon.sh`.'
+        - '[*] The following XDG environment variables are now set, potentially affecting where the GUI application store its data/config:'
+        - '2:XDG_DATA_HOME=/config/xdg/data'
+        - '2:XDG_CONFIG_HOME=/config/xdg/config'
+        - '2:XDG_CACHE_HOME=/config/xdg/cache'
+        - 'Changes brought by the usage of the new baseimage:'
+        - '2:Improved the way a service is waiting for another by adding a generic mechanism.'
+        - '2:Taking ownership of `/config` can now be controlled via the environment variable `TAKE_CONFIG_OWNERSHIP`.'
+        - '2:Added helper to ease installation and removal of packages.'
+        - '2:Added helper to ease verification of modifications applied to files using `sed`.'
+        - '2:[*] The name of the user running the application changed from `guiapp` to `app`.'
+        - '2:[*] The `$HOME` environment variable is no longer set.'
+        - '2:[*] The `/home/guiapp` directory has been removed.'
+        - 'Changes marked with `[*]` can break building and/or execution of containers based on v1.x of this baseimage.'
+    - version: 1.5.0
+      date: 2017-07-04
+      changes:
+        - 'Added the UMASK environment variable to control how file permissions are set for newly created files.'
+        - 'Added the X11VNC_EXTRA_OPTS environment variable used to pass additional arguments to the x11vnc server.'
+        - 'By default, activate auto-scaling of application''s window.'
+        - 'Applied latest Alpine Linux security updates.'
+    - version: 1.4.3
+      date: 2017-06-22
+      changes:
+        - 'Updated Alpine Linux to version 3.6.2 for related container images.'
+    - version: 1.4.2
+      date: 2017-06-15
+      changes:
+        - 'Associate the application''s icon to a unique version to avoid browser cache issues.'
+    - version: 1.4.1
+      date: 2017-06-15
+      changes:
+        - 'Fixed prefix of some service related messages.'
+        - 'Added support for supplying supplementary groups of the application.'
+    - version: 1.4.0
+      date: 2017-06-06
+      changes:
+        - 'Added images based on Alpine Linux 3.6.'
+        - 'Improved process startup and shutdown.'
+        - 'When container is stopped or restarted, processes are now terminated gracefully and in proper order. This allow the GUI application to execute its termination routine.'
+        - 'No more error messages when container is stopped or restarted.'
+    - version: 1.3.2
+      date: 2017-05-30
+      changes:
+        - 'Fixed password modal window not showing up when required.'
+        - 'Fixed debian build.'
+    - version: 1.3.1
+      date: 2017-05-17
+      changes:
+        - 'Install better font for alpine images.'
+    - version: 1.3.0
+      date: 2017-05-15
+      changes:
+        - 'Added support for application''s niceness configuration.'
+    - version: 1.2.3
+      date: 2017-05-12
+      changes:
+        - 'Adjusted the default display width to 1280 pixels, as documented.'
+    - version: 1.2.2
+      date: 2017-05-11
+      changes:
+        - 'Fixed issue with the web UI, where the remote application''s window was not taking the available height after activating/deactivating the hideable navigation bar.'
+    - version: 1.2.1
+      date: 2017-05-10
+      changes:
+        - 'Fixed issue where clipboard content was lost on modal window closure.'
+    - version: 1.2.0
+      date: 2017-05-09
+      changes:
+        - 'New UI for web access to the application''s GUI.'
+        - '2:Based on Bootstrap and JQuery.'
+        - '2:Mobile friendly.'
+        - '2:Hideable navigation bar.'
+        - '2:Downscaling support.'
+        - '2:Clipboard support.'
+        - '2:Fullscreen toggle.'
+        - '2:Draggable remote screen when it doesn''t fix the client''s window.'
+        - '2:Virtual keyboard support on mobile.'
+        - '2:Right-click via long touch on mobile.'
+    - version: 1.0.1
+      date: 2017-05-5
+      changes:
+        - 'Fixed issue where VNC password was still applied after removal of the VNC password file from `/config`.'
+        - 'Fixed mouse handling when accessing the container''s GUI via Microsoft Internet Explorer/Edge.'
+        - 'Fixed a crash of the build-in VNC server.'
+    - version: 1.0.0
+      date: 2017-04-07
+      changes:
+        - 'Initial release.'
+
+container:
+  # Environment variables.
+  environment_variables:
+    - name: DISPLAY_WIDTH
+      description: Width (in pixels) of the application's window.
+      type: public
+      default: 1920
+      unraid_template:
+        title: Display Width
+        display: advanced
+        required: false
+        mask: false
+    - name: DISPLAY_HEIGHT
+      description: Height (in pixels) of the application's window.
+      type: public
+      default: 1080
+      unraid_template:
+        title: Display Height
+        display: advanced
+        required: false
+        mask: false
+    - name: DARK_MODE
+      description: >-
+        When set to `1`, dark mode is enabled for the application.
+      type: public
+      default: 0
+      unraid_template:
+        title: Secure Connection
+        description: >-
+          When set to 1, dark mode is enabled for the application.
+        display: advanced
+        required: false
+        mask: false
+    - name: SECURE_CONNECTION
+      description: >-
+        When set to `1`, an encrypted connection is used to access the
+        application's GUI (either via a web browser or VNC client).  See the
+        [Security](#security) section for more details.
+      type: public
+      default: 0
+      unraid_template:
+        title: Secure Connection
+        description: >-
+          Whether or not an encrypted connection should be used to access the
+          application's GUI.  Set to [i][b]1[/b][/i] to encrypt the connection.
+          [br][span style='color: red;'][b]Note:[/b][/span] When enabling the
+          secure connection, security parameters needs to be generated.  This
+          [b]one-time[/b] operation is done during container startup.  Depending
+          on your system, this could take a few minutes.  GUI of the application
+          won't be available until the operation completes.
+        display: advanced
+        required: false
+        mask: false
+    - name: SECURE_CONNECTION_VNC_METHOD
+      description: >-
+        Method used to perform the secure VNC connection.  Possible values are
+        `SSL` or `TLS`.  See the [Security](#security) section for more details.
+      type: public
+      default: SSL
+      unraid_template:
+        title: Secure Connection VNC Method
+        description: >-
+          Method used to perform the secure VNC connection.  Possible values are
+          [i][b]SSL[/b][/i] or [i][b]TLS[/b][/i].
+        display: advanced
+        required: false
+        mask: false
+    - name: SECURE_CONNECTION_CERTS_CHECK_INTERVAL
+      description: >-
+        Interval, in seconds, at which the system verifies if web or VNC
+        certificates have changed.  When a change is detected, the affected
+        services are automatically restarted.  A value of `0` disables the
+        check.
+      type: public
+      default: 60
+      unraid_template:
+        title: Secure Connection Certificate Check Interval
+        description: >-
+          Interval, in seconds, at which the system verifies if web or VNC
+          certificates have changed.  When a change is detected, the affected
+          services are nautomatically restarted.  A value of [i][b]1[/b][/i]
+          disables the check.
+        display: advanced
+        required: false
+        mask: false
+    - name: WEB_LISTENING_PORT
+      description: >-
+        Port used by the web server to serve the UI of the application.  This
+        port is used internally by the container and it is usually not required
+        to be changed.  By default, a container is created with the default
+        bridge network, meaning that, to be accessible, each internal container
+        port must be mapped to an external port (using the `-p` or `--publish`
+        argument).  However, if the container is created with another network
+        type, changing the port used by the container might be useful to prevent
+        conflict with other services/containers.  **NOTE**: a value of `-1`
+        disables listening, meaning that the application's UI won't be
+        accessible over HTTP/HTTPs.
+      type: public
+      default: 5800
+      unraid_template:
+        title: Web Listening Port
+        description: >-
+          Port used by the web server to serve the UI of the application.  This
+          port is used internally by the container and it is usually not
+          required to be changed.  [b]NOTE[/b]: This setting might be relevant
+          only when the [i]Network Type[/i] is set to something else than
+          [i]Bridge[/i].
+        display: advanced
+        required: false
+        mask: false
+    - name: VNC_LISTENING_PORT
+      description: >-
+        Port used by the VNC server to serve the UI of the application.  This
+        port is used internally by the container and it is usually not required
+        to be changed.  By default, a container is created with the default
+        bridge network, meaning that, to be accessible, each internal container
+        port must be mapped to an external port (using the `-p` or `--publish`
+        argument).  However, if the container is created with another network
+        type, changing the port used by the container might be useful to prevent
+        conflict with other services/containers.  **NOTE**: a value of `-1`
+        disables listening, meaning that the application's UI won't be
+        accessible over VNC.
+      type: public
+      default: 5900
+      unraid_template:
+        title: VNC Listening Port
+        description: >-
+          Port used by the VNC server to serve the UI of the application.  This
+          port is used internally by the container and it is usually not
+          required to be changed.  [b]NOTE[/b]: This setting might be relevant
+          only when the [i]Network Type[/i] is set to something else than
+          [i]Bridge[/i].
+        display: advanced
+        required: false
+        mask: false
+    - name: VNC_PASSWORD
+      description: >-
+        Password needed to connect to the application's GUI.  See the
+        [VNC Password](#vnc-password) section for more details.
+      type: public
+      default: '""'
+    - name: ENABLE_CJK_FONT
+      description: >-
+        When set to `1`, open-source computer font `WenQuanYi Zen Hei` is
+        installed.  This font contains a large range of
+        Chinese/Japanese/Korean characters.
+      type: public
+      default: 0
+
+  # Volumes
+  volumes: []
+
+  # Network ports
+  ports:
+    - number: 5800
+      protocol: tcp
+      description: >-
+        Port to access the application's GUI via the web interface.  Mapping
+        to the host is optional if access through the web interface is not
+        wanted.  For a container not using the default bridge network, the port
+        can be changed with the `WEB_LISTENING_PORT` environment variable.
+      mandatory: false
+      include_in_quick_start: true
+      unraid_template:
+        title: WEB Port for GUI
+        default: {{ 7800 + defs.app.id|int }}
+        display: advanced-hide
+        required: true
+        mask: false
+    - number: 5900
+      protocol: tcp
+      description: >-
+        Port to access the application's GUI via the VNC protocol.  Mapping
+        to the host is optional if access through the VNC protocol is not
+        wanted.  For a container not using the default bridge network, the port
+        can be changed with the `VNC_LISTENING_PORT` environment variable.
+      mandatory: false
+      unraid_template:
+        title: VNC Port for GUI
+        default: {{ 7900 + defs.app.id|int }}
+        display: advanced-hide
+        required: false
+        mask: false
+
+  # Devices
+  devices: []
