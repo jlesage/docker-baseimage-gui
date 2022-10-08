@@ -12,17 +12,8 @@ on:
   pull_request:
 
 jobs:
-  pre-build:
-    name: Pre-build
-    runs-on: ubuntu-20.04
-    steps:
-      - name: Cancel jobs (requested by commit message)
-        uses: andymckay/cancel-action@0.2
-        if: "contains(github.event.head_commit.message, '[skip ci]')"
-
   build:
     name: Build image
-    needs: pre-build
     runs-on: ubuntu-20.04
 
     services:
@@ -203,7 +194,7 @@ jobs:
 
   post-build:
     name: Post-build
-    needs: [ pre-build, build ]
+    needs: [ build ]
     runs-on: ubuntu-20.04
     steps:
       - name: Dockerhub description
@@ -217,7 +208,7 @@ jobs:
 
   notification:
     name: Notification
-    needs: [ pre-build, build, post-build ]
+    needs: [ build, post-build ]
     runs-on: ubuntu-20.04
     if: ${{ always() }}
 
