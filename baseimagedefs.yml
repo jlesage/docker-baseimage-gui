@@ -385,9 +385,9 @@ container:
       type: public
       default: 0
       unraid_template:
-        title: Secure Connection
+        title: Dark Mode
         description: >-
-          When set to 1, dark mode is enabled for the application.
+          When set to "1", dark mode is enabled for the application.
         display: advanced
         required: false
         mask: false
@@ -402,12 +402,12 @@ container:
         title: Secure Connection
         description: >-
           Whether or not an encrypted connection should be used to access the
-          application's GUI.  Set to [i][b]1[/b][/i] to encrypt the connection.
-          [br][span style='color: red;'][b]Note:[/b][/span] When enabling the
-          secure connection, security parameters needs to be generated.  This
-          [b]one-time[/b] operation is done during container startup.  Depending
-          on your system, this could take a few minutes.  GUI of the application
-          won't be available until the operation completes.
+          application's GUI.  Set to "1" to encrypt the connection.
+          NOTE: When enabling the secure connection, security parameters needs
+          to be generated.  This one-time operation is done during container
+          startup.  Depending on your system, this could take a few minutes.
+          GUI of the application won't be available until the operation
+          completes.
         display: advanced
         required: false
         mask: false
@@ -421,7 +421,7 @@ container:
         title: Secure Connection VNC Method
         description: >-
           Method used to perform the secure VNC connection.  Possible values are
-          [i][b]SSL[/b][/i] or [i][b]TLS[/b][/i].
+          "SSL" or "TLS".
         display: advanced
         required: false
         mask: false
@@ -438,8 +438,8 @@ container:
         description: >-
           Interval, in seconds, at which the system verifies if web or VNC
           certificates have changed.  When a change is detected, the affected
-          services are nautomatically restarted.  A value of [i][b]1[/b][/i]
-          disables the check.
+          services are automatically restarted.  A value of "0" disables the
+          check.
         display: advanced
         required: false
         mask: false
@@ -458,13 +458,12 @@ container:
       type: public
       default: 5800
       unraid_template:
-        title: Web Listening Port
+        title: Web Listening Port (Non-Bridge Network Type)
         description: >-
           Port used by the web server to serve the UI of the application.  This
           port is used internally by the container and it is usually not
-          required to be changed.  [b]NOTE[/b]: This setting might be relevant
-          only when the [i]Network Type[/i] is set to something else than
-          [i]Bridge[/i].
+          required to be changed.  NOTE: This setting is relevant only when the
+          Network Type is set to something else than Bridge.
         display: advanced
         required: false
         mask: false
@@ -483,13 +482,12 @@ container:
       type: public
       default: 5900
       unraid_template:
-        title: VNC Listening Port
+        title: VNC Listening Port (Non-Bridge Network Type)
         description: >-
           Port used by the VNC server to serve the UI of the application.  This
           port is used internally by the container and it is usually not
-          required to be changed.  [b]NOTE[/b]: This setting might be relevant
-          only when the [i]Network Type[/i] is set to something else than
-          [i]Bridge[/i].
+          required to be changed.  NOTE: This setting is relevant only when the
+          Network Type is set to something else than Bridge.
         display: advanced
         required: false
         mask: false
@@ -522,8 +520,11 @@ container:
       mandatory: false
       include_in_quick_start: true
       unraid_template:
-        title: WEB Port for GUI
-        default: {{ 7800 + defs.app.id|int }}
+        title: WEB Port for GUI (Bridge Network Type)
+        description: >-
+          Port to access the application's GUI via the web interface.  NOTE:
+          This applies only when Network Type is set to Bridge.
+        default: "{{ 7800 + app.id|int }}"
         display: advanced-hide
         required: true
         mask: false
@@ -536,8 +537,12 @@ container:
         can be changed with the `VNC_LISTENING_PORT` environment variable.
       mandatory: false
       unraid_template:
-        title: VNC Port for GUI
-        default: {{ 7900 + defs.app.id|int }}
+        title: VNC Port for GUI (Bridge Network Type)
+        description: >-
+          Port to access the application's GUI via VNC protocol.  Optional if no
+          VNC client is used.  NOTE: This applies only when Network Type is set
+          to Bridge.
+        default: "{{ 7900 + app.id|int }}"
         display: advanced-hide
         required: false
         mask: false
