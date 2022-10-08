@@ -19,6 +19,12 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.0.1
+      date: 2022-10-07
+      changes:
+        fixed:
+          - 'Update of `jlesage/baseimage` to version 3.0.1 brings the following changes:'
+          - '2:Any defined parameters were not passed to `startapp.sh`.'
     - version: 4.0.0
       date: 2022-10-06
       changes:
