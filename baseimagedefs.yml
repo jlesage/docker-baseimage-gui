@@ -19,6 +19,14 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.0.2
+      date: 2022-10-10
+      changes:
+        fixed:
+          - 'Handling of VNC password.'
+          - 'Update of `jlesage/baseimage` to version 3.0.3 brings the following changes:'
+          - '2:Fixed taking ownership of `/config` when on of its subfolder is mapped to a network share.'
+          - '2:Make sure to always set supplementary groups of services, even if the list is empty.'
     - version: 4.0.1
       date: 2022-10-07
       changes:
