@@ -796,7 +796,7 @@ const UI = {
         if (port) {
             url += ':' + port;
         }
-        url += '/' + path;
+        url += '/' + window.location.pathname.substr(1) + path;
 
         UI.rfb = new RFB(document.getElementById('noVNC_container'), url,
                          { shared: UI.getSetting('shared'),
