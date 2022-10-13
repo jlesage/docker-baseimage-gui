@@ -249,6 +249,7 @@ if [ "$(cat "$WORKDIR"/htmlCode)" = "null" ]; then
     die "HTML code not found"
 else
     sed -i 's/^/    /' "$WORKDIR"/htmlCode
+    sed -i 's|href="/|href="|' "$WORKDIR"/htmlCode
 fi
 cat "$HTML_FILE" | sed -ne "/<!-- BEGIN Favicons -->/ {p; r $WORKDIR/htmlCode" -e ":a; n; /<!-- END Favicons -->/ {p; b}; ba}; p" > "$WORKDIR"/tmp.html
 if diff "$WORKDIR"/tmp.html "$HTML_FILE" > /dev/null 2>&1; then
