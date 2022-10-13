@@ -1,5 +1,9 @@
 name: Docker Baseimage CI/CD
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   DOCKER_IMAGE_NAME: jlesage/baseimage-gui
 
