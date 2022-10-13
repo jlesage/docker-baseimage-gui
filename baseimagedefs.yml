@@ -19,6 +19,11 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.0.3
+      date: 2022-10-14
+      changes:
+        fixed:
+          - 'Websockify and favicons paths for compatibility with scenario where a reverse proxy with routing based un URL path is used.'
     - version: 4.0.2
       date: 2022-10-10
       changes:
