@@ -23,9 +23,9 @@
     -->
     <Include>exec:/etc/jwm/main-window-group.sh</Include>
     <Group>
-        <Name>.*</Name>
         <Option>noshade</Option>
         <Option>nomin</Option>
+        <Option>noturgent</Option>
     </Group>
 
     <!-- Visual Styles -->
