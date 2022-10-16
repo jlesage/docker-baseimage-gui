@@ -934,7 +934,7 @@ The following table shows how to find the relevant information:
 | Name     | The first string of `WM_CLASS`. |
 | Class    | The second string of `WM_CLASS`. |
 | Type     | The type of the window is given by `_NET_WM_WINDOW_TYPE`. Property's value should be translated to one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`. |
-| WmName   | The value of `WM_NAME`. |
+| Title    | The value of `WM_NAME`. |
 
 By default, the window manager configuration matches only the type of the
 window, which must be `normal`.  If more restrictions are needed, matching the

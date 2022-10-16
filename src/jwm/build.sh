@@ -180,7 +180,7 @@ curl -# -L ${JWM_URL} | tar -xJ --strip 1 -C /tmp/jwm
 
 log "Patching JVM..."
 patch -p1 -d /tmp/jwm < /tmp/winmenu.patch
-patch -p1 -d /tmp/jwm < /tmp/wmname_group.patch
+patch -p1 -d /tmp/jwm < /tmp/title_group.patch
 
 log "Configuring JWM..."
 (
