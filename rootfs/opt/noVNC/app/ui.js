@@ -117,6 +117,13 @@ const UI = {
             document.getElementById('clipboardCollapse')
                 .classList.remove("show");
         }
+        // On touch devices, the on-screen keyboard can take a fair amount of
+        // space.  So collapse settings by default if space is too tight with
+        // the on-screen keyboard open.
+        else if (isTouchDevice && window.innerHeight < 800) {
+            document.getElementById('settingsCollapse')
+                .classList.remove("show");
+        }
 
         UI.initFullscreen();
 
