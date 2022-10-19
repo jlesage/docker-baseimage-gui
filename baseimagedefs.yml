@@ -19,6 +19,19 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.1.0
+      date: 2022-10-14
+      changes:
+        added:
+          - 'Update of `jlesage/baseimage` to version 3.1.0 brings the following additions:'
+          - '2:The `INSTALL_PACKAGES_INTERNAL` internal environment variable.'
+        changed:
+          - 'Collapse the setting section of the control panel by default on touch devices to accommodate the size taken by the on-screen keyboard.'
+          - 'To match against `WM_NAME`, `Title` is now ised instead of `WmName` in JWM configuration.'
+        fixed:
+          - 'Update of `jlesage/baseimage` to version 3.1.0 brings the following fixes:'
+          - '2:Value of the `UMASK` environment variable defined in the Dockerfile.'
+          - 'Implemented workaround for Java applications showing only a blank window.'
     - version: 4.0.4
       date: 2022-10-14
       changes:
