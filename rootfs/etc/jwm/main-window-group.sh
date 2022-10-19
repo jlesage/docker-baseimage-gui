@@ -22,8 +22,8 @@ echo "${MATCH_CRITERIAS:-<Type>normal</Type>}"
 echo "\
 <Option>layer:below</Option>
 <Option>maximized</Option>
-<Option>notitle</Option>
-<Option>noborder</Option>"
+<Option>nomaxtitle</Option>
+<Option>nomaxborder</Option>"
 
 # Print the end of the group.
 echo "</Group>"
