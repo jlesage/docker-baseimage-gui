@@ -19,6 +19,16 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.1.1
+      date: 2022-10-21
+      changes:
+        changed:
+          - 'Changed by the update of `jlesage/baseimage` to version 3.1.1:'
+          - '2:Include the Docker image platform in informational box printed during container startup.'
+        fixed:
+          - 'Fixed by update of `jlesage/baseimage` to version 3.1.1:'
+          - '2:Logmonitor crash on arm64 platform.'
+          - 'JWM configuration may fail to load.'
     - version: 4.1.0
       date: 2022-10-14
       changes:
