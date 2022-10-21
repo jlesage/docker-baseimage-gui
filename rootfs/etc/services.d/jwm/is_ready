@@ -1,0 +1,10 @@
+#!/bin/sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+PID=$1
+
+[ -f /var/run/jwm/jwm.pid ] && [ "$PID" = "$(cat /var/run/jwm/jwm.pid)" ]
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4

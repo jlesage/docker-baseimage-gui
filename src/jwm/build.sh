@@ -139,6 +139,7 @@ log "Patching JVM..."
 patch -p1 -d /tmp/jwm < /tmp/winmenu.patch
 patch -p1 -d /tmp/jwm < /tmp/title_group.patch
 patch -p1 -d /tmp/jwm < /tmp/select_fix.patch
+patch -p1 -d /tmp/jwm < /tmp/save_pid.patch
 
 log "Configuring JWM..."
 (
