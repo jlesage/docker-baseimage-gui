@@ -1,0 +1,32 @@
+From 7381bffb118436535349134ff96c240b4d68c324 Mon Sep 17 00:00:00 2001
+From: Dima Krasner <dima@dimakrasner.com>
+Date: Mon, 27 Jun 2022 06:46:44 +0000
+Subject: [PATCH] Retry select() on dynamic menu pipe if interrupted by SIGCHLD
+
+---
+ src/command.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/command.c b/src/command.c
+index 9f219222..02e49c55 100644
+--- a/src/command.c
++++ b/src/command.c
+@@ -15,6 +15,7 @@
+ #include "timing.h"
+ 
+ #include <fcntl.h>
++#include <errno.h>
+ 
+ /** Structure to represent a list of commands. */
+ typedef struct CommandNode {
+@@ -202,7 +203,9 @@ char *ReadFromProcess(const char *command, unsigned timeout_ms)
+          tv.tv_usec = (diff_ms % 1000) * 1000;
+ 
+          /* Wait for data (or a timeout). */
+-         rc = select(fds[0] + 1, &fs, NULL, &fs, &tv);
++         do {
++            rc = select(fds[0] + 1, &fs, NULL, &fs, &tv);
++         } while(rc < 0 && errno == EINTR);
+          if(rc == 0) {
+             close(fds[0]);
+             /* Timeout */
