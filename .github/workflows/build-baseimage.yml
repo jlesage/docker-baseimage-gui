@@ -146,6 +146,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           push: true
+          pull: true
           platforms: ${{ fromJSON(matrix.info).platforms }}
           tags: localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci
           build-args: |
