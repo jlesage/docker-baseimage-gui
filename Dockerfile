@@ -36,7 +36,8 @@ RUN apk --no-cache add build-base git bash perl ucl-dev zlib-dev zlib-static && 
     git -C /tmp/upx checkout f75ad8b && \
     git -C /tmp/upx submodule init && \
     git -C /tmp/upx submodule update --recursive && \
-    make LDFLAGS=-static CXXFLAGS_OPTIMIZE= -C /tmp/upx -j$(nproc) all
+    make LDFLAGS=-static CXXFLAGS_OPTIMIZE= -C /tmp/upx -j$(nproc) all && \
+    cp -v /usr/bin/upx /usr/bin/upx
 
 # Build TigerVNC server.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS tigervnc
@@ -46,7 +47,7 @@ COPY src/tigervnc/build.sh /tmp/build-tigervnc.sh
 RUN /tmp/build-tigervnc.sh
 RUN xx-verify --static /tmp/tigervnc-install/usr/bin/Xvnc
 RUN xx-verify --static /tmp/tigervnc-install/usr/bin/vncpasswd
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/tigervnc-install/usr/bin/Xvnc
 RUN upx /tmp/tigervnc-install/usr/bin/vncpasswd
 
@@ -57,7 +58,7 @@ COPY --from=xx / /
 COPY src/xkb/build.sh /tmp/build-xkb.sh
 RUN /tmp/build-xkb.sh
 RUN xx-verify --static /tmp/xkbcomp-install/usr/bin/xkbcomp
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
 
 # Build JWM.
@@ -68,7 +69,7 @@ COPY src/jwm/build.sh /tmp/build-jwm.sh
 COPY src/jwm/*.patch /tmp/
 RUN /tmp/build-jwm.sh
 RUN xx-verify --static /tmp/jwm-install/usr/bin/jwm
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/jwm-install/usr/bin/jwm
 
 # Build xdpyprobe.
@@ -82,7 +83,7 @@ RUN xx-apk --no-cache add gcc musl-dev libx11-dev libx11-static libxcb-static
 RUN CC=xx-clang \
     make -C /tmp/xdpyprobe
 RUN xx-verify --static /tmp/xdpyprobe/xdpyprobe
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xdpyprobe/xdpyprobe
 
 # Build xprop.
@@ -92,7 +93,7 @@ COPY --from=xx / /
 COPY src/xprop/build.sh /tmp/build-xprop.sh
 RUN /tmp/build-xprop.sh
 RUN xx-verify --static /tmp/xprop-install/usr/bin/xprop
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xprop-install/usr/bin/xprop
 
 # Build yad.
@@ -102,7 +103,7 @@ COPY --from=xx / /
 COPY src/yad/build.sh /tmp/build-yad.sh
 RUN /tmp/build-yad.sh
 RUN xx-verify --static /tmp/yad-install/usr/bin/yad
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/yad-install/usr/bin/yad
 
 # Build Nginx.
@@ -112,7 +113,7 @@ COPY --from=xx / /
 COPY src/nginx/build.sh /tmp/build-nginx.sh
 RUN /tmp/build-nginx.sh
 RUN xx-verify --static /tmp/nginx-install/usr/sbin/nginx
-COPY --from=upx /tmp/upx/src/upx.out /usr/bin/upx
+COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/nginx-install/usr/sbin/nginx
 # NOTE: Extended attributes are kept by buildx when using the COPY command.
 #       See https://wildwolf.name/multi-stage-docker-builds-and-xattrs/.
