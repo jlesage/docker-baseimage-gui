@@ -39,7 +39,7 @@
         IconPath can be listed multiple times to allow searching
         for icons in multiple paths.
     -->
-    <IconPath>/opt/jwm/share</IconPath>
+    <IconPath>/opt/base/share/icons</IconPath>
 
     <!-- Virtual Desktops -->
     <Desktops width="1" height="1">

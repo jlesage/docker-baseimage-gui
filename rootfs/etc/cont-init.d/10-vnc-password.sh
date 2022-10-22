@@ -7,7 +7,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-VNCPASSWD_BIN=/opt/tigervnc/bin/vncpasswd
+VNCPASSWD_BIN=/opt/base/bin/vncpasswd
 
 # If password is saved in clear, obfuscate it to a new file.
 if [ -f /config/.vncpass_clear ]; then

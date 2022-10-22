@@ -61,10 +61,18 @@ RUN xx-verify --static /tmp/xkbcomp-install/usr/bin/xkbcomp
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
 
+# Build Fontconfig.
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS fontconfig
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/fontconfig/build.sh /tmp/build-fontconfig.sh
+RUN /tmp/build-fontconfig.sh
+
 # Build JWM.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS jwm
 ARG TARGETPLATFORM
 COPY --from=xx / /
+COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
 COPY src/jwm/build.sh /tmp/build-jwm.sh
 COPY src/jwm/*.patch /tmp/
 RUN /tmp/build-jwm.sh
@@ -100,6 +108,7 @@ RUN upx /tmp/xprop-install/usr/bin/xprop
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS yad
 ARG TARGETPLATFORM
 COPY --from=xx / /
+COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
 COPY src/yad/build.sh /tmp/build-yad.sh
 RUN /tmp/build-yad.sh
 RUN xx-verify --static /tmp/yad-install/usr/bin/yad
@@ -213,16 +222,15 @@ RUN \
 # Add files.
 COPY helpers/* /usr/bin/
 COPY rootfs/ /
-COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/tigervnc/bin/
-COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/tigervnc/bin/
-COPY --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/tigervnc/xkb
-COPY --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/tigervnc/xkb/
-COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/jwm/bin/jwm
-COPY --from=jwm /opt/jwm/fonts /opt/jwm/fonts
-COPY --from=jwm /tmp/fontconfig-install/opt/jwm/fontconfig /opt/jwm/fontconfig
-COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /usr/bin/
-COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /usr/bin/
-COPY --from=yad /tmp/yad-install/usr/bin/yad /usr/bin/
+COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
+COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
+COPY --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
+COPY --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
+COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/base/bin/
+COPY --from=fontconfig /tmp/fontconfig-install/opt /opt
+COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
+COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /opt/base/bin/
+COPY --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --from=nginx /tmp/nginx-install /
 COPY --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --from=noVNC /opt/noVNC /opt/noVNC

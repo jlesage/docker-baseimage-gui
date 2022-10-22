@@ -13,7 +13,7 @@ export XDG_DATA_HOME="$XDG_BASE/xdg/data"
 export XDG_CONFIG_HOME="$XDG_BASE/xdg/config"
 export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
 
-yad \
+/opt/base/bin/yad \
     --on-top \
     --fixed \
     --center \

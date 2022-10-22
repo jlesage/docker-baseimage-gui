@@ -281,9 +281,9 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
         --prefix=/usr \
         --sysconfdir=/etc/X11 \
         --localstatedir=/var \
-        --with-xkb-path=/opt/tigervnc/xkb \
+        --with-xkb-path=/opt/base/share/X11/xkb \
         --with-xkb-output=/var/lib/xkb \
-        --with-xkb-bin-directory=/opt/tigervnc/xkb \
+        --with-xkb-bin-directory=/opt/base/bin \
         --with-default-font-path=/usr/share/fonts/misc,/usr/share/fonts/100dpi:unscaled,/usr/share/fonts/75dpi:unscaled,/usr/share/fonts/TTF,/usr/share/fonts/Type1 \
         --disable-docs \
         --disable-unit-tests \

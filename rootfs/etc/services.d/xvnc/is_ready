@@ -2,6 +2,6 @@
 
 set -u # Treat unset variables as an error.
 
-xdpyprobe --quiet
+/opt/base/bin/xdpyprobe --quiet
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
