@@ -20,15 +20,19 @@ baseimage:
   gui: true
   history:
     - version: 4.1.1
-      date: 2022-10-21
+      date: 2022-10-22
       changes:
         changed:
-          - 'Changed by the update of `jlesage/baseimage` to version 3.1.1:'
+          - 'Changed by the update of `jlesage/baseimage` to version 3.1.2'
           - '2:Include the Docker image platform in informational box printed during container startup.'
+          - 'Internal baseimage programs have been moved to `/opt/base/bin`.'
+          - 'Make sure JWM is ready before starting the application.'
         fixed:
-          - 'Fixed by update of `jlesage/baseimage` to version 3.1.1:'
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.1.2:'
           - '2:Logmonitor crash on arm64 platform.'
+          - '2:A umask value of `0000` was not properly applied.'
           - 'JWM configuration may fail to load.'
+          - 'Errors from `yad` caused by usage of wrong fontconfig related files.'
     - version: 4.1.0
       date: 2022-10-14
       changes:
@@ -58,14 +62,14 @@ baseimage:
         fixed:
           - 'Handling of VNC password.'
           - 'Fixed by the update of `jlesage/baseimage` to version 3.0.3:'
-          - '2:Fixed taking ownership of `/config` when on of its subfolder is mapped to a network share.'
+          - '2:Issue taking ownership of `/config` when one of its subfolder is mapped to a network share.'
           - '2:Make sure to always set supplementary groups of services, even if the list is empty.'
     - version: 4.0.1
       date: 2022-10-07
       changes:
         fixed:
           - 'Fixed by the update of `jlesage/baseimage` to version 3.0.1:'
-          - '2:Any defined parameters were not passed to `startapp.sh`.'
+          - '2:Defined parameters for the `app` service were not passed to `startapp.sh`.'
     - version: 4.0.0
       date: 2022-10-06
       changes:
