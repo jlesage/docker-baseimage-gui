@@ -41,6 +41,7 @@ apk --no-cache add \
     clang \
     pkgconfig \
     gperf \
+    python3 \
     font-croscore \
 
 xx-apk --no-cache --no-scripts add \
