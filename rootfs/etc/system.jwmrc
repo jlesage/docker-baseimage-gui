@@ -41,6 +41,9 @@
     -->
     <IconPath>/opt/base/share/icons</IconPath>
 
+    <!-- Hide the `Kill` popup menu item on task bars and window title bars. -->
+    <TaskListStyle showkill="false"/>
+
     <!-- Virtual Desktops -->
     <Desktops width="1" height="1">
         <!--

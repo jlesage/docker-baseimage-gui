@@ -9,7 +9,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-JWM_VERSION=2.4.2
+JWM_VERSION=2.4.3
 PANGO_VERSION=1.49.3
 
 # Define software download URLs.
@@ -137,8 +137,6 @@ curl -# -L ${JWM_URL} | tar -xJ --strip 1 -C /tmp/jwm
 
 log "Patching JVM..."
 patch -p1 -d /tmp/jwm < /tmp/winmenu.patch
-patch -p1 -d /tmp/jwm < /tmp/title_group.patch
-patch -p1 -d /tmp/jwm < /tmp/select_fix.patch
 patch -p1 -d /tmp/jwm < /tmp/save_pid.patch
 
 log "Configuring JWM..."
