@@ -20,13 +20,14 @@ baseimage:
   gui: true
   history:
     - version: 4.1.1
-      date: 2022-10-22
+      date: 2022-10-23
       changes:
         changed:
-          - 'Changed by the update of `jlesage/baseimage` to version 3.1.2'
+          - 'Changed by the update of `jlesage/baseimage` to version 3.1.2:'
           - '2:Include the Docker image platform in informational box printed during container startup.'
           - 'Internal baseimage programs have been moved to `/opt/base/bin`.'
           - 'Make sure JWM is ready before starting the application.'
+          - 'Updated JWM to version 2.4.3.'
         fixed:
           - 'Fixed by the update of `jlesage/baseimage` to version 3.1.2:'
           - '2:Logmonitor crash on arm64 platform.'
