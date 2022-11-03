@@ -19,6 +19,12 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.1.4
+      date: 2022-11-03
+      changes:
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.1.5:'
+          - '2:Crash that occurs when no monotonic clock is available.'
     - version: 4.1.3
       date: 2022-11-01
       changes:
