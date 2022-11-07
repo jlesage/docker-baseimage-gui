@@ -19,6 +19,13 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.1.5
+      date: 2022-11-07
+      changes:
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.1.6:'
+          - '2:logmonitor: do not re-process status files that didn''t change.'
+          - '2:logmonitor: fixed handling of debouncing value 0 (infinite).'
     - version: 4.1.4
       date: 2022-11-03
       changes:
