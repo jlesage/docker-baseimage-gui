@@ -14,7 +14,7 @@ teardown() {
     exec_container_daemon sh -c "cat /etc/os-release" > "$TESTS_WORKDIR"/os-release
 
     if grep alpine "$TESTS_WORKDIR"/os-release; then
-        exec_container_daemon sh -c "/usr/bin/install-glibc"
+        exec_container_daemon sh -c "/opt/base/bin/install-glibc"
     fi
 }
 
