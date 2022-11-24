@@ -40,14 +40,18 @@ needed on the client side) or via any VNC client.
          * [Service Readiness](#service-readiness)
       * [Configuration Directory](#configuration-directory)
          * [Application's Data Directories](#applications-data-directories)
-      * [Adding/Removing Packages](#addingremoving-packages)
       * [Container Log](#container-log)
       * [Log Monitor](#log-monitor)
          * [Monitored Files](#monitored-files)
          * [Notification Definition](#notification-definition)
          * [Notification Backend](#notification-backend)
       * [Adding glibc](#adding-glibc)
-      * [Modifying Files With Sed](#modifying-files-with-sed)
+      * [Helpers](#helpers)
+         * [Adding/Removing Packages](#addingremoving-packages)
+         * [Modifying Files With Sed](#modifying-files-with-sed)
+         * [Evaluating Boolean Value](#evaluating-boolean-value)
+         * [Taking Ownership of a Directory](#taking-ownership-of-a-directory)
+         * [Setting Interval Environment Variable](#setting-interval-environment-variable)
       * [Application Icon](#application-icon)
       * [Dark Mode](#dark-mode)
          * [GTK](#gtk)
@@ -71,6 +75,7 @@ Different docker images are available:
 | [Alpine 3.14]      | alpine-3.14           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14-v4)  |
 | [Alpine 3.15]      | alpine-3.15           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.15-v4)  |
 | [Alpine 3.16]      | alpine-3.16           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16-v4)  |
+| [Alpine 3.17]      | alpine-3.17           | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16-v4)  |
 | [Debian 8]         | debian-8              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-8-v4)     |
 | [Debian 9]         | debian-9              | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-9-v4)     |
 | [Debian 10]        | debian-10             | ![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4)    |
@@ -83,6 +88,7 @@ Different docker images are available:
 [Alpine 3.14]: https://alpinelinux.org
 [Alpine 3.15]: https://alpinelinux.org
 [Alpine 3.16]: https://alpinelinux.org
+[Alpine 3.17]: https://alpinelinux.org
 [Debian 8]: https://www.debian.org/releases/jessie/
 [Debian 9]: https://www.debian.org/releases/stretch/
 [Debian 10]: https://www.debian.org/releases/buster/
@@ -271,6 +277,7 @@ The following public environment variables are provided by the baseimage:
 |`GROUP_ID`| ID of the group the application runs as.  See [User/Group IDs](#usergroup-ids) to better understand when this should be set. | `1000` |
 |`SUP_GROUP_IDS`| Comma-separated list of supplementary group IDs of the application. | `""` |
 |`UMASK`| Mask that controls how file permissions are set for newly created files. The value of the mask is in octal notation.  By default, the default umask value is `0022`, meaning that newly created files are readable by everyone, but only writable by the owner.  See the online umask calculator at http://wintelguy.com/umask-calc.pl. | `0022` |
+|`LANG`| Set the [locale](https://en.wikipedia.org/wiki/Locale_(computer_software)), which defines the application's language, **if supported**.  Format of the locale is `language[_territory][.codeset]`, where language is an [ISO 639 language code](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes), territory is an [ISO 3166 country code](https://en.wikipedia.org/wiki/ISO_3166-1#Current_codes) and codeset is a character set, like `UTF-8`.  For example, Australian English using the UTF-8 encoding is `en_AU.UTF-8`. | `en_US.UTF-8` |
 |`TZ`| [TimeZone](http://en.wikipedia.org/wiki/List_of_tz_database_time_zones) used by the container.  Timezone can also be set by mapping `/etc/localtime` between the host and the container. | `Etc/UTC` |
 |`KEEP_APP_RUNNING`| When set to `1`, the application will be automatically restarted when it crashes or terminates. | `0` |
 |`APP_NICENESS`| Priority at which the application should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority.  The default niceness value is 0.  **NOTE**: A negative niceness (priority increase) requires additional permissions.  In this case, the container should be run with the docker option `--cap-add=SYS_NICE`. | `0` |
@@ -296,6 +303,7 @@ The following internal environment variables are provided by the baseimage:
 |`APP_NAME`| Name of the implemented application. | `DockerApp` |
 |`APP_VERSION`| Version of the implemented application. | (unset) |
 |`DOCKER_IMAGE_VERSION`| Version of the Docker image that implements the application. | (unset) |
+|`DOCKER_IMAGE_PLATFORM`| Platform (OS / CPU architecture) of the Docker image that implements the application. | (unset) |
 |`HOME`| Home directory. | `""` |
 |`XDG_CONFIG_HOME`| Defines the base directory relative to which user specific configuration files should be stored. | `/config/xdg/config` |
 |`XDG_DATA_HOME`| Defines the base directory relative to which user specific data files should be stored. | `/config/xdg/data` |
@@ -641,35 +649,6 @@ various data.  The baseimage sets these variables so they all fall under
 
 [XDG Base Directory Specification]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
 
-### Adding/Removing Packages
-
-To add or remove packages, use the helpers `add-pkg` and `del-pkg` provided by
-this baseimage.  To minimize the size of the container, these tools perform
-proper cleanup and make sure that no useless files are left after addition or
-removal of packages.
-
-Also, these tools can be used to easily install a group packages temporarily.
-Using the `--virtual NAME` parameter, this allows installing packages and remove
-them at a later time using the provided `NAME` (no need to repeat given 
-packages).
-
-Note that if a specified package is already installed, it will be ignored and
-will not be removed automatically.  For example, the following commands could be
-added to `Dockerfile` to compile a project:
-
-```Dockerfile
-RUN \
-    add-pkg --virtual build-dependencies build-base cmake git && \
-    git clone https://myproject.com/myproject.git
-    make -C myproject && \
-    make -C myproject install && \
-    del-pkg build-dependencies
-```
-
-Supposing that, in the example above, the `git` package was already installed
-when the call to `add-pkg` is performed, running `del-pkg build-dependencies`
-doesn't remove it.
-
 ### Container Log
 
 Everything written to the standard output and standard error output of scripts
@@ -760,7 +739,41 @@ adding the following line to your `Dockerfile`:
 RUN install-glibc
 ```
 
-### Modifying Files With Sed
+### Helpers
+
+The baseimage contains a few helpers that can be used when bulding a container
+or during the execution of a container.
+
+#### Adding/Removing Packages
+
+To add or remove packages, use the helpers `add-pkg` and `del-pkg` provided by
+this baseimage.  To minimize the size of the container, these tools perform
+proper cleanup and make sure that no useless files are left after addition or
+removal of packages.
+
+Also, these tools can be used to easily install a group packages temporarily.
+Using the `--virtual NAME` parameter, this allows installing packages and remove
+them at a later time using the provided `NAME` (no need to repeat given
+packages).
+
+Note that if a specified package is already installed, it will be ignored and
+will not be removed automatically.  For example, the following commands could be
+added to `Dockerfile` to compile a project:
+
+```Dockerfile
+RUN \
+    add-pkg --virtual build-dependencies build-base cmake git && \
+    git clone https://myproject.com/myproject.git
+    make -C myproject && \
+    make -C myproject install && \
+    del-pkg build-dependencies
+```
+
+Supposing that, in the example above, the `git` package was already installed
+when the call to `add-pkg` is performed, running `del-pkg build-dependencies`
+doesn't remove it.
+
+#### Modifying Files With Sed
 
 `sed` is a useful tool often used in container builds to modify files.  However,
 one downside of this method is that there is no easy way to determine if `sed`
@@ -786,6 +799,77 @@ RUN sed-patch 's/Replace this/By this/' /etc/myfile
 
 If running this sed expression doesn't bring any change to `/etc/myfiles`, the
 command fails and thus, the Docker build also.
+
+#### Evaluating Boolean Value
+
+Environment variables are often used to store a boolean value.  Using the
+helpers `is-bool-value-true` and `is-bool-value-false` allows to easily
+determine if a value is "true" or "false".
+
+The following values are considered "true":
+  - `1`
+  - `true`
+  - `yes`
+  - `enabled`
+  - `enable`
+  - `on`
+
+The following values are considered "false":
+  - `0`
+  - `false`
+  - `no`
+  - `disabled`
+  - `disable`
+  - `off`
+
+For example, the following shell script snippet checks if the environment
+variable `CONTAINER_DEBUG` contains a "true" value:
+
+```shell
+if is-bool-value-true "${CONTAINER_DEBUG:-0}"; then
+    # Do something...
+fi
+```
+
+#### Taking Ownership of a Directory
+
+The helper `take-ownership` recursively sets the user ID and group ID of a
+directory and all the files and directories under it.
+
+This helper is well suited for scenarios where the directory is mapped to the
+host.  If on the host this directory is a network share, setting/changing the
+ownership via `chown` can fail.  The helper handles this case by ignoring the
+failure if a write test turns out to be positive.
+
+For example, the following command take ownership of `/config`, by automatically
+using the user and group IDs from the `USER_ID` and `GROUP_ID` environment
+variables:
+
+```shell
+take-ownership /config
+```
+
+User and group IDs can also be explicit.  For example, to set ownership to user
+ID `99` and group ID `100`:
+
+```shell
+take-ownership /config 99 100
+```
+
+#### Setting Interval Environment Variable
+
+The helper `set-cont-env` can be used to set internal environment variables
+from the Dockerfile.
+
+For example, the following line can be added to the Dockerfile to set the value
+of the `APP_NAME` internal environment variable:
+
+```Dockerfile
+RUN set-cont-env APP_NAME "Xterm"
+```
+
+This automatically creates the environment variable file under
+`/etc/cont-env.d`.
 
 ### Application Icon
 
