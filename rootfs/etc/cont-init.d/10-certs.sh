@@ -4,7 +4,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Exit now if secure connection not enabled.
-[ "${SECURE_CONNECTION:-0}" -eq 1 ] || exit 0
+is-bool-val-true "${SECURE_CONNECTION:-0}" || exit 0
 
 CERT_DIR=/config/certs
 
@@ -12,7 +12,7 @@ mkdir -p "$CERT_DIR"
 
 # Generate DH parameters.
 if [ ! -f "$CERT_DIR/dhparam.pem" ]; then
-    if [ "${USE_DEFAULT_DH_PARAMS:-0}" -eq 0 ]; then
+    if is-bool-val-false "${USE_DEFAULT_DH_PARAMS:-0}"; then
         echo "generating DH parameters (2048 bits), this is going to take a long time..."
         env HOME=/tmp openssl dhparam \
             -out "$CERT_DIR/dhparam.pem" \

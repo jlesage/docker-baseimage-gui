@@ -6,7 +6,7 @@ set -u # Treat unset variables as an error.
 if [ "${WEB_LISTENING_PORT:-5800}" -eq -1 ]; then
     echo "Not listening for web connections."
 else
-    if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
+    if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
         CONN_TYPE="HTTP"
     else
         CONN_TYPE="HTTPs"

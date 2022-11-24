@@ -12,7 +12,7 @@ cp /defaults/default_site.conf /etc/nginx/
 rm -f /etc/nginx/default_stream.conf
 
 # Adjust SSL related configuration.
-if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
+if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
     # Secure connection disabled: remove ssl related setting from the site
     # config.
     sed-patch 's/ssl default_server/default_server/g' /etc/nginx/default_site.conf

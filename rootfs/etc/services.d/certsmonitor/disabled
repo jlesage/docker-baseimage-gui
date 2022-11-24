@@ -3,7 +3,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-if [ "${SECURE_CONNECTION:-0}" -eq 0 ]; then
+if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
     echo "true"
 elif [ "${SECURE_CONNECTION_CERTS_CHECK_INTERVAL:-10}" -eq 0 ]; then
     echo "true"

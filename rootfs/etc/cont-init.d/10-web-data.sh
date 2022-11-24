@@ -31,7 +31,7 @@ if [ -n "${DOCKER_IMAGE_VERSION:-}" ]; then
 fi
 
 # Add dark mode.
-if [ "${DARK_MODE:-0}" -eq 1 ]; then
+if is-bool-val-true "${DARK_MODE:-0}"; then
     printf ',\n    darkMode: true' >> "$WEB_DATA_FILE"
 else
     printf ',\n    darkMode: false' >> "$WEB_DATA_FILE"
