@@ -2,6 +2,12 @@
 
 set -u # Treat unset variables as an error.
 
+# Activate debug logging.
+if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
+    echo "-Log"
+    echo "*:stderr:100"
+fi
+
 # Make sure the X server listens on Unix only.
 echo "-nolisten"
 echo "tcp"
