@@ -15,6 +15,7 @@ import keysyms from "../core/input/keysymdef.js";
 import Keyboard from "../core/input/keyboard.js";
 import RFB from "../core/rfb.js";
 import * as WebUtil from "./webutil.js";
+import WebData from "./webdata.js";
 
 // const PAGE_TITLE = "noVNC";
 
@@ -52,56 +53,42 @@ const UI = {
 
         UI.initSettings();
 
-        // Fetch web data.
-        fetch('./web_data.json')
-            .then((response) => {
-                if (!response.ok) {
-                    throw Error("Couldn't fetch web_data.json: " + response.status + " " + response.statusText);
-                }
-                return response.json();
-            })
-            .then((webData) => {
-                if (!webData.applicationName) {
-                    throw Error("Invalid web_data.json: applicationName not defined")
-                }
+        // Set page title.
+        document.title = WebData.applicationName;
+        UI.desktopName = WebData.applicationName;
+        Array.from(document.getElementsByName('noVNC_app_name'))
+            .forEach(el => el.innerText = WebData.applicationName);
 
-                // Set page title.
-                document.title = webData.applicationName;
-                UI.desktopName = webData.applicationName;
-                Array.from(document.getElementsByName('noVNC_app_name'))
-                    .forEach(el => el.innerText = webData.applicationName);
+        // Update logo image properties.
+        document.getElementById('noVNC_app_logo').alt = WebData.applicationName + 'logo';
+        document.getElementById('noVNC_app_logo').title = WebData.applicationName;
 
-                // Update logo image properties.
-                document.getElementById('noVNC_app_logo').alt = webData.applicationName + 'logo';
-                document.getElementById('noVNC_app_logo').title = webData.applicationName;
+        // Set or hide the application version.
+        if (WebData.applicationVersion) {
+            document.getElementById('noVNC_version_app')
+                .innerText = WebData.applicationName + ' v' + WebData.applicationVersion;
+            document.getElementById('noVNC_version_app')
+                .classList.remove("noVNC_hidden");
+        }
 
-                // Set or hide the application version.
-                if (webData.applicationVersion) {
-                    document.getElementById('noVNC_version_app')
-                        .innerText = webData.applicationName + ' v' + webData.applicationVersion;
-                    document.getElementById('noVNC_version_app')
-                        .classList.remove("noVNC_hidden");
-                }
+        // Set or hide the Docker image version.
+        if (WebData.dockerImageVersion) {
+            document.getElementById('noVNC_version_docker_image')
+                .innerText = 'Docker Image v' + WebData.dockerImageVersion;
+            document.getElementById('noVNC_version_docker_image')
+                .classList.remove("noVNC_hidden");
+        }
 
-                // Set or hide the Docker image version.
-                if (webData.dockerImageVersion) {
-                    document.getElementById('noVNC_version_docker_image')
-                        .innerText = 'Docker Image v' + webData.dockerImageVersion;
-                    document.getElementById('noVNC_version_docker_image')
-                        .classList.remove("noVNC_hidden");
-                }
+        // Display the control bar footer if a version is set.
+        if (WebData.applicationVersion || WebData.dockerImageVersion) {
+            document.getElementById('noVNC_version_footer')
+                .classList.remove("noVNC_hidden");
+        }
 
-                // Display the control bar footer if a version is set.
-                if (webData.applicationVersion || webData.dockerImageVersion) {
-                    document.getElementById('noVNC_version_footer')
-                        .classList.remove("noVNC_hidden");
-                }
-
-                // Enable dark mode.
-                if (webData.darkMode) {
-                    document.documentElement.classList.add("dark");
-                }
-            });
+        // Enable dark mode.
+        if (WebData.darkMode) {
+            document.documentElement.classList.add("dark");
+        }
 
         // Adapt the interface for touch screen devices
         if (isTouchDevice) {
@@ -210,9 +197,18 @@ const UI = {
             }
         }
 
-        // Use remote sizing by default, unless we run on a touch device.
+        // Use remote sizing by default...
         let resize = 'remote';
         if (isTouchDevice) {
+            // ... unless we run on a touch device.
+            resize = 'scale';
+        } else if (WebData.applicationWindowWidth && window.innerWidth < 0.8 * WebData.applicationWindowWidth) {
+            // ... unless the browser's window width is less than 80% of the
+            // defined application's window width.
+            resize = 'scale';
+        } else if (WebData.applicationWindowHeight && window.innerHeight < 0.8 * WebData.applicationWindowHeight) {
+            // ... unless the browser's window height is less than 80% of the
+            // defined application's window height.
             resize = 'scale';
         }
 
