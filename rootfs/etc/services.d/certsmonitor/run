@@ -2,13 +2,6 @@
 
 set -u # Treat unset variables as an error.
 
-# Make sure we appear with a proper name under `ps`.
-if [ ! -L "$0" ]; then
-    SV_NAME="$(basename "$(pwd)")"
-    ln -sf run "$SV_NAME"
-    exec ./"$SV_NAME" "$@"
-fi
-
 WEB_CERTS="/config/certs/web-privkey.pem /config/certs/web-fullchain.pem"
 VNC_CERTS="/config/certs/vnc-privkey.pem /config/certs/vnc-fullchain.pem"
 DH_PARAMS="/config/certs/dhparam.pem"
