@@ -32,7 +32,7 @@ baseimage:
         changed:
           - 'Changed by the update of `jlesage/baseimage` to version 3.2.0:'
           - '2:Baseimage''s binaries have been relocated to `/opt/base/bin`.'
-          - '2:Adjusted PATH to include `/opt/base/bin`.'
+          - '2:Adjusted `PATH` environment variable to include `/opt/base/bin`.'
         removed:
           - 'Baseimage based on Debian 8 (reached its end of life on June 30 2020).'
     - version: 4.1.5
