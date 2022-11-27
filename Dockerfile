@@ -216,7 +216,7 @@ RUN \
     rm -rf /var/cache/fontconfig/*
 
 # Add files.
-COPY helpers/* /usr/bin/
+COPY helpers/* /opt/base/bin/
 COPY rootfs/ /
 COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
 COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
