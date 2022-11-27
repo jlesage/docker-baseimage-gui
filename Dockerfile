@@ -117,12 +117,12 @@ ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/nginx/build.sh /tmp/build-nginx.sh
 RUN /tmp/build-nginx.sh
-RUN xx-verify --static /tmp/nginx-install/usr/sbin/nginx
+RUN xx-verify --static /tmp/nginx-install/sbin/nginx
 COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/nginx-install/usr/sbin/nginx
+RUN upx /tmp/nginx-install/sbin/nginx
 # NOTE: Extended attributes are kept by buildx when using the COPY command.
 #       See https://wildwolf.name/multi-stage-docker-builds-and-xattrs/.
-RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-install/usr/sbin/nginx
+RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-install/sbin/nginx
 
 # Build noVNC.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS noVNC
@@ -227,7 +227,7 @@ COPY --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
 COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /opt/base/bin/
 COPY --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
-COPY --from=nginx /tmp/nginx-install /
+COPY --from=nginx /tmp/nginx-install /opt/base/
 COPY --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --from=noVNC /opt/noVNC /opt/noVNC
 

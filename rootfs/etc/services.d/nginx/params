@@ -1,4 +1,4 @@
 -c
-/etc/nginx/nginx.conf
+/opt/base/etc/nginx/nginx.conf
 -g
 daemon off;

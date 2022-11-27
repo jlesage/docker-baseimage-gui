@@ -14,6 +14,6 @@ else
     echo "Listening for $CONN_TYPE connections on port ${WEB_LISTENING_PORT:-5800}."
 fi
 
-exec /usr/sbin/nginx "$@"
+exec /opt/base/sbin/nginx "$@"
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

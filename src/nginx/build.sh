@@ -63,7 +63,7 @@ log "Configuring Nginx..."
         --with-cc-opt="-Os -fomit-frame-pointer -Wno-sign-compare" \
         --with-ld-opt="-Wl,--as-needed -static -Wl,--strip-all" \
         --prefix=/var/lib/nginx \
-        --sbin-path=/usr/sbin/nginx \
+        --sbin-path=/sbin/nginx \
         --modules-path=/usr/lib/nginx/modules \
         --conf-path=/etc/nginx/nginx.conf \
         --pid-path=/var/run/nginx/nginx.pid \
