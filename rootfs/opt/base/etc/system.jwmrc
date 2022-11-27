@@ -21,7 +21,7 @@
         This file is included via a shell script that will produce the right
         group configuration.
     -->
-    <Include>exec:/etc/jwm/main-window-group.sh</Include>
+    <Include>exec:/opt/base/etc/jwm/main-window-group.sh</Include>
     <Group>
         <Option>noshade</Option>
         <Option>nomin</Option>
@@ -29,7 +29,7 @@
     </Group>
 
     <!-- Visual Styles -->
-    <Include>exec:/etc/jwm/select-style.sh</Include>
+    <Include>exec:/opt/base/etc/jwm/select-style.sh</Include>
 
     <!-- The default icon to use for windows that do not specify an icon. -->
     <DefaultIcon>default_icon</DefaultIcon>
