@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.4
 #
 # baseimage-gui Dockerfile
 #
@@ -216,20 +217,20 @@ RUN \
     rm -rf /var/cache/fontconfig/*
 
 # Add files.
-COPY helpers/* /opt/base/bin/
-COPY rootfs/ /
-COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
-COPY --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
-COPY --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
-COPY --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
-COPY --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/base/bin/
-COPY --from=fontconfig /tmp/fontconfig-install/opt /opt
-COPY --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
-COPY --from=xprop /tmp/xprop-install/usr/bin/xprop /opt/base/bin/
-COPY --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
-COPY --from=nginx /tmp/nginx-install /opt/base/
-COPY --from=dhparam /tmp/dhparam.pem /defaults/
-COPY --from=noVNC /opt/noVNC /opt/noVNC
+COPY --link helpers/* /opt/base/bin/
+COPY --link rootfs/ /
+COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
+COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
+COPY --link --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
+COPY --link --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
+COPY --link --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/base/bin/
+COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
+COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
+COPY --link --from=xprop /tmp/xprop-install/usr/bin/xprop /opt/base/bin/
+COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
+COPY --link --from=nginx /tmp/nginx-install /opt/base/
+COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
+COPY --link --from=noVNC /opt/noVNC /opt/noVNC
 
 # Set environment variables.
 ENV \
