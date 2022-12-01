@@ -19,6 +19,13 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.2.1
+      date: 2022-12-01
+      changes:
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.2.0:'
+          - '2:Helper that takes ownership of a directory not handling correctly names with spaces.'
+          - '2:Handling of a service''s `workdir` ending with an end-of-line character.'
     - version: 4.2.0
       date: 2022-11-27
       changes:
