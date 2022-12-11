@@ -19,6 +19,12 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.2.2
+      date: 2022-12-11
+      changes:
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.3.3:'
+          - '2:Force the value of the `PATH` environment variable.  Any value configured during creation of the container should not affect operation of the container.'
     - version: 4.2.1
       date: 2022-12-01
       changes:
