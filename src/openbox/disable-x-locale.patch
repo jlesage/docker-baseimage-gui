@@ -1,0 +1,27 @@
+--- a/openbox/openbox.c	2022-12-22 11:46:46.892818478 -0500
++++ b/openbox/openbox.c	2022-12-22 12:15:31.042028173 -0500
+@@ -189,10 +189,12 @@
+     XSynchronize(obt_display, xsync);
+ 
+     /* check for locale support */
++#if 0
+     if (!XSupportsLocale())
+         g_message(_("X server does not support locale."));
+     if (!XSetLocaleModifiers(""))
+         g_message(_("Cannot set locale modifiers for the X server."));
++#endif
+ 
+     /* set the DISPLAY environment variable for any lauched children, to the
+        display we're using, so they open in the right place. */
+--- a/obt/keyboard.c	2022-12-22 12:29:48.922096234 -0500
++++ b/obt/keyboard.c	2022-12-22 12:29:57.197569708 -0500
+@@ -70,7 +70,9 @@
+     if (started) obt_keyboard_shutdown(); /* free stuff */
+     started = TRUE;
+ 
++#if 0
+     xim_init();
++#endif
+ 
+     /* reset the keys to not be bound to any masks */
+     for (i = 0; i < OBT_KEYBOARD_NUM_MODKEYS; ++i)

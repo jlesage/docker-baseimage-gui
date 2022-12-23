@@ -1,0 +1,30 @@
+Try to load the specified config menu file as-is first, instead of assuming the
+file is under an XDG path.
+--- a/openbox/menu.c	2022-12-22 13:03:36.348184964 -0500
++++ b/openbox/menu.c	2022-12-22 13:04:18.636053984 -0500
+@@ -82,18 +82,18 @@
+                        parse_menu_separator, &menu_parse_state);
+ 
+     for (it = config_menu_files; it; it = g_slist_next(it)) {
+-        if (obt_xml_load_config_file(menu_parse_inst,
+-                                     "openbox",
+-                                     it->data,
+-                                     "openbox_menu"))
++        if (obt_xml_load_file(menu_parse_inst,
++                                   it->data,
++                                   "openbox_menu"))
+         {
+             loaded = TRUE;
+             obt_xml_tree_from_root(menu_parse_inst);
+             obt_xml_close(menu_parse_inst);
+         }
+-        else if (obt_xml_load_file(menu_parse_inst,
+-                                   it->data,
+-                                   "openbox_menu"))
++        else if (obt_xml_load_config_file(menu_parse_inst,
++                                     "openbox",
++                                     it->data,
++                                     "openbox_menu"))
+         {
+             loaded = TRUE;
+             obt_xml_tree_from_root(menu_parse_inst);
