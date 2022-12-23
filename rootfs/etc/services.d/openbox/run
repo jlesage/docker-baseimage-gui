@@ -3,8 +3,8 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-PID=$1
+rm -f /var/run/openbox/openbox.ready
 
-[ -f /var/run/jwm/jwm.pid ] && [ "$PID" = "$(cat /var/run/jwm/jwm.pid)" ]
+exec /opt/base/bin/openbox "$@"
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

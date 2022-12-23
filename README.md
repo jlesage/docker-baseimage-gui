@@ -103,14 +103,14 @@ Here are the main components of the baseimage:
   * A process supervisor, with proper PID 1 functionality (proper reaping of
     processes).
   * [TigerVNC], a X server with an integrated VNC server.
-  * [JWM], a window manager.
+  * [Openbox], a window manager.
   * [noVNC], a HTML5 VNC client.
   * [NGINX], a high-performance HTTP server.
   * Useful tools to ease container building.
   * Environment to better support dockerized applications.
 
 [TigerVNC]: https://tigervnc.org
-[JWM]: https://joewing.net/projects/jwm
+[Openbox]: http://openbox.org
 [noVNC]: https://github.com/novnc/noVNC
 [NGINX]: https://www.nginx.com
 
@@ -998,13 +998,15 @@ windows of the application.  A specific window is identified by matching one or
 more of its properties:
   - Name of the window.
   - Class of the window.
+  - Title of the window.
   - Type of the window.
+  - etc.
 
 To find the value of a property for a particular window:
   - Create and start an instance of the container.
-  - From the host, start the `xprop` tool:
+  - From the host, start the `obxprop` tool:
 ```shell
-docker exec [container name or id] env DISPLAY=:0 xprop
+docker exec [container name or id] obxprop | grep "^_OB_APP"
 ```
   - Access the GUI of the application and click somewhere on the
     interested window.
@@ -1012,30 +1014,33 @@ docker exec [container name or id] env DISPLAY=:0 xprop
 
 The following table shows how to find the relevant information:
 
-| Property | Value |
-|----------|-------|
-| Name     | The first string of `WM_CLASS`. |
-| Class    | The second string of `WM_CLASS`. |
-| Type     | The type of the window is given by `_NET_WM_WINDOW_TYPE`. Property's value should be translated to one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`. |
-| Title    | The value of `WM_NAME`. |
+| Property   | Value |
+|------------|-------|
+| Name       | The window's `_OB_APP_NAME` property. |
+| Class      | The window's `_OB_APP_CLASS` property. |
+| Title      | The window's `_OB_APP_TITLE` property. |
+| GroupName  | The window's `_OB_APP_GROUP_NAME property`. |
+| GroupClass | The window's `_OB_APP_GROUP_CLASS property`. |
+| Type       | The window's `_OB_APP_TYPE property`.  The type can be one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`. |
+| Role       | The window's `_OB_APP_ROLE` property. |
 
 By default, the window manager configuration matches only the type of the
-window, which must be `normal`.  If more restrictions are needed, matching the
-name of the window can help.
+window, which must be `normal`.  More restrictions can be added to better
+select the correct window.
 
-To do this, matching criterias can be defined using the file located at
-`/etc/jwm/main-window-selection.jwmrc` in the container.  This file should have
-one matching critera per line, in XML format.  For example, to match against
-both the type and the name of the window, the file content should be:
+To do this, matching criterias can be defined by adding a file located at
+`/etc/openbox/main-window-selection.xml` in the container.  This file should
+have one matching critera per line, in XML format.  For example, to match
+against both the type and the name of the window, the file content should be:
 
 ```xml
 <Type>normal</Type>
 <Name>My Application</Name>
 ```
 
-Note that a regex can be used as a property's value.
-
-See the JWM documentation for more details: https://joewing.net/projects/jwm/config.html
+**NOTE**: To maintain backward compatibility with previous 4.x versions, the
+          container fallbacks to `/etc/jwm/main-window-selection.jwmrc` if
+          `/etc/openbox/main-window-selection.xml` does not exist.
 
 #### Adaptations from the 3.x Version
 
@@ -1055,6 +1060,6 @@ tips:
   - Set the `APP_VERSION` and `DOCKER_IMAGE_VERSION` internal environment
     variables when/if needed.
   - Any adjustment to the window manager config (e.g. to maximize only the main
-    window) should be readapted to the new window manager.  See the
+    window) should be adapted to use the new mechanism.  See the
     [Maximizing Only the Main Window](#maximizing-only-the-main-window) section.
 

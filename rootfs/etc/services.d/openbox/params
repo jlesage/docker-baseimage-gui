@@ -1,0 +1,4 @@
+--config-file
+/var/run/openbox/rc.xml
+--startup
+touch /var/run/openbox/openbox.ready

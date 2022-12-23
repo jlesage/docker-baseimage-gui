@@ -1,0 +1,99 @@
+!! GrayBox by athmane
+!! vim: set ft=xdefaults:
+
+!! Global Width
+window.handle.width: 1
+
+window.client.padding.width: 0
+window.client.padding.height: 0
+border.Width: 1
+padding.width: 2
+
+window.active.border.color: #000000
+window.inactive.border.color: #000000
+menu.border.color: #000000
+menu.overlap: 0
+window.frameColor: #cccccc
+window.*.client.color: #cccccc
+*.text.justify: center
+
+!! Menu
+menu.title.bg: flat vertical gradient
+menu.title.bg.color: #444444
+menu.title.bg.colorTo: #222222
+menu.title.text.color: #ffffff
+
+menu.items.bg: flat gradient vertical
+menu.items.bg.color: #555555
+menu.items.bg.colorTo: #222222
+
+menu.items.text.color: #ffffff
+menu.items.disabled.text.color: #777777
+
+menu.items.active.bg: flat gradient vertical
+menu.items.active.bg.color:  #888888
+menu.items.active.bg.colorTo: #777777
+menu.items.active.text.color: #ffffff
+
+!! Active Windows
+window.active.title.bg: flat vertical gradient
+window.active.title.bg.color: #555555
+window.active.title.bg.colorTo: #222222
+window.active.*.bg.border.color: #000000
+
+window.active.label.bg: parentrelative
+window.active.label.text.color: #ffffff
+
+window.active.button.*.bg: parentrelative
+window.active.button.*.image.color: #cccccc
+window.active.button.*.bg.border.color: #444444
+
+window.active.button.hover.bg.color: #555555
+window.active.button.hover.bg.border.color: #999999
+window.active.button.pressed.bg.color: #333333
+window.active.button.pressed.bg.colorTo: #000000
+window.active.button.pressed.image.color: #bbbbbb
+window.active.button.pressed.bg.border.color: #bbbbbb
+
+window.active.button.disabled.bg: parentrelative
+window.active.button.disabled.image.color: #777777
+
+window.active.handle.bg:  flat solid
+window.active.handle.bg.color: #222222
+
+window.*.grip.bg:  flat solid 
+window.*.grip.bg.color: #222222
+
+!! Inactive Windows
+window.inactive.title.bg: flat gradient vertical
+window.inactive.title.bg.color: #999999
+window.inactive.title.bg.colorTo: #999999
+window.inactive.*.border.color: #bbbbbb
+
+window.inactive.label.bg: parentrelative
+window.inactive.label.text.color: #bbbbbb
+
+window.inactive.button.*.bg: parentrelative
+window.inactive.button.*.bg.color: #cccccc
+window.inactive.button.*.image.color:  #bbbbbb
+window.inactive.button.*.bg.border.color: #cccccc
+
+window.inactive.button.pressed.bg.color: #cccccc
+window.inactive.button.pressed.bg.border.color: #777777
+window.inactive.button.pressed.image.color: #999999
+
+window.inactive.button.hover.bg.color: #aaaaaa
+window.inactive.button.hover.bg.border.color: #dddddd
+window.inactive.button.hover.image.color: #aaaaaa
+window.inactive.button.disabled.bg: parentrelative
+window.inactive.button.disabled.image.color: #dddddd
+
+window.inactive.handle.bg: flat solid
+window.inactive.handle.bg.color: #cccccc
+window.inactive.grip.bg:  parentrelative
+
+!! Fonts
+window.active.label.text.font: shadow=y:shadowoffset=1:shadowtint=75
+window.inactive.label.text.font: shadow=y:shadowoffset=1:shadowtint=0
+menu.items.font: 
+menu.title.text.font: shadow=y:shadowoffset=1:shadowtint=75
