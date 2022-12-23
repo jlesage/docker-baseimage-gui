@@ -1,0 +1,33 @@
+#!/bin/sh
+#
+# Openbox compilation uses libtool.  During the link phase, libtool re-orders
+# all arguments from LDFLAGS.  Thus, libraries are no longer between the
+# -Wl,--start-group and -Wl,--end-group arguments.  The wrapper detects this
+# scenario and fixes arguments.
+#
+
+if ! echo "$*" | grep -q "\-Wl,--start-group -Wl,--end-group" ; then
+    exec xx-clang "$@"
+fi
+
+args=
+libs=
+
+while test "$#" -gt 0; do
+    case "$1" in
+        -Wl,--start-group) ;;
+        -Wl,--end-group) ;;
+        -Wl,--export-dynamic) ;;
+        -l*|*.a)
+            libs="$libs $1"
+            ;;
+        *)
+            args="$args $1" ;;
+    esac
+    shift
+done
+
+args="$args -Wl,--start-group $libs -Wl,--end-group"
+
+echo "Invoking: xx-clang $args"
+exec xx-clang $args

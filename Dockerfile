@@ -65,17 +65,19 @@ COPY --from=xx / /
 COPY src/fontconfig/build.sh /tmp/build-fontconfig.sh
 RUN /tmp/build-fontconfig.sh
 
-# Build JWM.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS jwm
+# Build Openbox.
+FROM --platform=$BUILDPLATFORM alpine:3.15 AS openbox
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
-COPY src/jwm/build.sh /tmp/build-jwm.sh
-COPY src/jwm/*.patch /tmp/
-RUN /tmp/build-jwm.sh
-RUN xx-verify --static /tmp/jwm-install/usr/bin/jwm
+COPY src/openbox /tmp/build
+RUN /tmp/build/build.sh
+RUN xx-verify --static \
+    /tmp/openbox-install/usr/bin/openbox \
+    /tmp/openbox-install/usr/bin/obxprop
 COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/jwm-install/usr/bin/jwm
+RUN upx /tmp/openbox-install/usr/bin/openbox
+RUN upx /tmp/openbox-install/usr/bin/obxprop
 
 # Build xdpyprobe.
 # Used to determine if the X server (Xvnc) is ready.
@@ -90,16 +92,6 @@ RUN CC=xx-clang \
 RUN xx-verify --static /tmp/xdpyprobe/xdpyprobe
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xdpyprobe/xdpyprobe
-
-# Build xprop.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS xprop
-ARG TARGETPLATFORM
-COPY --from=xx / /
-COPY src/xprop/build.sh /tmp/build-xprop.sh
-RUN /tmp/build-xprop.sh
-RUN xx-verify --static /tmp/xprop-install/usr/bin/xprop
-COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/xprop-install/usr/bin/xprop
 
 # Build yad.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS yad
@@ -223,10 +215,10 @@ COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
 COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
 COPY --link --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
 COPY --link --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
-COPY --link --from=jwm /tmp/jwm-install/usr/bin/jwm /opt/base/bin/
+COPY --link --from=openbox /tmp/openbox-install/usr/bin/openbox /opt/base/bin/
+COPY --link --from=openbox /tmp/openbox-install/usr/bin/obxprop /opt/base/bin/
 COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
-COPY --link --from=xprop /tmp/xprop-install/usr/bin/xprop /opt/base/bin/
 COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
 COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
