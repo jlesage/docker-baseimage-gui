@@ -502,6 +502,12 @@ const UI = {
     openControlbar() {
         document.getElementById('noVNC_control_bar')
             .classList.add("noVNC_open");
+
+        // Set focus on the clipboard text box.
+        if (document.getElementById('clipboardCollapse')
+            .classList.contains("show")) {
+            document.getElementById('noVNC_clipboard_text').focus();
+        }
     },
 
     closeControlbar() {
