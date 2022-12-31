@@ -202,6 +202,34 @@ jobs:
     needs: [ build ]
     runs-on: ubuntu-20.04
     steps:
+      - name: Prepare
+        id: prep
+        run: |
+          # Determine the release type.
+          if [[ $GITHUB_REF =~ refs/tags/* ]]; then
+              IS_RELEASE=yes
+              if [[ $GITHUB_REF =~ -pre\.[0-9]+ ]]; then
+                  RELEASE_TYPE="pre"
+              else
+                  RELEASE_TYPE="standard"
+              fi
+          else
+              IS_RELEASE=no
+              RELEASE_TYPE="n/a"
+          fi
+          # Print results.
+          echo "::group::Results"
+          echo "Github reference: $GITHUB_REF"
+          echo "Release: $IS_RELEASE"
+          echo "Release type: $RELEASE_TYPE"
+          echo "::endgroup::"
+          # Export outputs.
+          echo "is_release=${IS_RELEASE}" >> $GITHUB_OUTPUT
+          echo "release_type=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
       - name: Dockerhub description
         if: ${{ steps.prep.outputs.release_type == 'standard' }}
         uses: peter-evans/dockerhub-description@v3
