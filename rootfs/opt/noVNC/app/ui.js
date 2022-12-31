@@ -497,6 +497,7 @@ const UI = {
 
     keepControlbar() {
         clearTimeout(UI.closeControlbarTimeout);
+        UI.closeControlbarTimeout = null
     },
 
     openControlbar() {
@@ -517,6 +518,7 @@ const UI = {
         if (UI.rfb) {
             UI.rfb.focus();
         }
+        UI.closeControlbarTimeout = null
     },
 
     toggleControlbar() {
@@ -878,6 +880,13 @@ const UI = {
         UI.rfb.qualityLevel = parseInt(UI.getSetting('quality'));
         UI.rfb.compressionLevel = parseInt(UI.getSetting('compression'));
         UI.rfb.showDotCursor = UI.getSetting('show_dot');
+
+        // Automatically close the control bar when RFB gets focus.
+        UI.rfb._canvas.addEventListener('focus', () => {
+            if (UI.closeControlbarTimeout == null) {
+                UI.closeControlbar();
+            }
+        });
 
         UI.updateViewOnly(); // requires UI.rfb
     },
