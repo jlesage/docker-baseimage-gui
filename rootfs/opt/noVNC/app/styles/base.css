@@ -198,6 +198,10 @@ body {
   /* Edge misrenders animations without this */
   transform: translateX(0);
 }
+#noVNC_control_bar_anchor.noVNC_right {
+  left: auto;
+  right: 0;
+}
 :root.noVNC_connected #noVNC_control_bar_anchor.noVNC_idle {
   /* reduce opacity of the control bar when idle */
   opacity: 0.8;
@@ -206,11 +210,23 @@ body {
 #noVNC_control_bar {
   position: relative;
   left: calc(-100% + 15px);
+  right: auto;
 
   transition: 0.5s ease-in-out;
 }
 #noVNC_control_bar.noVNC_open {
   left: 0;
+  right: auto;
+}
+
+.noVNC_right #noVNC_control_bar {
+  left: auto;
+  right: calc(-100% + 15px);
+}
+
+.noVNC_right #noVNC_control_bar.noVNC_open {
+  left: auto;
+  right: 0;
 }
 
 #noVNC_control_bar .noVNC_scroll {
@@ -224,6 +240,36 @@ body {
 /* noVNC Touch Device only buttons */
 :root:not(.noVNC_touch) #noVNC_keyboard_button {
   display: none;
+}
+
+/* Control bar hint */
+#noVNC_control_bar_hint {
+  position: fixed;
+  left: calc(100vw - 50px);
+  right: auto;
+  top: 50%;
+  transform: translateY(-50%) scale(0);
+  width: 100px;
+  height: 50%;
+  max-height: 600px;
+
+  visibility: hidden;
+  opacity: 0;
+  transition: 0.2s ease-in-out;
+  background: transparent;
+  box-shadow: 0 0 10px black, inset 0 0 10px 10px rgba(110, 132, 163, 0.8);
+  border-radius: 10px;
+  transition-delay: 0s;
+}
+#noVNC_control_bar_anchor.noVNC_right #noVNC_control_bar_hint{
+  left: auto;
+  right: calc(100vw - 50px);
+}
+#noVNC_control_bar_hint.noVNC_active {
+  visibility: visible;
+  opacity: 1;
+  transition-delay: 0.2s;
+  transform: translateY(-50%) scale(1);
 }
 
 /* ----------------------------------------
@@ -437,6 +483,13 @@ html.dark .btn.noVNC_selected {
   /*outline: 1px solid;*/
   /* uncomment this when moving the whole handle:
   transition: all 0.1s ease-in-out;*/
+}
+
+.noVNC_right .handle {
+  border: 1px solid;
+  border-right: 0px none;
+  border-color: var(--control-bar-handle-border-color);
+  border-radius: 5px 0px 0px 5px;
 }
 
 .handle:hover {

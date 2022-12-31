@@ -112,6 +112,11 @@ const UI = {
                 .classList.remove("show");
         }
 
+        // Restore control bar position
+        if (WebUtil.readSetting('controlbar_pos') === 'right') {
+            UI.toggleControlbarSide();
+        }
+
         UI.initFullscreen();
 
         // Setup event handlers
@@ -517,10 +522,58 @@ const UI = {
         }
     },
 
+    toggleControlbarSide() {
+        // Temporarily disable animation, if bar is displayed, to avoid weird
+        // movement. The transitionend-event will not fire when display=none.
+        /*
+        const bar = document.getElementById('noVNC_control_bar');
+        const barDisplayStyle = window.getComputedStyle(bar).display;
+        if (barDisplayStyle !== 'none') {
+            bar.style.transitionDuration = '0s';
+            bar.addEventListener('transitionend', () => bar.style.transitionDuration = '');
+        }
+        */
+
+        const anchor = document.getElementById('noVNC_control_bar_anchor');
+        const control_bar = document.getElementById("noVNC_control_bar")
+        if (anchor.classList.contains("noVNC_right")) {
+            WebUtil.writeSetting('controlbar_pos', 'left');
+            anchor.classList.remove("noVNC_right");
+            control_bar.classList.remove("flex-row-reverse");
+        } else {
+            WebUtil.writeSetting('controlbar_pos', 'right');
+            anchor.classList.add("noVNC_right");
+            control_bar.classList.add("flex-row-reverse");
+        }
+
+        // Consider this a movement of the handle
+        UI.controlbarDrag = true;
+    },
+
+    showControlbarHint(show) {
+        const hint = document.getElementById('noVNC_control_bar_hint');
+        if (show) {
+            hint.classList.add("noVNC_active");
+        } else {
+            hint.classList.remove("noVNC_active");
+        }
+    },
+
     dragControlbarHandle(e) {
         if (!UI.controlbarGrabbed) return;
 
         const ptr = getPointerEvent(e);
+
+        const anchor = document.getElementById('noVNC_control_bar_anchor');
+        if (ptr.clientX < (window.innerWidth * 0.1)) {
+            if (anchor.classList.contains("noVNC_right")) {
+                UI.toggleControlbarSide();
+            }
+        } else if (ptr.clientX > (window.innerWidth * 0.9)) {
+            if (!anchor.classList.contains("noVNC_right")) {
+                UI.toggleControlbarSide();
+            }
+        }
 
         if (!UI.controlbarDrag) {
             const dragDistance = Math.abs(ptr.clientY - UI.controlbarMouseDownClientY);
@@ -598,7 +651,7 @@ const UI = {
             UI.activateControlbar();
         }
         UI.controlbarGrabbed = false;
-        //UI.showControlbarHint(false);
+        UI.showControlbarHint(false);
     },
 
     controlbarHandleMouseDown(e) {
@@ -617,7 +670,7 @@ const UI = {
         UI.controlbarGrabbed = true;
         UI.controlbarDrag = false;
 
-        //UI.showControlbarHint(true);
+        UI.showControlbarHint(true);
 
         UI.controlbarMouseDownClientY = ptr.clientY;
         UI.controlbarMouseDownOffsetY = ptr.clientY - bounds.top;
