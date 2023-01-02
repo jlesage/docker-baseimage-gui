@@ -36,7 +36,7 @@ elif [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
     if [ "${VNC_LISTENING_PORT:-5900}" -ne -1 ]; then
         cp /defaults/default_stream.conf "$DEFAULT_STREAM_CONF"
         if [ "${VNC_LISTENING_PORT:-5900}" -ne 5900 ]; then
-            sed-patch "g/5900/$VNC_LISTENING_PORT/g" "$DEFAULT_STREAM_CONF"
+            sed-patch "s/5900/$VNC_LISTENING_PORT/g" "$DEFAULT_STREAM_CONF"
         fi
     fi
 fi
