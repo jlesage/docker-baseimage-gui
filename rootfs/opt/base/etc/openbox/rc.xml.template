@@ -523,7 +523,19 @@
   # end of the example
 -->
 
-MAIN_APP_WINDOW_DEF
+  <!-- Main window should be maximized and without decoration. -->
+  <application %MAIN_APP_WINDOW_MATCH_CRITERIAS%>
+    <decor>no</decor>
+    <maximized>true</maximized>
+    <layer>below</layer>
+  </application>
+
+  <!-- Make sure YAD is not affected. -->
+  <application type="normal" class="Yad">
+    <decor>yes</decor>
+    <maximized>false</maximized>
+    <layer>above</layer>
+  </application>
 
 </applications>
 
