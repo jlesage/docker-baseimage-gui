@@ -1,0 +1,11 @@
+/config/log/nginx/access.log /config/log/nginx/error.log {
+    monthly
+    rotate 6
+    compress
+    missingok
+    notifempty
+    sharedscripts
+    postrotate
+        [ ! -f /var/run/nginx/nginx.pid ] || kill -USR1 `cat /var/run/nginx/nginx.pid`
+    endscript
+}
