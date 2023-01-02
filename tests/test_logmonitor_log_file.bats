@@ -7,9 +7,6 @@ setup() {
     echo "#!/bin/sh" > "$TESTS_WORKDIR"/yad-send
     chmod +x "$TESTS_WORKDIR"/yad-send
 
-    # Create logmonitor config file.
-    echo "LOG_FILES=/tmp/test1.log,/tmp/test2.log" > "$TESTS_WORKDIR"/logmonitor.conf
-
     # Create first notification definition.
     mkdir "$TESTS_WORKDIR"/test1
     echo 'Test1 title' > "$TESTS_WORKDIR"/test1/title
@@ -20,6 +17,7 @@ setup() {
 echo RUNNING_FILTER1 on: \$1
 echo "\$1" | grep -q TriggerWord
 EOF
+    echo "/tmp/test1.log" > "$TESTS_WORKDIR"/test1/source
     chmod +x "$TESTS_WORKDIR"/test1/filter
 
     # Create second notification definition.
@@ -41,6 +39,8 @@ EOF
 echo RUNNING_FILTER2 on: \$1
 echo "\$1" | grep -q TriggerAnotherWord
 EOF
+    echo "log:/tmp/test1.log" > "$TESTS_WORKDIR"/test2/source
+    echo "log:/tmp/test2.log" >> "$TESTS_WORKDIR"/test2/source
     chmod +x "$TESTS_WORKDIR"/test2/title
     chmod +x "$TESTS_WORKDIR"/test2/desc
     chmod +x "$TESTS_WORKDIR"/test2/level
@@ -48,7 +48,6 @@ EOF
 
     DOCKER_EXTRA_OPTS=()
     DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/yad-send:/etc/logmonitor/targets.d/yad/send")
-    DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/logmonitor.conf:/etc/logmonitor/logmonitor.conf")
     DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/test1:/etc/logmonitor/notifications.d/test1")
     DOCKER_EXTRA_OPTS+=("-v" "$TESTS_WORKDIR/test2:/etc/logmonitor/notifications.d/test2")
 
