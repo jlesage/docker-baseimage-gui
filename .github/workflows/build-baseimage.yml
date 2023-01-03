@@ -237,7 +237,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           repository: ${{ env.DOCKER_IMAGE_NAME }}
-          readme-filepath: README.md
+          readme-filepath: DOCKERHUB.md
 
   notification:
     name: Notification
