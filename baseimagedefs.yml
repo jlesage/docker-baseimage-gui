@@ -19,6 +19,25 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.3.0
+      date: 2023-01-03
+      changes:
+        added:
+          - 'Added by the update of `jlesage/baseimage` to version 3.4.1:'
+          - '2:Service for logrotate.'
+          - 'Control menu can be moved to the right side of the screen.'
+          - 'Automatic focus of the clipboard text box when opening the control menu.'
+          - 'Automatic close of the control menu when clicking into the application.'
+          - 'Rotation of the web server log files.'
+        changed:
+          - 'Changed by the update of `jlesage/baseimage` to version 3.4.1:'
+          - '2:Declaration of files to be monitored by the logmonitor has been moved to the notification''s definitions.'
+          - 'Window manager changed back to Openbox.  Unfortunately, a lot of applications don''t display correctly with JWM.  Note that the way to define the main window remains backward compatible.  See documentation for more details.'
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.4.1:'
+          - '2:Conversion of a service''s interval non-numeric value.'
+          - '2:Prevent the logmonitor to be blocked by a notification backend by running it asynchronously.'
+          - 'Init script error that was occurring when a custom VNC listening port was configured with secure connection enabled.'
     - version: 4.2.2
       date: 2022-12-11
       changes:
