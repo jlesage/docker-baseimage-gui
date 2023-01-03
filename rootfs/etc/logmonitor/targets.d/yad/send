@@ -25,6 +25,8 @@ export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
     --text "<b>$TITLE</b>" \
     --form \
     --field "$MSG:LBL" \
-    --button=gtk-ok:0 > /dev/null 2>&1 || true && rm -r "$XDG_BASE" &
+    --button=gtk-ok:0 > /dev/null 2>&1 || true
+
+rm -r "$XDG_BASE"
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
