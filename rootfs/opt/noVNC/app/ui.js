@@ -399,7 +399,7 @@ const UI = {
                 .classList.remove("noVNC_hidden");
             UI.openControlbar();
 
-            // Hide the controlbar after 2 seconds
+            // Hide the control bar after 2 seconds
             UI.closeControlbarTimeout = setTimeout(UI.closeControlbar, 2000);
         } else {
             UI.closeControlbar();
@@ -910,7 +910,7 @@ const UI = {
         } else {
             msg = UI.desktopName + " - Connected (unencrypted)";
         }
-        UI.showStatus(msg, 'normal', 3000);
+        UI.showStatus(msg, 'normal', 2500);
         UI.updateVisualState('connected');
 
         // Do this last because it can only be used on rendered elements
