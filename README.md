@@ -744,10 +744,6 @@ describe files part of the definition:
 | `send`       | Yes        | Program (script or binary with executable permission) that sends the notification.  It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level. |
 | `debouncing` | No         | File containing the minimum amount time (in seconds) that must elapse before sending the same notification with this backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done. |
 
-**NOTE**: The log monitor invokes the notification backend and then waits for
-its termination.  So it is important to make sure that the execution of the
-`send` program terminates after a reasonable amount of time.
-
 By default, the baseimage contains the following notification backends:
 
 | Backend  | Description | Debouncing time |
