@@ -7,13 +7,7 @@ TITLE="$1"
 MSG="$2"
 LEVEL="$3"
 
-XDG_BASE="$(mktemp -d)"
-
-export XDG_DATA_HOME="$XDG_BASE/xdg/data"
-export XDG_CONFIG_HOME="$XDG_BASE/xdg/config"
-export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
-
-/opt/base/bin/yad \
+exec /opt/base/bin/yad \
     --on-top \
     --fixed \
     --center \
@@ -25,8 +19,6 @@ export XDG_CACHE_HOME="$XDG_BASE/xdg/cache"
     --text "<b>$TITLE</b>" \
     --form \
     --field "$MSG:LBL" \
-    --button=gtk-ok:0 > /dev/null 2>&1 || true
-
-rm -r "$XDG_BASE"
+    --button=gtk-ok:0 > /dev/null 2>&1
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
