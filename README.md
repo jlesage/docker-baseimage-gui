@@ -203,8 +203,7 @@ Integrating glibc binaries often require to add glibc to the image. See the
 [Adding glibc](#adding-glibc) section for more details.
 
 Else, `Debian` and `Ubuntu` images are well known Linux distributions that
-provide great compatibility with existing applications.  `Debian` images are
-smaller than the `Ubuntu` ones.
+provide great compatibility with existing applications.
 
 [musl]: https://www.musl-libc.org
 [BusyBox]: https://busybox.net
@@ -308,6 +307,7 @@ The following internal environment variables are provided by the baseimage:
 |`XDG_CACHE_HOME`| Defines the base directory relative to which user specific non-essential data files should be stored. | `/config/xdg/cache` |
 |`TAKE_CONFIG_OWNERSHIP`| When set to `0`, ownership of the content of the `/config` directory is not taken during startup of the container. | `1` |
 |`INSTALL_PACKAGES_INTERNAL`| Space-separated list of packages to install during the startup of the container.  Packages are installed from the repository of the Linux distribution this container is based on. | `""` |
+|`SUP_GROUP_IDS_INTERNAL`| Comma-separated list of supplementary group IDs of the application. These are merged with the ones that might be supplied by `SUP_GROUP_IDS`. | `""` |
 
 #### Adding/Removing Internal Environment Variables
 
@@ -592,7 +592,7 @@ The following table provides more details about some value types:
 | Type     | Description |
 |----------|-------------|
 | Program  | An executable binary, a script or a symbolic link to the program to run.  The program file must have the execute permission. |
-| Boolean  | A boolean value.  A *true* value can be `1`, `true`, `on`, `yes`, `enable`, `enabled`.  A *false* value can  be `0`, `false`, `off`, `no`, `disable`, `disabled`.  Values are case insensitive.  Also, the presence of an empty file indicates a *true* value (i.e. the file can be "touched"). |
+| Boolean  | A boolean value.  A *true* value can be `1`, `true`, `on`, `yes`, `y`, `enable`, `enabled`.  A *false* value can  be `0`, `false`, `off`, `no`, `n`, `disable`, `disabled`.  Values are case insensitive.  Also, the presence of an empty file indicates a *true* value (i.e. the file can be "touched"). |
 | Interval | An unsigned integer value.  The following values are also accepted (case insensitive): `yearly`, `monthly`, `weekly`, `daily`, `hourly`. |
 
 #### Service Group
