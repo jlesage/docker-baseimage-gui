@@ -19,6 +19,15 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.3.3
+      date: 2023-02-04
+      changes:
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.4.3:'
+          - '2:Helper that takes ownership of a directory not handling correctly names with end-of-line character.'
+          - '2:The logrotate status file permissions was not set automatically during startup.'
+          - '2:Strings `y` and `n` were not considered as valid boolean values.'
+          - 'CJK font installation not being detected correctly.'
     - version: 4.3.2
       date: 2023-01-06
       changes:
