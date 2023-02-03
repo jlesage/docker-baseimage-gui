@@ -13,7 +13,7 @@ getlog_container_daemon() {
 
 wait_for_container_daemon() {
     echo "Waiting for the docker container daemon to be ready..."
-    TIMEOUT=90
+    TIMEOUT=300
     while [ "$TIMEOUT" -ne 0 ]; do
         run exec_container_daemon sh -c "[ -f /tmp/appready ]"
         if [ "$status" -eq 0 ]; then
