@@ -10,10 +10,11 @@ chown $USER_ID:$GROUP_ID /var/run/openbox
 # Setup the Openbox theme.
 #
 mkdir -p "$XDG_DATA_HOME"/themes
+rm -rf "$XDG_DATA_HOME"/themes/OpenboxTheme
 if is-bool-val-true "${DARK_MODE:-0}"; then
-    ln -sfn /opt/base/share/themes/Dark "$XDG_DATA_HOME"/themes/OpenboxTheme
+    cp -r /opt/base/share/themes/Dark "$XDG_DATA_HOME"/themes/OpenboxTheme
 else
-    ln -sfn /opt/base/share/themes/Light "$XDG_DATA_HOME"/themes/OpenboxTheme
+    cp -r /opt/base/share/themes/Light "$XDG_DATA_HOME"/themes/OpenboxTheme
 fi
 
 #
