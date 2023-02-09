@@ -19,6 +19,12 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.3.5
+      date: 2023-02-09
+      changes:
+        fixed:
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.4.4:'
+          - '2:Issue handling internal supplementary group IDs by the default `sgid` service file.'
     - version: 4.3.4
       date: 2023-02-07
       changes:
