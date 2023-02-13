@@ -656,7 +656,6 @@ container:
         Password needed to connect to the application's GUI.  See the
         [VNC Password](#vnc-password) section for more details.
       type: public
-      default: '""'
     - name: ENABLE_CJK_FONT
       description: >-
         When set to `1`, open-source computer font `WenQuanYi Zen Hei` is
