@@ -1,0 +1,42 @@
+--- a/CMakeLists.txt	2023-02-15 13:02:43.460281768 -0500
++++ b/CMakeLists.txt	2023-02-15 13:07:14.323272704 -0500
+@@ -284,7 +284,7 @@
+ endif()
+ 
+ # Check for PAM library
+-if(UNIX AND NOT APPLE)
++if(USE_LINUX_PAM)
+   check_include_files(security/pam_appl.h HAVE_PAM_H)
+   set(CMAKE_REQUIRED_LIBRARIES -lpam)
+   check_function_exists(pam_start HAVE_PAM_START)
+--- a/common/rfb/CMakeLists.txt	2023-02-15 13:47:44.408913330 -0500
++++ b/common/rfb/CMakeLists.txt	2023-02-15 13:48:26.906919800 -0500
+@@ -75,7 +75,7 @@
+ 
+ set(RFB_LIBRARIES ${JPEG_LIBRARIES} ${PIXMAN_LIBRARY} os rdr)
+ 
+-if(UNIX AND NOT APPLE)
++if(USE_LINUX_PAM)
+   set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
+     UnixPasswordValidator.h pam.c pam.h)
+   set(RFB_LIBRARIES ${RFB_LIBRARIES} ${PAM_LIBS})
+--- a/common/rfb/SSecurityPlain.cxx	2023-02-15 13:08:20.122930689 -0500
++++ b/common/rfb/SSecurityPlain.cxx	2023-02-15 13:10:03.848414138 -0500
+@@ -25,7 +25,7 @@
+ #include <rfb/SConnection.h>
+ #include <rfb/Exception.h>
+ #include <rdr/InStream.h>
+-#if !defined(WIN32) && !defined(__APPLE__)
++#if defined(USE_LINUX_PAM)
+ #include <rfb/UnixPasswordValidator.h>
+ #endif
+ #ifdef WIN32
+@@ -68,7 +68,7 @@
+ {
+ #ifdef WIN32
+   valid = new WinPasswdValidator();
+-#elif !defined(__APPLE__)
++#elif defined(USE_LINUX_PAM)
+   valid = new UnixPasswordValidator();
+ #else
+   valid = NULL;

@@ -1,0 +1,11 @@
+--- a/unix/vncpasswd/CMakeLists.txt	2023-02-15 12:59:50.403972755 -0500
++++ b/unix/vncpasswd/CMakeLists.txt	2023-02-15 13:00:02.040382803 -0500
+@@ -3,7 +3,7 @@
+ add_executable(vncpasswd 
+   vncpasswd.cxx)
+ 
+-target_link_libraries(vncpasswd tx rfb os)
++target_link_libraries(vncpasswd -static tx rfb os)
+ 
+ install(TARGETS vncpasswd DESTINATION ${CMAKE_INSTALL_FULL_BINDIR})
+ install(FILES vncpasswd.man DESTINATION ${CMAKE_INSTALL_FULL_MANDIR}/man1 RENAME vncpasswd.1)

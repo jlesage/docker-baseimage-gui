@@ -51,6 +51,8 @@ export LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all"
 
 export CC=xx-clang
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 function log {
     echo ">>> $*"
 }
@@ -243,12 +245,9 @@ log "Patching TigerVNC..."
 # Apply the TigerVNC patch against the X server.
 patch -p1 -d /tmp/tigervnc/unix/xserver < /tmp/tigervnc/unix/xserver120.patch
 # Build a static binary of vncpasswd.
-sed 's/target_link_libraries(vncpasswd tx rfb os)/target_link_libraries(vncpasswd -static tx rfb os)/' -i /tmp/tigervnc/unix/vncpasswd/CMakeLists.txt
+patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/vncpasswd-static.patch
 # Disable PAM support.
-sed 's/if(UNIX AND NOT APPLE)/if(USE_LINUX_PAM)/' -i /tmp/tigervnc/CMakeLists.txt
-sed 's/if(UNIX AND NOT APPLE)/if(USE_LINUX_PAM)/' -i /tmp/tigervnc/common/rfb/CMakeLists.txt
-sed 's/#if !defined(WIN32) && !defined(__APPLE__)/#if defined(USE_LINUX_PAM)/' -i  /tmp/tigervnc/common/rfb/SSecurityPlain.cxx
-sed 's/#elif !defined(__APPLE__)/#elif defined(USE_LINUX_PAM)/' -i  /tmp/tigervnc/common/rfb/SSecurityPlain.cxx
+patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/disable-pam.patch
 
 log "Configuring TigerVNC..."
 (

@@ -40,8 +40,8 @@ RUN apk --no-cache add build-base curl make cmake git && \
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS tigervnc
 ARG TARGETPLATFORM
 COPY --from=xx / /
-COPY src/tigervnc/build.sh /tmp/build-tigervnc.sh
-RUN /tmp/build-tigervnc.sh
+COPY src/tigervnc /build
+RUN /build/build.sh
 RUN xx-verify --static /tmp/tigervnc-install/usr/bin/Xvnc
 RUN xx-verify --static /tmp/tigervnc-install/usr/bin/vncpasswd
 COPY --from=upx /usr/bin/upx /usr/bin/upx
