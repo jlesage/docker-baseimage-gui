@@ -32,7 +32,7 @@ Arguments:
 
 Options:
   --icons-dir         Directory where to put the generated icons.  Default: /opt/noVNC/app/images/icons
-  --html-page         Path to the HTML file where to insert the HTML code.  Default: /opt/noVNC/index.html
+  --html-file         Path to the HTML file where to insert the HTML code.  Default: /opt/noVNC/index.html
   --no-tools-install  Do not automatically install missing tools.
 "
 
@@ -141,6 +141,19 @@ done
 
 [ -n "$APP_ICON_URL" ] || usage "Icon URL is missing."
 
+# Check if URL is pointing to a local file.
+if [ -f "$APP_ICON_URL" ]; then
+    ICON_URL_IS_LOCAL_PATH=true
+elif [ "${APP_ICON_URL#file://}" != "$APP_ICON_URL" ]; then
+    ICON_URL_IS_LOCAL_PATH=true
+    APP_ICON_URL="${APP_ICON_URL#file://}"
+    if [ ! -f "$APP_ICON_URL" ]; then
+        die "$APP_ICON_URL: no such file"
+    fi
+else
+    ICON_URL_IS_LOCAL_PATH=false
+fi
+
 echo "Installing dependencies..."
 install_build_dependencies
 
@@ -149,7 +162,11 @@ rm -rf "$ICONS_DIR"
 mkdir -p "$ICONS_DIR"
 
 # Download the master icon.
-curl -sS -L -o "$ICONS_DIR"/master_icon.png "$APP_ICON_URL"
+if $ICON_URL_IS_LOCAL_PATH; then
+    cp "$APP_ICON_URL" "$ICONS_DIR"/master_icon.png
+else
+    curl -sS -L -o "$ICONS_DIR"/master_icon.png "$APP_ICON_URL"
+fi
 
 # Create the description file.
 cat <<EOF > "$WORKDIR"/faviconDescription.json
@@ -157,8 +174,19 @@ cat <<EOF > "$WORKDIR"/faviconDescription.json
   "favicon_generation": {
     "api_key": "402333a17311c9aa68257b9c5fc571276090ee56",
     "master_picture": {
+EOF
+if $ICON_URL_IS_LOCAL_PATH; then
+cat <<EOF >> "$WORKDIR"/faviconDescription.json
+      "type": "inline",
+      "content": "$(base64 -w 0 "$APP_ICON_URL")"
+EOF
+else
+cat <<EOF >> "$WORKDIR"/faviconDescription.json
       "type": "url",
       "url": "$APP_ICON_URL"
+EOF
+fi
+cat <<EOF >> "$WORKDIR"/faviconDescription.json
     },
     "files_location": {
       "type": "root"
