@@ -1,0 +1,12 @@
+--- a/CMakeLists.txt	2023-02-15 13:02:43.460281768 -0500
++++ b/CMakeLists.txt	2023-02-18 13:34:01.074642043 -0500
+@@ -69,6 +69,9 @@
+   add_definitions(-D_DEBUG)
+ ENDIF()
+ 
++# Prefer static libraries.
++set(CMAKE_FIND_LIBRARY_SUFFIXES ${CMAKE_STATIC_LIBRARY_SUFFIX})
++
+ # Make sure we get a sane C version
+ set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=gnu99")
+ 

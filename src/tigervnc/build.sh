@@ -14,13 +14,14 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-TIGERVNC_VERSION=1.12.0
+TIGERVNC_VERSION=1.13.0
 XSERVER_VERSION=1.20.13
 
+# Use the same versions has Alpine 3.15.
 GNUTLS_VERSION=3.7.1
-LIBXFONT2_VERSION=2.0.4
+LIBXFONT2_VERSION=2.0.5
 LIBFONTENC_VERSION=1.1.4
-LIBTASN1_VERSION=4.17.0
+LIBTASN1_VERSION=4.18.0
 LIBXSHMFENCE_VERSION=1.3
 
 # If the XKeyboardConfig version is too recent compared to xorgproto/libX11,
@@ -35,10 +36,10 @@ TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.t
 XSERVER_URL=https://github.com/freedesktop/xorg-xserver/archive/xorg-server-${XSERVER_VERSION}.tar.gz
 
 GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-${GNUTLS_VERSION}.tar.xz
-LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.bz2
-LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.bz2
+LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.gz
+LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.gz
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
-LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.bz2
+LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.gz
 
 XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.bz2
 XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.bz2
@@ -81,6 +82,8 @@ xx-apk --no-cache --no-scripts add \
     pixman-dev \
     libx11-dev \
     libgcrypt-dev \
+    libgcrypt-static \
+    libgpg-error-static \
     libxkbfile-dev \
     libxfont2-dev \
     libjpeg-turbo-dev \
@@ -145,7 +148,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/gnutls install
 #
 mkdir /tmp/libxfont2
 log "Downloading libXfont2..."
-curl -# -L ${LIBXFONT2_URL} | tar -xj --strip 1 -C /tmp/libxfont2
+curl -# -L ${LIBXFONT2_URL} | tar -xz --strip 1 -C /tmp/libxfont2
 log "Configuring libXfont2..."
 (
     cd /tmp/libxfont2 && ./configure \
@@ -171,7 +174,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/libxfont2 install
 #
 mkdir /tmp/libfontenc
 log "Downloading libfontenc..."
-curl -# -L ${LIBFONTENC_URL} | tar -xj --strip 1 -C /tmp/libfontenc
+curl -# -L ${LIBFONTENC_URL} | tar -xz --strip 1 -C /tmp/libfontenc
 log "Configuring libfontenc..."
 (
     cd /tmp/libfontenc && ./configure \
@@ -216,7 +219,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/libtasn1 install
 #
 mkdir /tmp/libxshmfence
 log "Downloading libxshmfence..."
-curl -# -L ${LIBXSHMFENCE_URL} | tar -xj --strip 1 -C /tmp/libxshmfence
+curl -# -L ${LIBXSHMFENCE_URL} | tar -xz --strip 1 -C /tmp/libxshmfence
 log "Configuring libxshmfence..."
 (
     cd /tmp/libxshmfence && ./configure \
@@ -248,6 +251,8 @@ patch -p1 -d /tmp/tigervnc/unix/xserver < /tmp/tigervnc/unix/xserver120.patch
 patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/vncpasswd-static.patch
 # Disable PAM support.
 patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/disable-pam.patch
+# Fix static build.
+patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/static-build.patch
 
 log "Configuring TigerVNC..."
 (
@@ -263,6 +268,7 @@ log "Configuring TigerVNC..."
         -DINSTALL_SYSTEMD_UNITS=OFF \
         -DENABLE_NLS=OFF \
         -DENABLE_GNUTLS=ON \
+        -DENABLE_NETTLE=ON \
         -DBUILD_VIEWER=OFF \
 )
 

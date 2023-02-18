@@ -5,21 +5,21 @@
  
  # Check for PAM library
 -if(UNIX AND NOT APPLE)
-+if(USE_LINUX_PAM)
++if(ENABLE_UNIX_PASSWORD_VALIDATOR)
    check_include_files(security/pam_appl.h HAVE_PAM_H)
    set(CMAKE_REQUIRED_LIBRARIES -lpam)
    check_function_exists(pam_start HAVE_PAM_START)
 --- a/common/rfb/CMakeLists.txt	2023-02-15 13:47:44.408913330 -0500
 +++ b/common/rfb/CMakeLists.txt	2023-02-15 13:48:26.906919800 -0500
-@@ -75,7 +75,7 @@
- 
- set(RFB_LIBRARIES ${JPEG_LIBRARIES} ${PIXMAN_LIBRARY} os rdr)
+@@ -91,7 +91,7 @@
+   target_sources(rfb PRIVATE WinPasswdValidator.cxx)
+ endif(WIN32)
  
 -if(UNIX AND NOT APPLE)
-+if(USE_LINUX_PAM)
-   set(RFB_SOURCES ${RFB_SOURCES} UnixPasswordValidator.cxx
-     UnixPasswordValidator.h pam.c pam.h)
-   set(RFB_LIBRARIES ${RFB_LIBRARIES} ${PAM_LIBS})
++if(ENABLE_UNIX_PASSWORD_VALIDATOR)
+   target_sources(rfb PRIVATE UnixPasswordValidator.cxx pam.c)
+   target_link_libraries(rfb ${PAM_LIBS})
+ endif()
 --- a/common/rfb/SSecurityPlain.cxx	2023-02-15 13:08:20.122930689 -0500
 +++ b/common/rfb/SSecurityPlain.cxx	2023-02-15 13:10:03.848414138 -0500
 @@ -25,7 +25,7 @@
@@ -27,7 +27,7 @@
  #include <rfb/Exception.h>
  #include <rdr/InStream.h>
 -#if !defined(WIN32) && !defined(__APPLE__)
-+#if defined(USE_LINUX_PAM)
++#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
  #include <rfb/UnixPasswordValidator.h>
  #endif
  #ifdef WIN32
@@ -36,7 +36,31 @@
  #ifdef WIN32
    valid = new WinPasswdValidator();
 -#elif !defined(__APPLE__)
-+#elif defined(USE_LINUX_PAM)
++#elif defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
    valid = new UnixPasswordValidator();
  #else
    valid = NULL;
+--- a/common/rfb/SSecurityRSAAES.cxx	2023-02-18 15:14:38.894594813 -0500
++++ b/common/rfb/SSecurityRSAAES.cxx	2023-02-18 15:15:29.606928303 -0500
+@@ -39,7 +39,7 @@
+ #include <rfb/Exception.h>
+ #include <rdr/AESInStream.h>
+ #include <rdr/AESOutStream.h>
+-#if !defined(WIN32) && !defined(__APPLE__)
++#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
+ #include <rfb/UnixPasswordValidator.h>
+ #endif
+ #ifdef WIN32
+@@ -554,10 +554,10 @@
+ 
+ void SSecurityRSAAES::verifyUserPass()
+ {
+-#ifndef __APPLE__
++#if defined(WIN32) || defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
+ #ifdef WIN32
+   WinPasswdValidator* valid = new WinPasswdValidator();
+-#elif !defined(__APPLE__)
++#elif defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
+   UnixPasswordValidator *valid = new UnixPasswordValidator();
+ #endif
+   if (!valid->validate(sc, username.buf, password.buf)) {
