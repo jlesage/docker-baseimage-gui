@@ -9,11 +9,13 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-YAD_VERSION=0.42.42
-PANGO_VERSION=1.49.3
+YAD_VERSION=0.42.43
+
+# Use the same versions has Alpine 3.15.
+PANGO_VERSION=1.48.10
 GTK_VERSION=2.24.33
 ATK_VERSION=2.36.0
-GDKPIXBUF_VERSION=2.42.6
+GDKPIXBUF_VERSION=2.42.8
 
 # Define software download URLs.
 YAD_URL=https://github.com/step-/yad/archive/refs/tags/${YAD_VERSION}.tar.gz
@@ -160,9 +162,9 @@ log "Configuring GdkPixbuf..."
 (
     cd /tmp/gdkpixbuf && abuild-meson \
         -Ddefault_library=static \
-        -Dpng=true \
-        -Dtiff=false \
-        -Djpeg=false \
+        -Dpng=enabled \
+        -Dtiff=disabled \
+        -Djpeg=disabled \
         -Dbuiltin_loaders=png \
         -Dgtk_doc=false \
         -Ddocs=false \
@@ -225,12 +227,16 @@ curl -# -L ${YAD_URL} | tar xz --strip 1 -C /tmp/yad
 log "Configuring YAD..."
 export LDFLAGS="$LDFLAGS --static -static -Wl,--strip-all" && \
 (
-    cd /tmp/yad && autoreconf -ivf && intltoolize && LIBS="-Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -lpcre -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -Wl,--end-group" ./configure \
+    cd /tmp/yad && \
+    autoreconf -ivf && \
+    intltoolize && \
+    LIBS="-Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -lpcre -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -Wl,--end-group" ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
-	--disable-spell \
-	--disable-sourceview \
+        --with-gtk=gtk2 \
+        --disable-spell \
+        --disable-sourceview \
         --disable-gio \
         --disable-icon-browser \
         --disable-html \
