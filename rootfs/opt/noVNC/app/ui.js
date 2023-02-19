@@ -886,7 +886,8 @@ const UI = {
 
         // Automatically close the control bar when RFB gets focus.
         UI.rfb._canvas.addEventListener('focus', () => {
-            if (UI.closeControlbarTimeout == null) {
+            if (UI.closeControlbarTimeout == null &&
+                document.getElementById('noVNC_control_bar').classList.contains("noVNC_open")) {
                 UI.closeControlbar();
             }
         });
