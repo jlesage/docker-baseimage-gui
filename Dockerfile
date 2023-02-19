@@ -48,16 +48,6 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/tigervnc-install/usr/bin/Xvnc
 RUN upx /tmp/tigervnc-install/usr/bin/vncpasswd
 
-# Build XKeyboard.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS xkb
-ARG TARGETPLATFORM
-COPY --from=xx / /
-COPY src/xkb/build.sh /tmp/build-xkb.sh
-RUN /tmp/build-xkb.sh
-RUN xx-verify --static /tmp/xkbcomp-install/usr/bin/xkbcomp
-COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
-
 # Build Fontconfig.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS fontconfig
 ARG TARGETPLATFORM
