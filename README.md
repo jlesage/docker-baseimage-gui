@@ -931,9 +931,13 @@ The baseimage provides support for the [GTK] and [QT] toolkits.
 
 #### GTK
 
-When dark mode is enabled, the baseimage automatically setup the environment
+When dark mode is enabled, the baseimage automatically setups the environment
 to force the application to use a dark theme.  Under the hood, this is done by
-setting the `GTK_THEME` environment variable to `Adwaita:dark`.
+setting the following environment variables:
+  - `GTK_THEME` is set to `Adwaita:dark`.  This is used by GTK3 and GTK4
+    applications.
+  - `GTK2_RC_FILES` is set to `/opt/base/share/themes/Dark/gtk-2.0/gtkrc`.  This
+    is used by GTK2 applications.
 
 #### QT
 
