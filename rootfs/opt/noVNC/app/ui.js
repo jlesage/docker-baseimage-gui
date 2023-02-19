@@ -518,7 +518,10 @@ const UI = {
         //UI.closeAllPanels();
         document.getElementById('noVNC_control_bar')
             .classList.remove("noVNC_open");
-        if (UI.rfb) {
+        // On touch device, we don't want to change the focus if the virtual
+        // keyboard is active (we want to keep it open and changing focus will
+        // close it).
+        if (UI.rfb && (!isTouchDevice || document.activeElement != document.getElementById('noVNC_keyboardinput'))) {
             UI.rfb.focus();
         }
         UI.closeControlbarTimeout = null
