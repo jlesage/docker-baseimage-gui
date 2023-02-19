@@ -7,7 +7,8 @@
  */
 
 import * as Log from '../core/util/logging.js';
-import { isTouchDevice, isSafari, hasScrollbarGutter, dragThreshold }
+import { isTouchDevice, isMac, isIOS, isAndroid, isChromeOS, isSafari,
+         hasScrollbarGutter, dragThreshold }
     from '../core/util/browser.js';
 import { setCapture, getPointerEvent } from '../core/util/events.js';
 import KeyTable from "../core/input/keysym.js";
@@ -562,6 +563,9 @@ const UI = {
 
         // Consider this a movement of the handle
         UI.controlbarDrag = true;
+
+        // The user has "followed" hint, let's hide it until the next drag
+        UI.showControlbarHint(false);
     },
 
     showControlbarHint(show) {
@@ -1093,11 +1097,25 @@ const UI = {
         let resize_val = UI.getSetting('resize')
         const scaling = resize_val === 'scale' || resize_val === 'remote';
 
+        // Some platforms have overlay scrollbars that are difficult
+        // to use in our case, which means we have to force panning
+        // FIXME: Working scrollbars can still be annoying to use with
+        //        touch, so we should ideally be able to have both
+        //        panning and scrollbars at the same time
+
+        let brokenScrollbars = false;
+
+        if (!hasScrollbarGutter) {
+            if (isIOS() || isAndroid() || isMac() || isChromeOS()) {
+                brokenScrollbars = true;
+            }
+        }
+
         if (scaling) {
             // Can't be clipping if viewport is scaled to fit
             UI.forceSetting('view_clip', false);
             UI.rfb.clipViewport  = false;
-        } else if (!hasScrollbarGutter) {
+        } else if (brokenScrollbars) {
             // Some platforms have scrollbars that are difficult
             // to use in our case, so we always use our own panning
             UI.forceSetting('view_clip', true);
@@ -1130,7 +1148,8 @@ const UI = {
 
         const viewDragButton = document.getElementById('noVNC_view_drag_button');
 
-        if (!UI.rfb.clipViewport && UI.rfb.dragViewport) {
+        if ((!UI.rfb.clipViewport || !UI.rfb.clippingViewport) &&
+            UI.rfb.dragViewport) {
             // We are no longer clipping the viewport. Make sure
             // viewport drag isn't active when it can't be used.
             UI.rfb.dragViewport = false;
@@ -1147,6 +1166,8 @@ const UI = {
         } else {
             viewDragButton.classList.add("noVNC_hidden");
         }
+
+        viewDragButton.disabled = !UI.rfb.clippingViewport;
     },
 
 /* ------^-------
