@@ -504,8 +504,11 @@ const UI = {
         document.getElementById('noVNC_control_bar')
             .classList.add("noVNC_open");
 
-        // Set focus on the clipboard text box.
-        if (document.getElementById('clipboardCollapse')
+        // Set focus on the clipboard text box, if it is visible from the
+        // the control menu.
+        // NOTE: We don't want this behavior on touch device, because this will
+        // brings up the virtual keyboard, which might not be wanted.
+        if (!isTouchDevice && document.getElementById('clipboardCollapse')
             .classList.contains("show")) {
             document.getElementById('noVNC_clipboard_text').focus();
         }
