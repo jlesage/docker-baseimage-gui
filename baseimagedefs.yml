@@ -19,6 +19,21 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.4.0
+      date: 2023-03-04
+      changes:
+        added:
+          - 'Support for generating icons from local file.'
+          - 'Dark mode support for GTK2 applications.'
+        changed:
+          - 'Updated TigerVNC to version 1.13.0.'
+          - 'Updated noVNC to version 1.4.0.'
+          - 'Updated YAD to version 0.42.43.'
+        fixed:
+          - 'Disabled automatic focus on clipboard on touch devices.'
+          - 'Keep virtual keyboard when closing control menu.'
+          - 'Fixed by the update of `jlesage/baseimage` to version 3.4.6:'
+          - '2:Issue during initialization of Linux users and groups when the `GROUP_ID` is also part of `SUP_GROUP_IDS`.'
     - version: 4.3.6
       date: 2023-02-13
       changes:
