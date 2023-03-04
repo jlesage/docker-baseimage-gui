@@ -3,7 +3,7 @@
 # Helper script that builds Fontconfig as a static library.
 #
 # A customized fontconfig library is used.  This is required to allows baseimage
-# programs (like JWM and yad) to use independant fonts and font configuration
+# programs (like openbox and yad) to use independant fonts and font configuration
 # files.  This way, these programs don't depend on distro of the baseimage.
 #
 # NOTE: This script is expected to be run under Alpine Linux.
