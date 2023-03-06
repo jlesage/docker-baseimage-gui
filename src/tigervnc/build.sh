@@ -14,7 +14,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-TIGERVNC_VERSION=1.13.0
+TIGERVNC_VERSION=1.13.1
 XSERVER_VERSION=1.20.13
 
 # Use the same versions has Alpine 3.15.
