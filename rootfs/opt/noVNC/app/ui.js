@@ -318,7 +318,7 @@ const UI = {
 
     addClipboardHandlers() {
         document.getElementById("noVNC_clipboard_text")
-            .addEventListener('change', UI.clipboardSend);
+            .addEventListener('input', UI.clipboardSend);
         document.getElementById("noVNC_clipboard_clear_button")
             .addEventListener('click', UI.clipboardClear);
     },
