@@ -19,6 +19,11 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.4.1
+      date: 2023-04-16
+      changes:
+        changed:
+          - 'Updated TigerVNC to version 1.13.1.'
     - version: 4.4.0
       date: 2023-03-04
       changes:
