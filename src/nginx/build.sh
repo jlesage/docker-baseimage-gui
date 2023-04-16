@@ -39,16 +39,16 @@ xx-apk --no-cache --no-scripts add \
 
 mkdir /tmp/nginx
 log "Downloading Nginx..."
-curl -# -L ${NGINX_URL} | tar -xz --strip 1 -C /tmp/nginx
+curl -# -L -f ${NGINX_URL} | tar -xz --strip 1 -C /tmp/nginx
 
 log "Downloading WebSockify Nginx module..."
 mkdir /tmp/websockify-nginx-module
-curl -# -L ${NGINXWEBSOCKIFYMOD_URL} | tar xz --strip 1 -C /tmp/websockify-nginx-module
+curl -# -L -f ${NGINXWEBSOCKIFYMOD_URL} | tar xz --strip 1 -C /tmp/websockify-nginx-module
 
 # See the Yocto Nginx recipe: https://github.com/openembedded/meta-openembedded/tree/master/meta-webserver/recipes-httpd/nginx
 echo "Patching Nginx for cross-compile support..."
-curl -# -L https://github.com/openembedded/meta-openembedded/raw/master/meta-webserver/recipes-httpd/nginx/files/nginx-cross.patch | patch -p1 -d /tmp/nginx
-curl -# -L https://github.com/openembedded/meta-openembedded/raw/master/meta-webserver/recipes-httpd/nginx/files/0001-Allow-the-overriding-of-the-endianness-via-the-confi.patch | patch -p1 -d /tmp/nginx
+curl -# -L -f https://github.com/openembedded/meta-openembedded/raw/master/meta-webserver/recipes-httpd/nginx/files/nginx-cross.patch | patch -p1 -d /tmp/nginx
+curl -# -L -f https://github.com/openembedded/meta-openembedded/raw/master/meta-webserver/recipes-httpd/nginx/files/0001-Allow-the-overriding-of-the-endianness-via-the-confi.patch | patch -p1 -d /tmp/nginx
 
 case "$(xx-info arch)" in
     x86_64|aarch64) PTRSIZE=8 ;;

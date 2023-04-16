@@ -71,7 +71,7 @@ done
 #
 mkdir /tmp/fontconfig
 log "Downloading fontconfig..."
-curl -# -L ${FONTCONFIG_URL} | tar -xz --strip 1 -C /tmp/fontconfig
+curl -# -L -f ${FONTCONFIG_URL} | tar -xz --strip 1 -C /tmp/fontconfig
 
 log "Configuring fontconfig..."
 (

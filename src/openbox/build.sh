@@ -104,7 +104,7 @@ endian = 'little'
 #
 mkdir /tmp/pango
 log "Downloading pango..."
-curl -# -L ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
+curl -# -L -f ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
 
 log "Configuring pango..."
 (
@@ -129,7 +129,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pango/build
 #
 mkdir /tmp/libxrandr
 log "Downloading libXrandr..."
-curl -# -L ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
+curl -# -L -f ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
 
 log "Configuring libXrandr..."
 (
@@ -167,7 +167,7 @@ cp -av /tmp/fontconfig-install/usr $(xx-info sysroot)
 #
 mkdir /tmp/openbox
 log "Downloading Openbox..."
-curl -# -L ${OPENBOX_URL} | tar -xJ --strip 1 -C /tmp/openbox
+curl -# -L -f ${OPENBOX_URL} | tar -xJ --strip 1 -C /tmp/openbox
 
 log "Patching Openbox..."
 patch -p1 -d /tmp/openbox < "$SCRIPT_DIR"/disable-x-locale.patch
