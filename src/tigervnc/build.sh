@@ -15,7 +15,7 @@ set -u # Treat unset variables as an error.
 
 # Define software versions.
 TIGERVNC_VERSION=1.13.1
-XSERVER_VERSION=1.20.13
+XSERVER_VERSION=1.20.14
 
 # Use the same versions has Alpine 3.15.
 GNUTLS_VERSION=3.7.1
@@ -33,7 +33,7 @@ XKBCOMP_VERSION=1.4.5
 
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
-XSERVER_URL=https://github.com/freedesktop/xorg-xserver/archive/xorg-server-${XSERVER_VERSION}.tar.gz
+XSERVER_URL=https://www.x.org/releases/individual/xserver/xorg-server-${XSERVER_VERSION}.tar.gz
 
 GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-${GNUTLS_VERSION}.tar.xz
 LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.gz
