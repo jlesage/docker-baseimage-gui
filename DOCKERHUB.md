@@ -1,5 +1,7 @@
 # A minimal docker baseimage to ease creation of X graphical application containers
-[![Build Status](https://github.com/jlesage/docker-baseimage-gui/actions/workflows/build-baseimage.yml/badge.svg?branch=master)](https://github.com/jlesage/docker-baseimage-gui/actions/workflows/build-baseimage.yml)
+[![Release](https://img.shields.io/github/release/jlesage/docker-baseimage-gui.svg?logo=github&style=for-the-badge)](https://github.com/jlesage/docker-baseimage-gui/releases/latest)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/jlesage/docker-baseimage-gui/build-baseimage.yml?logo=github&branch=master&style=for-the-badge)](https://github.com/jlesage/docker-baseimage-gui/actions/workflows/build-baseimage.yml)
+[![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=for-the-badge)](https://paypal.me/JocelynLeSage)
 
 This is a docker baseimage that can be used to create containers able to run
 any X application on a headless server very easily.  The application's GUI
