@@ -26,7 +26,7 @@ baseimage:
           - 'Image based on Alpine Linux 3.18.'
           - 'Image based on Ubuntu 22.04.'
         changed:
-          - 'Changed by the update of jlesage/baseimage to version 3.4.7'
+          - 'Changed by the update of jlesage/baseimage to version 3.4.7:'
           - '2:Rebuild against latest distro images to get security fixes.'
           - 'Updated X server to version 1.20.14.'
         removed:
