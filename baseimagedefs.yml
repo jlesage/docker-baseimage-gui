@@ -19,6 +19,19 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.4.2
+      date: 2023-05-16
+      changes:
+        added:
+          - 'Image based on Alpine Linux 3.18.'
+          - 'Image based on Ubuntu 22.04.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.4.7'
+          - '2:Rebuild against latest distro images to get security fixes.'
+          - 'Updated X server to version 1.20.14.'
+        removed:
+          - 'Image based on Alpine 3.13 (reached end of support on 2022-11-01).'
+          - 'Image based on Debian 9 (reached end of life on 2022-07-01).'
     - version: 4.4.1
       date: 2023-04-16
       changes:
