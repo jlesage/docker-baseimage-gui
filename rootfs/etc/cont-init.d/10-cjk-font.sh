@@ -10,7 +10,7 @@ if is-bool-val-true "${ENABLE_CJK_FONT:-0}"; then
     else
         echo "installing CJK font..."
         if [ -n "$(which apk)" ]; then
-            add-pkg font-wqy-zenhei --repository http://dl-cdn.alpinelinux.org/alpine/edge/testing
+            add-pkg font-wqy-zenhei --repository "${PACKAGES_MIRROR:-https://dl-cdn.alpinelinux.org/alpine}/edge/community"
         else
             add-pkg fonts-wqy-zenhei
         fi
