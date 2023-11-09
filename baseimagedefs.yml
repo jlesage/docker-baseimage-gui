@@ -19,6 +19,21 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.5.0
+      date: 2023-11-09
+      changes:
+        added:
+          - 'Added by the update of jlesage/baseimage to version 3.5.0:'
+          - '2:Mirror for packages installation can be set via the `PACKAGES_MIRROR` environment variable.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.5.0:'
+          - '2:Improved the way the `take-ownership` script is working.'
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.5.0:'
+          - '2:Readiness and minimum running time checks should not be done for a service defined with an interval.'
+          - '2:Raise an error when a synched service fails to start.'
+          - '2:Minimum running time check of a service was using an incorrect way to verify if process is still alive.'
+          - 'Installation of CJK font.'
     - version: 4.4.2
       date: 2023-05-16
       changes:
