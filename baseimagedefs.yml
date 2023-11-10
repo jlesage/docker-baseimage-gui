@@ -19,6 +19,13 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.5.1
+      date: 2023-11-10
+      changes:
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.5.1:'
+          - '2:Packages installation at runtime could fail on Ubuntu/Debian due to missing user/group.'
+          - 'Make sure setup of packages mirror is done before installation of CJK font.'
     - version: 4.5.0
       date: 2023-11-09
       changes:
