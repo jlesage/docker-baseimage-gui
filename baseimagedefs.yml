@@ -19,6 +19,12 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.5.2
+      date: 2023-11-17
+      changes:
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.5.2:'
+          - '2:When using a very high user or group ID, the helper that takes ownership of a directory would fail.'
     - version: 4.5.1
       date: 2023-11-10
       changes:
