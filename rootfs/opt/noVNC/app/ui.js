@@ -174,7 +174,10 @@ const UI = {
     initFullscreen() {
         // Only show the button if fullscreen is properly supported
         // Safari doesn't support alphanumerical input while in fullscreen
+        // Fullscreen cannot work if we are loaded in iFrame
+        const isIframe = typeof window !== 'undefined' && window.self !== window.top;
         if (!isSafari() &&
+            !isIframe &&
             (document.documentElement.requestFullscreen ||
              document.documentElement.mozRequestFullScreen ||
              document.documentElement.webkitRequestFullscreen ||
