@@ -15,6 +15,11 @@ NGINX_DIRS="\
 DEFAULT_SITE_CONF=/var/tmp/nginx/default_site.conf
 DEFAULT_STREAM_CONF=/var/tmp/nginx/default_stream.conf
 
+# If environment Variable PATH_PREFIX is defined, replace it in virtual server configuration.
+if [[ ! -z "${PATH_PREFIX:-}" ]]; then
+	sed-patch "s|/sed_path_prefix|$PATH_PREFIX|g" /etc/nginx/default_site.conf
+fi
+
 # Make sure required directories exist.
 for DIR in $NGINX_DIRS; do
     mkdir -p "$DIR"
