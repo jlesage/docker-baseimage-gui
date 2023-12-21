@@ -19,6 +19,15 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.5.3
+      date: 2023-12-20
+      changes:
+        added:
+          - 'Image based on Alpine Linux 3.19.'
+        changed:
+          - 'Fullscreen should not be supported when page is loaded into an iFrame.'
+          - 'Changed by the update of jlesage/baseimage to version 3.5.3:'
+          - '2:Rebuild against latest distro images to get security fixes.'
     - version: 4.5.2
       date: 2023-11-17
       changes:
