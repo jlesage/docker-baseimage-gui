@@ -47,6 +47,7 @@ needed on the client side) or via any VNC client.
       * [Log Monitor](#log-monitor)
          * [Notification Definition](#notification-definition)
          * [Notification Backend](#notification-backend)
+      * [Web Audio](#web-audio)
       * [Adding glibc](#adding-glibc)
       * [Helpers](#helpers)
          * [Adding/Removing Packages](#addingremoving-packages)
@@ -288,6 +289,7 @@ The following public environment variables are provided by the baseimage:
 |`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1920` |
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
 |`DARK_MODE`| When set to `1`, dark mode is enabled for the application. | `0` |
+|`WEB_AUDIO`| When set to `1`, audio support is enabled, meaning that any audio produced by the application is played through the browser. Note that audio is not supported for VNC clients. | `0` |
 |`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details. | `0` |
 |`SECURE_CONNECTION_VNC_METHOD`| Method used to perform the secure VNC connection.  Possible values are `SSL` or `TLS`.  See the [Security](#security) section for more details. | `SSL` |
 |`SECURE_CONNECTION_CERTS_CHECK_INTERVAL`| Interval, in seconds, at which the system verifies if web or VNC certificates have changed.  When a change is detected, the affected services are automatically restarted.  A value of `0` disables the check. | `60` |
@@ -755,6 +757,28 @@ By default, the baseimage contains the following notification backends:
 |----------|-------------|-----------------|
 | `stdout` | Display a message to the standard output, making it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
 | `yad`    | Display the notification in a window box, visible in the application's GUI. | Infinite |
+
+### Web Audio
+
+The baseimage supports streaming audio from any application that supports
+PulseAudio.  The audio plays through the web browser of users.  Audio is not
+supported when the application is accessed via a VNC client.
+
+Audio is streamed with the following specification:
+
+  * Raw PCM format
+  * 2 channels
+  * 16 bit sample depth
+  * 44.1KHZ sample rate
+
+Web audio support can be enabled by setting the value of the `WEB_AUDIO`
+environment variable to `1`.  See the
+[Environment Variables](#environment-variables) section for more details on how
+to set an environment variable.
+
+Once support is enabled, PulseAudio environment is automatically configured
+for the application and additional services are started to capture and stream
+the audio.
 
 ### Adding glibc
 

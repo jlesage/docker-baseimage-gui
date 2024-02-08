@@ -16,6 +16,7 @@ LISTEN_CONF=/var/tmp/nginx/listen.conf
 SSL_CONF=/var/tmp/nginx/ssl.conf
 STREAM_CONF=/var/tmp/nginx/stream.conf
 STREAM_LISTEN_CONF=/var/tmp/nginx/stream_listen.conf
+AUDIO_CONF=/var/tmp/nginx/audio.conf
 
 # Make sure required directories exist.
 for DIR in $NGINX_DIRS; do
@@ -66,6 +67,11 @@ then
 
     # Generate the listen directive for stream config.
     echo "listen ${VNC_LISTENING_PORT:-5900} ssl;" >> "$STREAM_LISTEN_CONF"
+fi
+
+# Handle configuration for audio support.
+if is-bool-val-true "${WEB_AUDIO:-0}"; then
+    cp /defaults/default_audio.conf "$AUDIO_CONF"
 fi
 
 # Make sure required directories are properly owned.

@@ -1,0 +1,97 @@
+diff --git a/meson.build b/meson.build
+index d4cdbd6a5..c0b5ef999 100644
+--- a/meson.build
++++ b/meson.build
+@@ -165,7 +165,6 @@ cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(alsadatadir, 'profile-se
+ cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
+ cdata.set_quoted('PULSE_LOCALEDIR', localedir)
+ cdata.set_quoted('GETTEXT_PACKAGE', 'pulseaudio')
+-cdata.set('ENABLE_NLS', 1)
+ cdata.set('top_srcdir', meson.source_root())
+ 
+ # Platform specifics
+diff --git a/src/meson.build b/src/meson.build
+index 96dcec354..d9ff56f43 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -57,6 +57,7 @@ libpulsecommon_sources = [
+   'pulsecore/shm.c',
+   'pulsecore/bitset.c',
+   'pulsecore/socket-client.c',
++  'pulsecore/socket-server.c',
+   'pulsecore/socket-util.c',
+   'pulsecore/strbuf.c',
+   'pulsecore/strlist.c',
+@@ -136,6 +137,7 @@ libpulsecommon_headers = [
+   'pulsecore/shm.h',
+   'pulsecore/bitset.h',
+   'pulsecore/socket-client.h',
++  'pulsecore/socket-server.h',
+   'pulsecore/socket-util.h',
+   'pulsecore/strbuf.h',
+   'pulsecore/strlist.h',
+@@ -193,7 +195,7 @@ if not get_option('client')
+   libpulse_dep = dependency('libpulse', required : true)
+   libpulse_simple_dep = dependency('libpulse-simple', required : true)
+ else
+-  libpulsecommon = shared_library('pulsecommon-' + pa_version_major_minor,
++  libpulsecommon = static_library('pulsecommon-' + pa_version_major_minor,
+     libpulsecommon_sources,
+     libpulsecommon_headers,
+     include_directories : [configinc, topinc],
+@@ -211,6 +213,19 @@ else
+ 
+   libpulsecommon_dep = declare_dependency(link_with: libpulsecommon)
+ 
++  install_headers(
++    'pulsecore/core-util.h',
++    'pulsecore/creds.h',
++    'pulsecore/dynarray.h',
++    'pulsecore/i18n.h',
++    'pulsecore/log.h',
++    'pulsecore/macro.h',
++    'pulsecore/socket.h',
++    'pulsecore/socket-server.h',
++    'pulsecore/iochannel.h',
++    subdir : 'pulsecore'
++  )
++
+   subdir('pulse')
+ endif
+ 
+diff --git a/src/pulse/meson.build b/src/pulse/meson.build
+index c2128e087..81c5ce9df 100644
+--- a/src/pulse/meson.build
++++ b/src/pulse/meson.build
+@@ -76,10 +76,9 @@ run_target('update-map-file',
+ 
+ versioning_link_args = '-Wl,-version-script=' + join_paths(meson.source_root(), 'src', 'pulse', 'map-file')
+ 
+-libpulse = shared_library('pulse',
++libpulse = static_library('pulse',
+   libpulse_sources,
+   libpulse_headers,
+-  version : libpulse_version,
+   include_directories : [configinc, topinc],
+   c_args : [pa_c_args],
+   link_args : [nodelete_link_args, versioning_link_args],
+@@ -95,10 +94,9 @@ install_headers(
+   subdir : 'pulse'
+ )
+ 
+-libpulse_simple = shared_library('pulse-simple',
++libpulse_simple = static_library('pulse-simple',
+   'simple.c',
+   'simple.h',
+-  version : libpulse_simple_version,
+   c_args : [pa_c_args],
+   link_args : [nodelete_link_args, versioning_link_args],
+   include_directories : [configinc, topinc],
+@@ -113,7 +111,6 @@ if glib_dep.found()
+   libpulse_mainloop_glib = shared_library('pulse-mainloop-glib',
+     'glib-mainloop.c',
+     'glib-mainloop.h',
+-    version : libpulse_mainloop_glib_version,
+     c_args : [pa_c_args],
+     link_args : [nodelete_link_args, versioning_link_args],
+     include_directories : [configinc, topinc],
