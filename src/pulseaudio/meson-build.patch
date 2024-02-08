@@ -1,0 +1,64 @@
+index d4cdbd6a5..fbc10a5c2 100644
+--- a/meson.build
++++ b/meson.build
+@@ -165,7 +165,7 @@ cdata.set_quoted('PA_ALSA_PROFILE_SETS_DIR', join_paths(alsadatadir, 'profile-se
+ cdata.set_quoted('DESKTOPFILEDIR', join_paths(datadir, 'applications'))
+ cdata.set_quoted('PULSE_LOCALEDIR', localedir)
+ cdata.set_quoted('GETTEXT_PACKAGE', 'pulseaudio')
+-cdata.set('ENABLE_NLS', 1)
++#cdata.set('ENABLE_NLS', 1)
+ cdata.set('top_srcdir', meson.source_root())
+ 
+ # Platform specifics
+@@ -644,9 +644,6 @@ endif
+ # Daemon and module dependencies
+ 
+ if get_option('daemon')
+-  # FIXME: make sure it's >= 2.2
+-  ltdl_dep = cc.find_library('ltdl', required : true)
+-
+   # FIXME: can meson support libtool -dlopen/-dlpreopen things?
+   #        and do we still want to support this at all?
+   cdata.set('DISABLE_LIBTOOL_PRELOAD', 1)
+diff --git a/src/daemon/meson.build b/src/daemon/meson.build
+index e8f70a453..94225933e 100644
+--- a/src/daemon/meson.build
++++ b/src/daemon/meson.build
+@@ -31,7 +31,7 @@ executable('pulseaudio',
+   include_directories : [configinc, topinc],
+   link_args : ['-ffast-math'],
+   link_with : [libpulsecore],
+-  dependencies : [ltdl_dep, cap_dep, dbus_dep, libsystemd_dep, dl_dep, libintl_dep, platform_dep, platform_socket_dep, libpulsecommon_dep, libpulse_dep],
++  dependencies : [cap_dep, dbus_dep, libsystemd_dep, dl_dep, libintl_dep, platform_dep, platform_socket_dep, libpulsecommon_dep, libpulse_dep],
+   c_args : pa_c_args,
+ )
+ 
+diff --git a/src/meson.build b/src/meson.build
+index 96dcec354..dd95ad784 100644
+--- a/src/meson.build
++++ b/src/meson.build
+@@ -217,9 +217,9 @@ endif
+ if get_option('daemon')
+   subdir('pulsecore')
+   subdir('daemon')
+-  subdir('modules')
++  #subdir('modules')
+ endif
+ if get_option('tests')
+   subdir('tests')
+ endif
+-subdir('utils')
++#subdir('utils')
+diff --git a/src/pulsecore/meson.build b/src/pulsecore/meson.build
+index b30264b3a..4e5923284 100644
+--- a/src/pulsecore/meson.build
++++ b/src/pulsecore/meson.build
+@@ -224,7 +224,7 @@ libpulsecore = shared_library('pulsecore-' + pa_version_major_minor,
+   install_rpath : privlibdir,
+   install_dir : privlibdir,
+   link_with : libpulsecore_simd_lib,
+-  dependencies : [libm_dep, libpulsecommon_dep, ltdl_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, libatomic_ops_dep, orc_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep, libsystemd_dep, libintl_dep, platform_dep, tcpwrap_dep, platform_socket_dep,],
++  dependencies : [libm_dep, libpulsecommon_dep, shm_dep, sndfile_dep, database_dep, dbus_dep, libatomic_ops_dep, orc_dep, samplerate_dep, soxr_dep, speex_dep, x11_dep, libsystemd_dep, libintl_dep, platform_dep, tcpwrap_dep, platform_socket_dep,],
+   implicit_include_directories : false)
+ 
+ libpulsecore_dep = declare_dependency(link_with: libpulsecore)

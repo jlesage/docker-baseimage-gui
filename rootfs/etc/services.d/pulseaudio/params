@@ -1,0 +1,16 @@
+#!/bin/sh
+
+set -u # Treat unset variables as an error.
+
+echo "--disallow-module-loading"
+echo "--disallow-exit"
+echo "--exit-idle-time=-1"
+echo "--realtime=false"
+echo "-n" # Don't load default script file
+echo "--load=module-null-sink"
+echo "--load=module-native-protocol-unix socket=/tmp/pulseaudio.sock auth-anonymous=1 auth-cookie=$PULSE_COOKIE"
+
+if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
+    echo "--log-level=4"
+    echo "--verbose"
+fi

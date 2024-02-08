@@ -627,6 +627,22 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_AUDIO
+      description: >-
+        When set to `1`, audio support is enabled, meaning that any audio
+        produced by the application is played through the browser. Note that
+        audio is not supported for VNC clients.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Audio
+        description: >-
+          When set to "1", audio support is enabled, meaning that any audio
+          produced by the application is played through the browser. Note that
+          audio is not supported for VNC clients.
+        display: advanced
+        required: false
+        mask: false
     - name: SECURE_CONNECTION
       description: >-
         When set to `1`, an encrypted connection is used to access the

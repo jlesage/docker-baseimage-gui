@@ -107,8 +107,28 @@ RUN upx /tmp/nginx-install/sbin/nginx
 #       See https://wildwolf.name/multi-stage-docker-builds-and-xattrs/.
 RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-install/sbin/nginx
 
+# Build PulseAudio.
+FROM --platform=$BUILDPLATFORM alpine:3.18 AS pulseaudio
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/pulseaudio /build-pulseaudio
+RUN /build-pulseaudio/build.sh
+RUN xx-verify --static /tmp/pulseaudio/pulseaudio
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/pulseaudio/pulseaudio
+
+# Build the audio recorder.
+FROM --platform=$BUILDPLATFORM alpine:3.18 AS audiorecorder
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/audiorecorder /tmp/build-audiorecorder
+RUN /tmp/build-audiorecorder/build.sh
+RUN xx-verify --static /tmp/build-audiorecorder/audiorecorder
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/build-audiorecorder/audiorecorder
+
 # Build noVNC.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS noVNC
+FROM --platform=$BUILDPLATFORM alpine:3.18 AS noVNC
 ARG NOVNC_VERSION=1.4.0
 ARG BOOTSTRAP_VERSION=5.1.3
 ARG BOOTSTRAP_NIGHTSHADE_VERSION=1.1.3
@@ -120,6 +140,8 @@ ARG FONTAWESOME_URL=https://fontawesome.com/v${FONTAWESOME_VERSION}/assets/font-
 WORKDIR /tmp
 COPY helpers/* /usr/bin/
 COPY rootfs/opt/noVNC/index.html /opt/noVNC/index.html
+COPY rootfs/opt/noVNC/app/pcm-player.js /tmp/pcm-player.js
+COPY rootfs/opt/noVNC/app/unmute.js /tmp/unmute.js
 RUN \
     # Install required tools.
     apk --no-cache add \
@@ -127,6 +149,7 @@ RUN \
         sed \
         jq \
         npm \
+        minify \
         && \
     npm install clean-css-cli -g
 RUN \
@@ -166,6 +189,10 @@ RUN \
 RUN \
     # Set version of CSS and JavaScript file URLs.
     sed "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" -i /opt/noVNC/index.html
+RUN \
+    # Minify Javascript.
+    minify -o /opt/noVNC/app/pcm-player.min.js /tmp/pcm-player.js && \
+    minify -o /opt/noVNC/app/unmute.min.js /tmp/unmute.js
 RUN \
     # Generate favicons.
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
@@ -211,6 +238,8 @@ COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
 COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
+COPY --link --from=pulseaudio /tmp/pulseaudio/pulseaudio /opt/base/bin/pulseaudio
+COPY --link --from=audiorecorder /tmp/build-audiorecorder/audiorecorder /opt/base/bin/audiorecorder
 COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --link --from=noVNC /opt/noVNC /opt/noVNC
 
@@ -225,7 +254,8 @@ ENV \
     WEB_LISTENING_PORT=5800 \
     VNC_LISTENING_PORT=5900 \
     VNC_PASSWORD= \
-    ENABLE_CJK_FONT=0
+    ENABLE_CJK_FONT=0 \
+    WEB_AUDIO=0
 
 # Expose ports.
 #   - 5800: VNC web interface

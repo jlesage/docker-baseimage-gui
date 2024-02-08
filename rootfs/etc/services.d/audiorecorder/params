@@ -1,0 +1,12 @@
+#!/bin/sh
+
+set -u # Treat unset variables as an error.
+
+echo "--latency-msec"
+echo "50"
+
+if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
+    echo "--debug"
+else
+    echo "--info"
+fi
