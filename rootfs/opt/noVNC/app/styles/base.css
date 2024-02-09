@@ -429,7 +429,7 @@ body {
   border-color: #CED4DA;
 }
 
-html.dark .btn.noVNC_selected {
+html[data-bs-theme="dark"] .btn.noVNC_selected {
   background: #3B3B3B;
   border: 1px solid;
   border-color: #525151;

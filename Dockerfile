@@ -130,12 +130,10 @@ RUN upx /tmp/build-audiorecorder/audiorecorder
 # Build noVNC.
 FROM --platform=$BUILDPLATFORM alpine:3.18 AS noVNC
 ARG NOVNC_VERSION=1.4.0
-ARG BOOTSTRAP_VERSION=5.1.3
-ARG BOOTSTRAP_NIGHTSHADE_VERSION=1.1.3
+ARG BOOTSTRAP_VERSION=5.3.2
 ARG FONTAWESOME_VERSION=4.7.0
 ARG NOVNC_URL=https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
-ARG BOOTSTRAP_NIGHTSHADE_URL=https://github.com/vinorodrigues/bootstrap-dark-5/archive/refs/tags/v${BOOTSTRAP_NIGHTSHADE_VERSION}.tar.gz
 ARG FONTAWESOME_URL=https://fontawesome.com/v${FONTAWESOME_VERSION}/assets/font-awesome-${FONTAWESOME_VERSION}.zip
 WORKDIR /tmp
 COPY helpers/* /usr/bin/
@@ -165,21 +163,10 @@ RUN \
     cp -vr /tmp/noVNC/vendor /opt/noVNC/
 RUN \
     # Install Bootstrap.
-    # NOTE: Only copy the JS bundle, since the CSS is taken from Bootstrap
-    #       Nightshade.
     curl -sS -L -O ${BOOTSTRAP_URL} && \
     unzip bootstrap-${BOOTSTRAP_VERSION}-dist.zip && \
-    #cp -v bootstrap-${BOOTSTRAP_VERSION}-dist/css/bootstrap.min.css /opt/noVNC/app/styles/ && \
+    cp -v bootstrap-${BOOTSTRAP_VERSION}-dist/css/bootstrap.min.css /opt/noVNC/app/styles/ && \
     cp -v bootstrap-${BOOTSTRAP_VERSION}-dist/js/bootstrap.bundle.min.js* /opt/noVNC/app/
-RUN \
-    # Install Bootstrap Nightshade.
-    mkdir /tmp/bootstrap-nightshade && \
-    curl -# -L ${BOOTSTRAP_NIGHTSHADE_URL} | tar -xz --strip 1 -C /tmp/bootstrap-nightshade && \
-    cleancss \
-        -O1 \
-        --format breakWith=lf \
-        --output /opt/noVNC/app/styles/bootstrap-nightshade.min.css \
-        /tmp/bootstrap-nightshade/dist/css/bootstrap-nightshade.css
 RUN \
     # Install Font Awesome.
     curl -sS -L -O ${FONTAWESOME_URL} && \
