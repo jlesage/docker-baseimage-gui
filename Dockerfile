@@ -28,13 +28,13 @@ ARG DEBIAN_PKGS="\
 # Get Dockerfile cross-compilation helpers.
 FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 
-# Build UPX.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS upx
-RUN apk --no-cache add build-base curl make cmake git && \
+# Get UPX (statically linked).
+FROM --platform=$BUILDPLATFORM alpine:3.18 AS upx
+ARG UPX_VERSION=4.2.2
+RUN apk --no-cache add curl && \
     mkdir /tmp/upx && \
-    curl -# -L https://github.com/upx/upx/releases/download/v4.0.1/upx-4.0.1-src.tar.xz | tar xJ --strip 1 -C /tmp/upx && \
-    make -C /tmp/upx build/release-gcc -j$(nproc) && \
-    cp -v /tmp/upx/build/release-gcc/upx /usr/bin/upx
+    curl -# -L https://github.com/upx/upx/releases/download/v${UPX_VERSION}/upx-${UPX_VERSION}-amd64_linux.tar.xz | tar xJ --strip 1 -C /tmp/upx && \
+    cp -v /tmp/upx/upx /usr/bin/upx
 
 # Build TigerVNC server.
 FROM --platform=$BUILDPLATFORM alpine:3.15 AS tigervnc
