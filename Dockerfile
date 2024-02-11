@@ -127,6 +127,27 @@ RUN xx-verify --static /tmp/build-audiorecorder/audiorecorder
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-audiorecorder/audiorecorder
 
+# Build the web authenticator.
+FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS webauth
+ARG TARGETPLATFORM
+ENV CGO_ENABLED=0
+COPY --from=xx / /
+COPY src/webauth /tmp/build-webauth
+RUN cd /tmp/build-webauth && xx-go build -ldflags "-s -w"
+RUN xx-verify --static /tmp/build-webauth/webauth
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/build-webauth/webauth
+
+# Build htpasswd
+FROM --platform=$BUILDPLATFORM alpine:3.18 AS htpasswd
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/htpasswd /tmp/build-htpasswd
+RUN /tmp/build-htpasswd/build.sh
+RUN xx-verify --static /tmp/httpd/support/htpasswd
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/httpd/support/htpasswd
+
 # Build noVNC.
 FROM --platform=$BUILDPLATFORM alpine:3.18 AS noVNC
 ARG NOVNC_VERSION=1.4.0
@@ -140,6 +161,7 @@ COPY helpers/* /usr/bin/
 COPY rootfs/opt/noVNC/index.html /opt/noVNC/index.html
 COPY rootfs/opt/noVNC/app/pcm-player.js /tmp/pcm-player.js
 COPY rootfs/opt/noVNC/app/unmute.js /tmp/unmute.js
+COPY rootfs/opt/noVNC/login/index.html /opt/noVNC/login/index.html
 RUN \
     # Install required tools.
     apk --no-cache add \
@@ -178,7 +200,9 @@ RUN \
     sed -i 's/webfonts/fonts/g' /opt/noVNC/app/styles/solid.min.css
 RUN \
     # Set version of CSS and JavaScript file URLs.
-    sed "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" -i /opt/noVNC/index.html
+    date | md5sum | cut -c1-10 > /tmp/unique_version && \
+    sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/index.html && \
+    sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/login/index.html
 RUN \
     # Minify Javascript.
     minify -o /opt/noVNC/app/pcm-player.min.js /tmp/pcm-player.js && \
@@ -230,6 +254,8 @@ COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
 COPY --link --from=pulseaudio /tmp/pulseaudio/pulseaudio /opt/base/bin/pulseaudio
 COPY --link --from=audiorecorder /tmp/build-audiorecorder/audiorecorder /opt/base/bin/audiorecorder
+COPY --link --from=webauth /tmp/build-webauth/webauth /opt/base/bin/webauth
+COPY --link --from=htpasswd /tmp/httpd/support/htpasswd /opt/base/bin/htpasswd
 COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --link --from=noVNC /opt/noVNC /opt/noVNC
 
@@ -245,7 +271,10 @@ ENV \
     VNC_LISTENING_PORT=5900 \
     VNC_PASSWORD= \
     ENABLE_CJK_FONT=0 \
-    WEB_AUDIO=0
+    WEB_AUDIO=0 \
+    WEB_AUTHENTICATION=0 \
+    WEB_AUTHENTICATION_DEFAULT_USERNAME= \
+    WEB_AUTHENTICATION_DEFAULT_PASSWORD=
 
 # Expose ports.
 #   - 5800: VNC web interface

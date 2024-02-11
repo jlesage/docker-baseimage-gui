@@ -1,0 +1,81 @@
+/*
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap');
+*/
+
+/* https://fonts.googleapis.com/css2?family=Poppins:wght@400;500&display=swap */
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(/login/fonts/pxiEyp8kv8JHgFVrFJA.ttf) format('truetype');
+}
+@font-face {
+  font-family: 'Poppins';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(/login/fonts/pxiByp8kv8JHgFVrLGT9V1s.ttf) format('truetype');
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+}
+
+html:not([data-bs-theme="dark"]) body {
+    background: #ececec;
+}
+
+/*------------ Login container ------------*/
+.box-area {
+    width: 930px;
+}
+.rounded-5 {
+    border-radius: 30px;
+}
+
+html:not([data-bs-theme="dark"]) .box-area {
+    background: white;
+}
+
+/*------------ Left box ------------*/
+.left-box {
+    background: #103cbe;
+}
+html[data-bs-theme="dark"] .left-box {
+    background: #375a7f;
+}
+.rounded-4 {
+    border-radius: 20px;
+}
+
+/*------------ Right box ------------*/
+.right-box {
+    padding: 30px 30px 30px 40px;
+}
+
+/*------------ Custom Placeholder ------------*/
+::placeholder {
+    font-size: 16px;
+}
+html:not([data-bs-theme="dark"]) .form-control {
+    background: rgba(248,249,250,1);
+}
+
+/*------------ For small screens------------*/
+@media only screen and (max-width: 768px) {
+    .box-area {
+        margin: 0 10px;
+    }
+    .left-box {
+        height: 100px;
+        overflow: hidden;
+    }
+    .right-box {
+        padding: 20px;
+    }
+    .left-box img {
+        width: 100%;
+        max-width: 53px;
+    }
+}

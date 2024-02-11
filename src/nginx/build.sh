@@ -9,7 +9,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-NGINX_VERSION=1.20.1
+NGINX_VERSION=1.24.0
 NGINXWEBSOCKIFYMOD_VERSION=0.0.3
 
 # Define software download URLs.
@@ -104,7 +104,6 @@ log "Configuring Nginx..."
         --without-http_geo_module \
         --without-http_split_clients_module \
         --without-http_referer_module \
-        --without-http_rewrite_module \
         --without-http_fastcgi_module \
         --without-http_uwsgi_module \
         --without-http_scgi_module \
@@ -122,6 +121,7 @@ log "Configuring Nginx..."
         \
         --with-stream \
         --with-stream_ssl_module \
+        --with-http_auth_request_module \
         \
         --add-module=/tmp/websockify-nginx-module \
 )

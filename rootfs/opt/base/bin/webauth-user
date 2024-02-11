@@ -1,0 +1,51 @@
+#!/bin/sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+CMD="${1:-}"
+USERNAME="${2:-}"
+PASSWORD_FILE="/config/webauth-htpasswd"
+
+die() {
+    echo "ERROR: $*"
+    exit 1
+}
+
+[ -n "$CMD" ] || die "Command must be specified: add, del, update or list."
+
+case "$CMD" in
+    add|update)
+        # Do some validations.
+        [ -t 0 ] || die "This must be run interactively."
+        [ -n "$USERNAME" ] || die "Username must be specified."
+        [ -f "$PASSWORD_FILE" ] || die "Password database not found."
+
+        # Add user.
+        /opt/base/bin/htpasswd -B "$PASSWORD_FILE" "$USERNAME"
+
+        # Reload the password file.
+        killall -SIGHUP webauth
+        ;;
+    del)
+        # Do some validations.
+        [ -n "$USERNAME" ] || die "Username must be specified."
+        [ -f "$PASSWORD_FILE" ] || die "Password database not found."
+
+        # Remove user.
+        /opt/base/bin/htpasswd -D "$PASSWORD_FILE" "$USERNAME"
+
+        # Reload the password file.
+        killall -SIGHUP webauth
+        ;;
+    list)
+        # Do some validations.
+        [ -f "$PASSWORD_FILE" ] || die "Password database not found."
+
+        # Display list of users.
+        cat "$PASSWORD_FILE" | cut -d':' -f1
+        ;;
+    *)
+        die "Invalid command.  Must be add, del, update or list."
+        ;;
+esac

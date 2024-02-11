@@ -34,6 +34,8 @@ needed on the client side) or via any VNC client.
          * [Certificates](#certificates)
          * [VNC Password](#vnc-password)
          * [DH Parameters](#dh-parameters)
+         * [Web Authentication](#web-authentication)
+            * [Configuring Users Credentials](#configuring-users-credentials)
       * [Initialization Scripts](#initialization-scripts)
       * [Finalization Scripts](#finalization-scripts)
       * [Services](#services)
@@ -290,6 +292,9 @@ The following public environment variables are provided by the baseimage:
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
 |`DARK_MODE`| When set to `1`, dark mode is enabled for the application. | `0` |
 |`WEB_AUDIO`| When set to `1`, audio support is enabled, meaning that any audio produced by the application is played through the browser. Note that audio is not supported for VNC clients. | `0` |
+|`WEB_AUTHENTICATION`| When set to `1`, the application' GUI is protected via a login page when accessed via a web browser.  Access is allowed only when providing valid credentials.  **NOTE**: This feature requires secure connection (`SECURE_CONNECTION` environment variable) to be enabled. | `0` |
+|`WEB_AUTHENTICATION_DEFAULT_USERNAME`| Optional username to configure for the web authentication.  This is a quick and easy way to configure credentials of a single user.  To configure credentials in a more secure way, or to add more users, see the [Web Authentication](#web-authentication) section. | (no value) |
+|`WEB_AUTHENTICATION_DEFAULT_PASSWORD`| Optional password to configure for the web authentication.  This is a quick and easy way to configure credentials of a single user.  To configure credentials in a more secure way, or to add more users, see the [Web Authentication](#web-authentication) section. | (no value) |
 |`SECURE_CONNECTION`| When set to `1`, an encrypted connection is used to access the application's GUI (either via a web browser or VNC client).  See the [Security](#security) section for more details. | `0` |
 |`SECURE_CONNECTION_VNC_METHOD`| Method used to perform the secure VNC connection.  Possible values are `SSL` or `TLS`.  See the [Security](#security) section for more details. | `SSL` |
 |`SECURE_CONNECTION_CERTS_CHECK_INTERVAL`| Interval, in seconds, at which the system verifies if web or VNC certificates have changed.  When a change is detected, the affected services are automatically restarted.  A value of `0` disables the check. | `60` |
@@ -528,6 +533,50 @@ container.
 
 [DH key-exchange]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
 [OpenSSL Wiki]: https://wiki.openssl.org/index.php/Diffie_Hellman
+
+#### Web Authentication
+
+Access to the application's GUI via a web browser can be protected with a login
+page.  When web authentication is enabled, users have to provide valid
+credentials, otherwise access is denied.
+
+Web authentication can be enabled by setting the `WEB_AUTHENTICATION`
+environment variable to `1`.
+
+See the [Environment Variables](#environment-variables) section for more details
+on how to set an environment variable.
+
+**NOTE**: Secure connection must be also enabled to use web authentication.
+          See the [Security](#security) section for more details.
+
+##### Configuring Users Credentials
+
+Two methods can be used to configure users credentials:
+
+  1. Via container environment variables.
+  2. Via password database.
+
+Containers environment variables can be used to quickly and easily configure
+a single user.  Username and pasword are defined via the following environment
+variables:
+  - `WEB_AUTHENTICATION_USERNAME`
+  - `WEB_AUTHENTICATION_PASSWORD`
+
+See the [Environment Variables](#environment-variables) section for more details
+on how to set an environment variable.
+
+The second method is more secure and allows multiple users to be configured.
+The usernames and password hashes are saved into a password database, located at
+`/config/webauth-htpasswd` inside the container.  This database file has the
+same format as htpasswd files of the Apache HTTP server.  Note that password
+themselves are not saved into the database, but only their hash.  The bcrypt
+password hashing function is used to generate hashes.
+
+Users are managed via the `webauth-user` tool included in the container:
+  - To add a user password: `docker exec -ti <container name or id> webauth-user add <username>`.
+  - To update a user password: `docker exec -ti <container name or id> webauth-user update <username>`.
+  - To remove a user: `docker exec <container name or id> webauth-user del <username>`.
+  - To list users: `docker exec <container name or id> webauth-user user`.
 
 ### Initialization Scripts
 
