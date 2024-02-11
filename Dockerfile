@@ -131,10 +131,10 @@ RUN upx /tmp/build-audiorecorder/audiorecorder
 FROM --platform=$BUILDPLATFORM alpine:3.18 AS noVNC
 ARG NOVNC_VERSION=1.4.0
 ARG BOOTSTRAP_VERSION=5.3.2
-ARG FONTAWESOME_VERSION=4.7.0
+ARG FONTAWESOME_VERSION=5.15.4
 ARG NOVNC_URL=https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
-ARG FONTAWESOME_URL=https://fontawesome.com/v${FONTAWESOME_VERSION}/assets/font-awesome-${FONTAWESOME_VERSION}.zip
+ARG FONTAWESOME_URL=https://github.com/FortAwesome/Font-Awesome/releases/download/${FONTAWESOME_VERSION}/fontawesome-free-${FONTAWESOME_VERSION}-web.zip
 WORKDIR /tmp
 COPY helpers/* /usr/bin/
 COPY rootfs/opt/noVNC/index.html /opt/noVNC/index.html
@@ -144,6 +144,7 @@ RUN \
     # Install required tools.
     apk --no-cache add \
         curl \
+        libarchive-tools \
         sed \
         jq \
         npm \
@@ -169,10 +170,12 @@ RUN \
     cp -v bootstrap-${BOOTSTRAP_VERSION}-dist/js/bootstrap.bundle.min.js* /opt/noVNC/app/
 RUN \
     # Install Font Awesome.
-    curl -sS -L -O ${FONTAWESOME_URL} && \
-    unzip font-awesome-${FONTAWESOME_VERSION}.zip && \
-    cp -v font-awesome-${FONTAWESOME_VERSION}/fonts/fontawesome-webfont.* /opt/noVNC/app/fonts/ && \
-    cp -v font-awesome-${FONTAWESOME_VERSION}/css/font-awesome.min.css /opt/noVNC/app/styles/
+    mkdir /tmp/fontawesome && \
+    curl -# -L fontawesome.zip ${FONTAWESOME_URL} | bsdtar xf - --strip-components=1 -C /tmp/fontawesome && \
+    find /tmp/fontawesome/webfonts -name "fa-solid-900.*" -not -name "*.svg" -exec cp -v {} /opt/noVNC/app/fonts/ ';' && \
+    cp -v /tmp/fontawesome/css/solid.min.css /opt/noVNC/app/styles/ && \
+    cp -v /tmp/fontawesome/css/fontawesome.min.css /opt/noVNC/app/styles/ && \
+    sed -i 's/webfonts/fonts/g' /opt/noVNC/app/styles/solid.min.css
 RUN \
     # Set version of CSS and JavaScript file URLs.
     sed "s/UNIQUE_VERSION/$(date | md5sum | cut -c1-10)/g" -i /opt/noVNC/index.html

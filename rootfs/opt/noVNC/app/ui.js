@@ -1562,7 +1562,7 @@ const UI = {
             }
 
             // Update the interface.
-            audioButtonIcon.classList.remove("fa-volume-off");
+            audioButtonIcon.classList.remove("fa-volume-mute");
             audioButtonIcon.classList.add("fa-volume-up");
         }
         else {
@@ -1579,7 +1579,7 @@ const UI = {
 
             // Update the interface.
             audioButtonIcon.classList.remove("fa-volume-up");
-            audioButtonIcon.classList.add("fa-volume-off");
+            audioButtonIcon.classList.add("fa-volume-mute");
         }
     },
 

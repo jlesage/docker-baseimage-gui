@@ -25,7 +25,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- Stylesheets -->
-    <link rel="stylesheet" href="app/styles/font-awesome.min.css?v=UNIQUE_VERSION">
+    <link rel="stylesheet" href="app/styles/fontawesome.min.css?v=UNIQUE_VERSION">
+    <link rel="stylesheet" href="app/styles/solid.min.css?v=UNIQUE_VERSION">
     <link rel="stylesheet" href="app/styles/bootstrap.min.css?v=UNIQUE_VERSION">
     <link rel="stylesheet" href="app/styles/base.css?v=UNIQUE_VERSION">
 
@@ -65,10 +66,10 @@
                 <ul class="list-group list-group-flush">
                     <!-- Action icons -->
                     <li class="list-group-item" id="noVNC_action_icons_section">
-                        <div class="d-flex justify-content-around align-items-center">
-                            <a class="btn shadow-none p-0" href="#" title="Show Keyboard" id="noVNC_keyboard_button"><i class="fa fa-keyboard-o fa-fw fs-4"></i></a>
-                            <a class="btn shadow-none p-0 noVNC_hidden" href="#" title="Fullscreen" id="noVNC_fullscreen_button"><i class="fa fa-arrows-alt fa-fw fs-4"></i></a>
-                            <a class="btn shadow-none p-0 noVNC_hidden" href="#" title="Move/Drag Viewport" id="noVNC_view_drag_button"><i class="fa fa-hand-rock-o fa-fw fs-4"></i></a>
+                        <div class="d-flex justify-content-center align-items-center">
+                            <a class="btn shadow-none p-0 px-2" href="#" title="Show Keyboard" id="noVNC_keyboard_button"><i class="fas fa-keyboard fa-fw fa-lg"></i></a>
+                            <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Fullscreen" id="noVNC_fullscreen_button"><i class="fas fa-expand fa-fw fa-lg"></i></a>
+                            <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Move/Drag Viewport" id="noVNC_view_drag_button"><i class="fas fa-hand-rock fa-fw fa-lg"></i></a>
                         </div>
                     </li>
                     <!-- Clipboard -->
@@ -85,7 +86,7 @@
                         <label class="custom-accordion-button text-nowrap" data-bs-toggle="collapse" data-bs-target="#audioCollapse">Audio</label>
                         <div class="collapse show" id="audioCollapse">
                             <div class="d-flex flex-row">
-                                <a class="btn shadow-none p-0" href="#" title="Mute/Unmute" id="noVNC_audio_button"><i class="fa fa-volume-off fa-fw fs-4" id="noVNC_audio_button_icon"></i></a>
+                                <a class="btn shadow-none p-0 pe-1" href="#" title="Mute/Unmute" id="noVNC_audio_button"><i class="fas fa-volume-mute fa-fw fa-lg" id="noVNC_audio_button_icon"></i></a>
                                 <input type="range" min="0" max="100" value="0" class="form-range flex-grow-1" id="noVNC_setting_audio_volume">
                             </div>
                         </div>
