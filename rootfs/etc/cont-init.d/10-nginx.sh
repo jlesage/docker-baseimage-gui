@@ -12,11 +12,13 @@ NGINX_DIRS="\
     /var/run/nginx \
     /var/tmp/nginx \
 "
+
 LISTEN_CONF=/var/tmp/nginx/listen.conf
 SSL_CONF=/var/tmp/nginx/ssl.conf
 STREAM_CONF=/var/tmp/nginx/stream.conf
 STREAM_LISTEN_CONF=/var/tmp/nginx/stream_listen.conf
 AUDIO_CONF=/var/tmp/nginx/audio.conf
+AUTH_CONF=/var/tmp/nginx/auth.conf
 
 # Make sure required directories exist.
 for DIR in $NGINX_DIRS; do
@@ -72,6 +74,16 @@ fi
 # Handle configuration for audio support.
 if is-bool-val-true "${WEB_AUDIO:-0}"; then
     cp /defaults/default_audio.conf "$AUDIO_CONF"
+fi
+
+# Handle configuration for web authentication.
+if is-bool-val-true "${WEB_AUTHENTICATION:-0}"; then
+    cp /defaults/default_auth.conf "$AUTH_CONF"
+else
+    # Feature is disabled, so we need to prevent access to the login page.
+    printf "location /login/ {" >> "$AUTH_CONF"
+    printf "\treturn 404;" >> "$AUTH_CONF"
+    printf "}" >> "$AUTH_CONF"
 fi
 
 # Make sure required directories are properly owned.

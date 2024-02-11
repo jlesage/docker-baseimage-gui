@@ -643,6 +643,56 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_AUTHENTICATION
+      description: >-
+        When set to `1`, the application' GUI is protected via a login page when
+        accessed via a web browser.  Access is allowed only when providing valid
+        credentials.  **NOTE**: This feature requires secure connection
+        (`SECURE_CONNECTION` environment variable) to be enabled.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Authentication
+        description: >-
+          When set to "1", the application' GUI is protected via a login page when
+          accessed via a web browser.
+        display: advanced
+        required: false
+        mask: false
+    - name: WEB_AUTHENTICATION_DEFAULT_USERNAME
+      description: >-
+        Optional username to configure for the web authentication.  This is a
+        quick and easy way to configure credentials of a single user.  To
+        configure credentials in a more secure way, or to add more users, see
+        the [Web Authentication](#web-authentication) section.
+      type: public
+      unraid_template:
+        title: Web Authentication Defaut Username
+        description: >-
+          Optional username to configure for the web authentication.  This is a
+          quick and easy way to configure credentials of a single user.  To
+          configure credentials in a more secure way, or to add more users, see
+          the documentation.
+        display: advanced
+        required: false
+        mask: false
+    - name: WEB_AUTHENTICATION_DEFAULT_PASSWORD
+      description: >-
+        Optional password to configure for the web authentication.  This is a
+        quick and easy way to configure credentials of a single user.  To
+        configure credentials in a more secure way, or to add more users, see
+        the [Web Authentication](#web-authentication) section.
+      type: public
+      unraid_template:
+        title: Web Authentication Defaut Password
+        description: >-
+          Optional password to configure for the web authentication.  This is a
+          quick and easy way to configure credentials of a single user.  To
+          configure credentials in a more secure way, or to add more users, see
+          the documentation.
+        display: advanced
+        required: false
+        mask: false
     - name: SECURE_CONNECTION
       description: >-
         When set to `1`, an encrypted connection is used to access the

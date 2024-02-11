@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles/bootstrap.min.css?v=UNIQUE_VERSION">
+    <link rel="stylesheet" href="styles/login.css?v=UNIQUE_VERSION">
+    <title>Login</title>
+</head>
+<!-- https://www.ludiflex.com/responsive-login-page-created-with-bootstrap-5/ -->
+<body>
+    <!-- Main Container -->
+    <div class="container d-flex justify-content-center align-items-center min-vh-100">
+        <!-- Login Container -->
+        <div class="row border rounded-5 p-3 shadow box-area">
+
+            <!-- Left Box -->
+            <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-row flex-md-column left-box">
+                <div class="featured-image px-2 px-md-0">
+                    <img src="master_icon.png?v=UNIQUE_VERSION" id="appLogo" class="img-fluid" style="width: 250px;">
+                </div>
+                <label name="appName" class="text-white text-md-center fs-2 px-2 px-md-0" style="font-family: 'Courier New', Courier, monospace; font-weight: 600;"></label>
+            </div>
+
+            <!-- Right Box -->
+            <div class="col-md-6 right-box">
+                <div class="d-flex flex-column">
+                    <div class="header-text mb-4">
+                        <h2>Welcome Back</h2>
+                        <p class="mb-0">Login to access your <span name="appName">DockerApp</span> container instance</p>
+                    </div>
+                    <div id="loginStatus" class="alert alert-danger mb-4 d-none" role="alert">
+                    </div>
+                    <form action="/login/login" method="post" id="loginForm" novalidate>
+                    <div class="form-floating mb-3">
+                        <input type="text" name="username" id="usernameInput" class="form-control form-control-lg fs-6" placeholder="Username" required maxlength="128">
+                        <label for="usernameInput">Username</label>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <input type="password" name="password" id="passwordInput" class="form-control form-control-lg fs-6" placeholder="Password" required maxlength="128">
+                        <label for="passwordInput">Password</label>
+                    </div>
+                    <div>
+                        <button type="submit" id="loginButton" class="btn btn-lg btn-primary w-100 fs-6">
+                            <span id="loginButtonLabel">Login</span>
+                            <span id="loginButtonSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        </button>
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script src="js.cookie.min.js?v=UNIQUE_VERSION"></script>
+<script type="module">
+    import WebData from "./webdata.js";
+
+    // Update page title.
+    document.title = 'Login - ' + WebData.applicationName;
+
+    // Update application name fields.
+    Array.from(document.getElementsByName('appName'))
+        .forEach(el => el.innerText = WebData.applicationName);
+
+    // Update logo image properties.
+    document.getElementById('appLogo').alt = WebData.applicationName + 'logo';
+    document.getElementById('appLogo').title = WebData.applicationName;
+
+    // Enable dark mode.
+    if (WebData.darkMode) {
+        document.documentElement.classList.add("dark");
+        document.documentElement.setAttribute('data-bs-theme', 'dark');
+    }
+
+    // Show login status message if needed.
+    var loginResult = Cookies.get('login_result');
+    if (loginResult === 'INVALID_CREDENTIALS') {
+        var loginStatus = document.getElementById('loginStatus');
+        loginStatus.innerText = "Incorrect username or password.";
+        loginStatus.classList.remove("d-none");
+    }
+    Cookies.remove('login_result', { path: '/login' });
+
+    // Handle submit event.
+    const form = document.forms['loginForm'];
+    form.addEventListener('submit', (event) => {
+        if (!form.checkValidity()) {
+            var loginStatus = document.getElementById('loginStatus');
+            loginStatus.classList.add("d-none");
+
+	    event.preventDefault();
+            event.stopPropagation();
+        } else {
+            // Disable the button and show the spinner.
+            loginButton.disabled = true;
+            loginButtonLabel.classList.add("d-none");
+            loginButtonSpinner.classList.remove("d-none");
+        }
+
+        form.classList.add('was-validated');
+    });
+</script>
+
+</body>
+</html>
