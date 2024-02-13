@@ -201,7 +201,7 @@ log "Configuring Openbox..."
 
 log "Compiling Openbox..."
 #sed -i 's|--silent|--verbose|' /tmp/openbox/Makefile
-make V=1 -C /tmp/openbox -j$(nproc)
+make V=0 -C /tmp/openbox -j$(nproc)
 
 log "Installing Openbox..."
 make DESTDIR=/tmp/openbox-install -C /tmp/openbox install

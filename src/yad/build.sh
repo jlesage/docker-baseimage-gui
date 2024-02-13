@@ -25,7 +25,7 @@ ATK_URL=https://download.gnome.org/sources/atk/${ATK_VERSION%.*}/atk-${ATK_VERSI
 GDKPIXBUF_URL=https://download.gnome.org/sources/gdk-pixbuf/${GDKPIXBUF_VERSION%.*}/gdk-pixbuf-${GDKPIXBUF_VERSION}.tar.xz
 
 # Set same default compilation flags as abuild.
-export CFLAGS="-Os -fomit-frame-pointer"
+export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,--as-needed"
