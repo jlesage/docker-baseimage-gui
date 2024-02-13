@@ -45,23 +45,15 @@ jobs:
 
     steps:
       - name: Free disk space
-        run: |
-          # Free disk space.
-          echo "::group::Before"
-          df -h /
-          echo "::endgroup::"
-          echo "::group::Removing unneeded softwares and files..."
-          for DIR in /usr/local/lib/android /usr/share/dotnet /opt/ghc
-          do
-            if [ -d "$DIR" ]; then
-                echo "Removing $DIR..."
-                sudo rm -r "$DIR"
-            fi
-          done
-          echo "::endgroup::"
-          echo "::group::After"
-          df -h /
-          echo "::endgroup::"
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
 
       - name: Prepare
         id: prep
@@ -128,23 +120,23 @@ jobs:
           #echo "build_date=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup BATS
         uses: mig4/setup-bats@v1
 
       - name: Setup QEMU
-        uses: docker/setup-qemu-action@v2
+        uses: docker/setup-qemu-action@v3
         with:
           platforms: arm,arm64,ppc64le,mips64,s390x
 
       - name: Setup Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
         with:
           driver-opts: network=host
 
       - name: Build and push to local registry
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           push: true
           pull: true
@@ -175,7 +167,7 @@ jobs:
 
       - name: Login to DockerHub
         if: ${{ steps.prep.outputs.is_release == 'yes' }}
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
@@ -189,7 +181,7 @@ jobs:
         #         - https://github.com/docker/buildx/issues/59
         #         - https://github.com/docker/build-push-action/issues/132
         if: ${{ steps.prep.outputs.is_release == 'yes' }}
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           push: true
           provenance: false
@@ -235,7 +227,7 @@ jobs:
 
       - name: Dockerhub description
         if: ${{ steps.prep.outputs.release_type == 'standard' }}
-        uses: peter-evans/dockerhub-description@v3
+        uses: peter-evans/dockerhub-description@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
