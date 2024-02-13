@@ -4,7 +4,7 @@
 #
 # This also builds a customized version of XKeyboard config files and the
 # compiler (xkbcomp).  By using a different instance/version of XKeyboard, we
-# prevent version mismatch issues thay could occur by using packages from the
+# prevent version mismatch issues that could occur by using packages from the
 # distro of the baseimage.
 #
 # NOTE: This script is expected to be run under Alpine Linux.
@@ -17,19 +17,16 @@ set -u # Treat unset variables as an error.
 TIGERVNC_VERSION=1.13.1
 XSERVER_VERSION=1.20.14
 
-# Use the same versions has Alpine 3.15.
-GNUTLS_VERSION=3.7.1
+# Use the same versions has Alpine 3.16.
+GNUTLS_VERSION=3.7.7
 LIBXFONT2_VERSION=2.0.5
 LIBFONTENC_VERSION=1.1.4
 LIBTASN1_VERSION=4.18.0
 LIBXSHMFENCE_VERSION=1.3
-
 # If the XKeyboardConfig version is too recent compared to xorgproto/libX11,
-# xkbcomp will complain with warnings like "Could not resolve keysym ...".  With
-# Alpine 3.15, XKeyboardConfig version 2.32 is the latest version that doesn't
-# produces these warnings.
-XKEYBOARDCONFIG_VERSION=2.32
-XKBCOMP_VERSION=1.4.5
+# xkbcomp will complain with warnings like "Could not resolve keysym ...".
+XKEYBOARDCONFIG_VERSION=2.35.1
+XKBCOMP_VERSION=1.4.7
 
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
@@ -41,8 +38,8 @@ LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
 LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.gz
 
-XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.bz2
-XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.bz2
+XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.xz
+XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.xz
 
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
@@ -50,7 +47,8 @@ export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all"
 
-export CC=xx-clang
+export CC=xx-clang-wrapper
+export CXX=xx-clang++-wrapper
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
@@ -110,6 +108,14 @@ xx-apk --no-cache --no-scripts add \
     gettext-static \
     libunistring-dev \
     libbsd-dev \
+    libbsd-static \
+
+# Copy the xx-clang wrapper.  When compilation uses libtool, all arguments from
+# LDFLAGS are re-ordered during the link phase by libtool.  Thus, libraries are
+# no longer between the -Wl,--start-group and -Wl,--end-group arguments.  The
+# wrapper detects this scenario and fixes arguments.
+cp "$SCRIPT_DIR"/xx-clang-wrapper /usr/bin/
+cp "$SCRIPT_DIR"/xx-clang++-wrapper /usr/bin/
 
 #
 # Build GNU TLS.
@@ -333,7 +339,7 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
 # Remove all automatic dependencies on libraries and manually define them to
 # have the correct order.
 find /tmp/tigervnc -name "*.la" -exec sed 's/^dependency_libs/#dependency_libs/' -i {} ';'
-sed 's/^XSERVER_SYS_LIBS = .*/XSERVER_SYS_LIBS = -lXau -lXdmcp -lpixman-1 -ljpeg -lXfont2 -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lz -lbz2 -lgnutls -lhogweed -lgmp -lnettle -lunistring -ltasn1 -lbsd -lmd/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
+sed 's/^XSERVER_SYS_LIBS = .*/XSERVER_SYS_LIBS = -Wl,--start-group -lXau -lXdmcp -lpixman-1 -ljpeg -lXfont2 -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lz -lbz2 -lgnutls -lhogweed -lgmp -lnettle -lunistring -ltasn1 -lbsd -lmd -Wl,--end-group/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
 
 log "Compiling TigerVNC server..."
 make -C /tmp/tigervnc/unix/xserver -j$(nproc)
@@ -349,7 +355,7 @@ make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/vncpasswd install
 #
 mkdir /tmp/xkb
 log "Downloading XKeyboardConfig..."
-curl -# -L -f ${XKEYBOARDCONFIG_URL} | tar -xj --strip 1 -C /tmp/xkb
+curl -# -L -f ${XKEYBOARDCONFIG_URL} | tar -xJ --strip 1 -C /tmp/xkb
 log "Configuring XKeyboardConfig..."
 (
     cd /tmp/xkb && abuild-meson . build
@@ -401,7 +407,7 @@ find /tmp/xkb-install/usr/share/X11/xkb -mindepth 1 ! -type d $(printf "! -whole
 #
 mkdir /tmp/xkbcomp
 log "Downloading xkbcomp..."
-curl -# -L -f ${XKBCOMP_URL} | tar -xj --strip 1 -C /tmp/xkbcomp
+curl -# -L -f ${XKBCOMP_URL} | tar -xJ --strip 1 -C /tmp/xkbcomp
 
 log "Configuring xkbcomp..."
 (

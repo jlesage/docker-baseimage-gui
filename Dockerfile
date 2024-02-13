@@ -37,7 +37,7 @@ RUN apk --no-cache add curl && \
     cp -v /tmp/upx/upx /usr/bin/upx
 
 # Build TigerVNC server.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS tigervnc
+FROM --platform=$BUILDPLATFORM alpine:3.16 AS tigervnc
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/tigervnc /build
@@ -49,14 +49,14 @@ RUN upx /tmp/tigervnc-install/usr/bin/Xvnc
 RUN upx /tmp/tigervnc-install/usr/bin/vncpasswd
 
 # Build Fontconfig.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS fontconfig
+FROM --platform=$BUILDPLATFORM alpine:3.16 AS fontconfig
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/fontconfig/build.sh /tmp/build-fontconfig.sh
 RUN /tmp/build-fontconfig.sh
 
 # Build Openbox.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS openbox
+FROM --platform=$BUILDPLATFORM alpine:3.16 AS openbox
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
@@ -71,7 +71,7 @@ RUN upx /tmp/openbox-install/usr/bin/obxprop
 
 # Build xdpyprobe.
 # Used to determine if the X server (Xvnc) is ready.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS xdpyprobe
+FROM --platform=$BUILDPLATFORM alpine:3.16 AS xdpyprobe
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/xdpyprobe /tmp/xdpyprobe
@@ -95,7 +95,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/yad-install/usr/bin/yad
 
 # Build Nginx.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS nginx
+FROM --platform=$BUILDPLATFORM alpine:3.16 AS nginx
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/nginx/build.sh /tmp/build-nginx.sh
@@ -213,7 +213,7 @@ RUN \
     install_app_icon.sh --no-tools-install "$APP_ICON_URL"
 
 # Generate default DH params.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS dhparam
+FROM --platform=$BUILDPLATFORM alpine:3.16 AS dhparam
 RUN apk --no-cache add openssl
 RUN echo "Generating default DH parameters (2048 bits)..."
 RUN openssl dhparam \

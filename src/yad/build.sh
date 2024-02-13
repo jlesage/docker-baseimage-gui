@@ -11,10 +11,10 @@ set -u # Treat unset variables as an error.
 # Define software versions.
 YAD_VERSION=0.42.43
 
-# Use the same versions has Alpine 3.15.
-PANGO_VERSION=1.48.10
+# Use the same versions has Alpine 3.16.
+PANGO_VERSION=1.50.7
 GTK_VERSION=2.24.33
-ATK_VERSION=2.36.0
+ATK_VERSION=2.38.0
 GDKPIXBUF_VERSION=2.42.8
 
 # Define software download URLs.
