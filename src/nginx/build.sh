@@ -61,7 +61,7 @@ log "Configuring Nginx..."
         --crossbuild=Linux:$(xx-info arch) \
         --with-cc="xx-clang" \
         --with-cc-opt="-Os -fomit-frame-pointer -Wno-sign-compare" \
-        --with-ld-opt="-Wl,--as-needed -static -Wl,--strip-all" \
+        --with-ld-opt="-Wl,--as-needed,-O1,--sort-common -static -Wl,--strip-all" \
         --prefix=/var/lib/nginx \
         --sbin-path=/sbin/nginx \
         --modules-path=/usr/lib/nginx/modules \

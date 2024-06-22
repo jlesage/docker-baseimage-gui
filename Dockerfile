@@ -95,7 +95,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/yad-install/usr/bin/yad
 
 # Build Nginx.
-FROM --platform=$BUILDPLATFORM alpine:3.16 AS nginx
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS nginx
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/nginx/build.sh /tmp/build-nginx.sh
@@ -108,7 +108,7 @@ RUN upx /tmp/nginx-install/sbin/nginx
 RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-install/sbin/nginx
 
 # Build PulseAudio.
-FROM --platform=$BUILDPLATFORM alpine:3.18 AS pulseaudio
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS pulseaudio
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/pulseaudio /build-pulseaudio
@@ -118,7 +118,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/pulseaudio/pulseaudio
 
 # Build the audio recorder.
-FROM --platform=$BUILDPLATFORM alpine:3.18 AS audiorecorder
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS audiorecorder
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/audiorecorder /tmp/build-audiorecorder
@@ -149,7 +149,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/httpd/support/htpasswd
 
 # Build noVNC.
-FROM --platform=$BUILDPLATFORM alpine:3.18 AS noVNC
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS noVNC
 ARG NOVNC_VERSION=1.4.0
 ARG BOOTSTRAP_VERSION=5.3.2
 ARG FONTAWESOME_VERSION=5.15.4
@@ -193,7 +193,7 @@ RUN \
 RUN \
     # Install Font Awesome.
     mkdir /tmp/fontawesome && \
-    curl -# -L fontawesome.zip ${FONTAWESOME_URL} | bsdtar xf - --strip-components=1 -C /tmp/fontawesome && \
+    curl -# -L ${FONTAWESOME_URL} | bsdtar xf - --strip-components=1 -C /tmp/fontawesome && \
     find /tmp/fontawesome/webfonts -name "fa-solid-900.*" -not -name "*.svg" -exec cp -v {} /opt/noVNC/app/fonts/ ';' && \
     cp -v /tmp/fontawesome/css/solid.min.css /opt/noVNC/app/styles/ && \
     cp -v /tmp/fontawesome/css/fontawesome.min.css /opt/noVNC/app/styles/ && \
