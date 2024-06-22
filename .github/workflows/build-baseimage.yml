@@ -223,7 +223,7 @@ jobs:
           echo "release_type=${RELEASE_TYPE}" >> $GITHUB_OUTPUT
 
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Dockerhub description
         if: ${{ steps.prep.outputs.release_type == 'standard' }}
