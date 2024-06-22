@@ -1442,7 +1442,11 @@ const UI = {
     },
 
     updateLogging() {
-        WebUtil.initLogging(UI.getSetting('logging'));
+        const level = UI.getSetting('logging');
+        WebUtil.initLogging(level);
+        if (UI.audioContext) {
+            UI.audioContext.player.initLogging(level);
+        }
     },
 
     updateDesktopName(e) {

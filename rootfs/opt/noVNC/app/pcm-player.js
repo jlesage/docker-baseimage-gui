@@ -78,6 +78,10 @@ PCMPlayer.prototype.init = function(option) {
     this.createAudioContext();
 };
 
+PCMPlayer.prototype.initLogging = function(level) {
+    Log.initLogging(level)
+}
+
 PCMPlayer.prototype.createAudioContext = function() {
     this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
