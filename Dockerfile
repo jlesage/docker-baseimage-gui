@@ -139,7 +139,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-webauth/webauth
 
 # Build htpasswd
-FROM --platform=$BUILDPLATFORM alpine:3.18 AS htpasswd
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS htpasswd
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/htpasswd /tmp/build-htpasswd

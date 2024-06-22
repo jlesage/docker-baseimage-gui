@@ -11,7 +11,7 @@ set -u # Treat unset variables as an error.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Define software versions.
-HTTPD_VERSION=2.4.58
+HTTPD_VERSION=2.4.59
 
 # Define software download URLs.
 HTTPD_URL=https://dlcdn.apache.org/httpd/httpd-${HTTPD_VERSION}.tar.gz
@@ -20,7 +20,7 @@ HTTPD_URL=https://dlcdn.apache.org/httpd/httpd-${HTTPD_VERSION}.tar.gz
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all"
+export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -44,6 +44,7 @@ xx-apk --no-cache --no-scripts add \
     apr-util-dev \
     pcre2-dev \
     expat-static \
+    util-linux-static \
 
 #
 # Build httpd.
