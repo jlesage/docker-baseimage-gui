@@ -37,7 +37,7 @@ RUN apk --no-cache add curl && \
     cp -v /tmp/upx/upx /usr/bin/upx
 
 # Build TigerVNC server.
-FROM --platform=$BUILDPLATFORM alpine:3.16 AS tigervnc
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS tigervnc
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/tigervnc /build
@@ -47,6 +47,23 @@ RUN xx-verify --static /tmp/tigervnc-install/usr/bin/vncpasswd
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/tigervnc-install/usr/bin/Xvnc
 RUN upx /tmp/tigervnc-install/usr/bin/vncpasswd
+
+# Build xkeyboard-config.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS xkeyboard-config
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/xkeyboard-config /build
+RUN /build/build.sh
+
+# Build xkbcomp.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS xkbcomp
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/xkbcomp /build
+RUN /build/build.sh
+RUN xx-verify --static /tmp/xkbcomp-install/usr/bin/xkbcomp
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
 
 # Build Fontconfig.
 FROM --platform=$BUILDPLATFORM alpine:3.16 AS fontconfig
@@ -244,8 +261,8 @@ COPY --link helpers/* /opt/base/bin/
 COPY --link rootfs/ /
 COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
 COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
-COPY --link --from=tigervnc /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
-COPY --link --from=tigervnc /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
+COPY --link --from=xkeyboard-config /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
+COPY --link --from=xkbcomp /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/openbox /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/obxprop /opt/base/bin/
 COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt

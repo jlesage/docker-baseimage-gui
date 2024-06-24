@@ -17,26 +17,34 @@ set -u # Treat unset variables as an error.
 TIGERVNC_VERSION=1.13.1
 XSERVER_VERSION=1.20.14
 
-# Use the same versions has Alpine 3.16.
-GNUTLS_VERSION=3.7.7
-LIBXFONT2_VERSION=2.0.5
-LIBFONTENC_VERSION=1.1.4
-LIBTASN1_VERSION=4.18.0
-LIBXSHMFENCE_VERSION=1.3
+# Use the same versions has Alpine 3.20.
+GMP_VERSION=6.3.0
+GNUTLS_VERSION=3.8.5
+LIBXFONT2_VERSION=2.0.6
+LIBFONTENC_VERSION=1.1.8
+LIBTASN1_VERSION=4.19.0
+LIBXSHMFENCE_VERSION=1.3.2
 # If the XKeyboardConfig version is too recent compared to xorgproto/libX11,
 # xkbcomp will complain with warnings like "Could not resolve keysym ...".
-XKEYBOARDCONFIG_VERSION=2.35.1
+XKEYBOARDCONFIG_VERSION=2.41
 XKBCOMP_VERSION=1.4.7
+PIXMAN_VERSION=0.43.4
+BROTLI_VERSION=1.1.0
+MESA_VERSION=24.0.8
 
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
 XSERVER_URL=https://www.x.org/releases/individual/xserver/xorg-server-${XSERVER_VERSION}.tar.gz
 
+GMP_URL=https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz
 GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-${GNUTLS_VERSION}.tar.xz
 LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.gz
 LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.gz
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
 LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.gz
+PIXMAN_URL=https://www.x.org/releases/individual/lib/pixman-${PIXMAN_VERSION}.tar.xz
+BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
+MESA_URL=https://mesa.freedesktop.org/archive/mesa-${MESA_VERSION}.tar.xz
 
 XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.xz
 XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.xz
@@ -45,7 +53,7 @@ XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all"
+export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
 export CC=xx-clang-wrapper
 export CXX=xx-clang++-wrapper
@@ -63,6 +71,7 @@ log "Installing required Alpine packages..."
 apk --no-cache add \
     curl \
     build-base \
+    abuild \
     clang \
     cmake \
     autoconf \
@@ -73,11 +82,11 @@ apk --no-cache add \
     util-macros \
     font-util-dev \
     xtrans \
+    xz \
 
 xx-apk --no-cache --no-scripts add \
     g++ \
     xcb-util-dev \
-    pixman-dev \
     libx11-dev \
     libgcrypt-dev \
     libgcrypt-static \
@@ -97,18 +106,17 @@ xx-apk --no-cache --no-scripts add \
     libx11-static \
     libxcb-static \
     zlib-static \
-    pixman-static \
     libjpeg-turbo-static \
     freetype-static \
     libpng-static \
     bzip2-static \
-    brotli-static \
     libunistring-static \
     nettle-static \
     gettext-static \
     libunistring-dev \
     libbsd-dev \
     libbsd-static \
+    libidn2-static \
 
 # Copy the xx-clang wrapper.  When compilation uses libtool, all arguments from
 # LDFLAGS are re-ordered during the link phase by libtool.  Thus, libraries are
@@ -116,6 +124,43 @@ xx-apk --no-cache --no-scripts add \
 # wrapper detects this scenario and fixes arguments.
 cp "$SCRIPT_DIR"/xx-clang-wrapper /usr/bin/
 cp "$SCRIPT_DIR"/xx-clang++-wrapper /usr/bin/
+
+echo "[binaries]
+pkgconfig = '$(xx-info)-pkg-config'
+
+[properties]
+sys_root = '$(xx-info sysroot)'
+pkg_config_libdir = '$(xx-info sysroot)/usr/lib/pkgconfig'
+
+[host_machine]
+system = 'linux'
+cpu_family = '$(xx-info arch)'
+cpu = '$(xx-info arch)'
+endian = 'little'
+" > /tmp/meson-cross.txt
+
+#
+# Build GMP.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/gmp
+log "Downloading GMP..."
+curl -# -L -f ${GMP_URL} | tar -xJ --strip 1 -C /tmp/gmp
+log "Configuring GMP..."
+(
+    cd /tmp/gmp && ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --with-pic \
+        --enable-static \
+        --disable-shared \
+)
+log "Compiling GMP..."
+make -C /tmp/gmp -j$(nproc)
+log "Installing GMP..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/gmp install
 
 #
 # Build GNU TLS.
@@ -146,6 +191,8 @@ log "Compiling GNU TLS..."
 make -C /tmp/gnutls -j$(nproc)
 log "Installing GNU TLS..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/gnutls install
+# Fix libtool file that references a file without sysroot.
+sed -i "s|/usr/lib/libgmp.la|$(xx-info sysroot)/usr/lib/libgmp.la|" $(xx-info sysroot)/usr/lib/libgnutls.la
 
 #
 # Build libXfont2
@@ -240,6 +287,59 @@ log "Compiling libxshmfence..."
 make -C /tmp/libxshmfence -j$(nproc)
 log "Installing libxshmfence..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxshmfence install
+
+#
+# Build pixman.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/pixman
+log "Downloading pixman..."
+curl -# -L -f ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
+log "Configuring pixman..."
+(
+    cd /tmp/pixman && \
+    LDFLAGS="$LDFLAGS -Wl,-z,stack-size=2097152" \
+    abuild-meson \
+        -Db_lto=false \
+        -Ddefault_library=static \
+        -Dtests=disabled \
+        -Ddemos=disabled \
+        --cross-file /tmp/meson-cross.txt \
+        . build
+)
+log "Compiling pixman..."
+meson compile -C /tmp/pixman/build
+log "Installing pixman..."
+DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pixman/build
+
+#
+# Build brotli.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/brotli
+log "Downloading brotli..."
+curl -# -L -f ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
+log "Configuring brotli..."
+(
+    mkdir /tmp/brotli/build && \
+    cd /tmp/brotli/build && cmake \
+        $(xx-clang --print-cmake-defines) \
+        -DCMAKE_FIND_ROOT_PATH=$(xx-info sysroot) \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+	-DBUILD_SHARED_LIBS=OFF \
+        ..
+)
+log "Compiling brotli..."
+make -C /tmp/brotli/build -j$(nproc)
+log "Installing brotli..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
 
 #
 # Build TigerVNC
@@ -349,79 +449,4 @@ make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/xserver install
 
 log "Installing TigerVNC vncpasswd tool..."
 make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/vncpasswd install
-
-#
-# Build XKeyboardConfig.
-#
-mkdir /tmp/xkb
-log "Downloading XKeyboardConfig..."
-curl -# -L -f ${XKEYBOARDCONFIG_URL} | tar -xJ --strip 1 -C /tmp/xkb
-log "Configuring XKeyboardConfig..."
-(
-    cd /tmp/xkb && abuild-meson . build
-)
-log "Compiling XKeyboardConfig..."
-meson compile -C /tmp/xkb/build
-log "Installing XKeyboardConfig..."
-DESTDIR="/tmp/xkb-install" meson install --no-rebuild -C /tmp/xkb/build
-
-log "Stripping XKeyboardConfig..."
-# We keep only the files needed by Xvnc.
-TO_KEEP="
-    geometry/pc
-    symbols/pc
-    symbols/us
-    symbols/srvr_ctrl
-    symbols/keypad
-    symbols/altwin
-    symbols/inet
-    compat/accessx
-    compat/basic
-    compat/caps
-    compat/complete
-    compat/iso9995
-    compat/ledcaps
-    compat/lednum
-    compat/ledscroll
-    compat/level5
-    compat/misc
-    compat/mousekeys
-    compat/xfree86
-    keycodes/evdev
-    keycodes/aliases
-    types/basic
-    types/complete
-    types/extra
-    types/iso9995
-    types/level5
-    types/mousekeys
-    types/numpad
-    types/pc
-    rules/evdev
-"
-find /tmp/xkb-install/usr/share/X11/xkb -mindepth 2 -maxdepth 2 -type d -print -exec rm -r {} ';'
-find /tmp/xkb-install/usr/share/X11/xkb -mindepth 1 ! -type d $(printf "! -wholename /tmp/xkb-install/usr/share/X11/xkb/%s " $(echo "$TO_KEEP")) -print -delete
-
-#
-# Build xkbcomp.
-#
-mkdir /tmp/xkbcomp
-log "Downloading xkbcomp..."
-curl -# -L -f ${XKBCOMP_URL} | tar -xJ --strip 1 -C /tmp/xkbcomp
-
-log "Configuring xkbcomp..."
-(
-    LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all -Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -Wl,--end-group" && \
-    cd /tmp/xkbcomp && \
-    LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all -Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -Wl,--end-group" LIBS="$LDFLAGS" ./configure \
-        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
-        --host=$(xx-clang --print-target-triple) \
-        --prefix=/usr \
-)
-
-log "Compiling xkbcomp..."
-make -C /tmp/xkbcomp -j$(nproc)
-
-log "Installing xkbcomp..."
-make DESTDIR=/tmp/xkbcomp-install -C /tmp/xkbcomp install
 
