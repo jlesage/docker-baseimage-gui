@@ -50,7 +50,6 @@ needed on the client side) or via any VNC client.
          * [Notification Definition](#notification-definition)
          * [Notification Backend](#notification-backend)
       * [Web Audio](#web-audio)
-      * [Adding glibc](#adding-glibc)
       * [Helpers](#helpers)
          * [Adding/Removing Packages](#addingremoving-packages)
          * [Modifying Files With Sed](#modifying-files-with-sed)
@@ -72,16 +71,15 @@ needed on the client side) or via any VNC client.
 
 ## Images
 
-Different docker images are available:
+Multiple docker images, based on different Linux distributions, are available:
 
 | Base Distribution  | Docker Image Base Tag | Size |
 |--------------------|-----------------------|------|
-| [Alpine 3.14]      | alpine-3.14           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.14-v4?style=for-the-badge)](#)  |
-| [Alpine 3.15]      | alpine-3.15           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.15-v4?style=for-the-badge)](#)  |
 | [Alpine 3.16]      | alpine-3.16           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16-v4?style=for-the-badge)](#)  |
 | [Alpine 3.17]      | alpine-3.17           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.17-v4?style=for-the-badge)](#)  |
 | [Alpine 3.18]      | alpine-3.18           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.18-v4?style=for-the-badge)](#)  |
 | [Alpine 3.19]      | alpine-3.19           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.19-v4?style=for-the-badge)](#)  |
+| [Alpine 3.20]      | alpine-3.20           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.20-v4?style=for-the-badge)](#)  |
 | [Debian 10]        | debian-10             | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4?style=for-the-badge)](#)    |
 | [Debian 11]        | debian-11             | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4?style=for-the-badge)](#)    |
 | [Ubuntu 16.04 LTS] | ubuntu-16.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-16.04-v4?style=for-the-badge)](#) |
@@ -89,12 +87,10 @@ Different docker images are available:
 | [Ubuntu 20.04 LTS] | ubuntu-20.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04-v4?style=for-the-badge)](#) |
 | [Ubuntu 22.04 LTS] | ubuntu-22.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-22.04-v4?style=for-the-badge)](#) |
 
-[Alpine 3.14]: https://alpinelinux.org
-[Alpine 3.15]: https://alpinelinux.org
 [Alpine 3.16]: https://alpinelinux.org
 [Alpine 3.17]: https://alpinelinux.org
 [Alpine 3.18]: https://alpinelinux.org
-[Alpine 3.19]: https://alpinelinux.org
+[Alpine 3.20]: https://alpinelinux.org
 [Debian 10]: https://www.debian.org/releases/buster/
 [Debian 11]: https://www.debian.org/releases/bullseye/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
@@ -134,13 +130,18 @@ version format is `MAJOR.MINOR.PATCH`, where an increment of the:
 
 ### Tags
 
-For each distribution-specific image, multiple tags are available:
+The baseimage is available under multiple tags.  A tag is made from the
+corresponding Linux distribution and the release version.
 
 | Tag           | Description                                              |
 |---------------|----------------------------------------------------------|
 | distro-vX.Y.Z | Exact version of the image.                              |
 | distro-vX.Y   | Latest version of a specific minor version of the image. |
 | distro-vX     | Latest version of a specific major version of the image. |
+
+All available tags can be consulted on [Docker Hub].
+
+[Docker Hub]: https://hub.docker.com/r/jlesage/baseimage-gui/tags
 
 ## Getting started
 
@@ -158,7 +159,7 @@ terminal.
 In `Dockerfile`:
 ```Dockerfile
 # Pull base image.
-FROM jlesage/baseimage-gui:alpine-3.15-v4
+FROM jlesage/baseimage-gui:alpine-3.19-v4
 
 # Install xterm.
 RUN add-pkg xterm
@@ -176,6 +177,8 @@ In `startapp.sh`:
 #!/bin/sh
 exec /usr/bin/xterm
 ```
+
+Make sure the file is executable, by running `chmod +x startapp.sh`.
 
 Then, build your docker image:
 
@@ -205,9 +208,6 @@ Alpine's software repository or without its source code available may be harder.
 This is because Alpine Linux uses [musl] C standard library instead of GNU C
 library ([glibc]) that most applications are built against.  Compatibility
 between these two libraries is very limited.
-
-Integrating glibc binaries often require to add glibc to the image. See the
-[Adding glibc](#adding-glibc) section for more details.
 
 Else, `Debian` and `Ubuntu` images are well known Linux distributions that
 provide great compatibility with existing applications.
@@ -320,6 +320,7 @@ The following internal environment variables are provided by the baseimage:
 |`TAKE_CONFIG_OWNERSHIP`| When set to `0`, ownership of the content of the `/config` directory is not taken during startup of the container. | `1` |
 |`INSTALL_PACKAGES_INTERNAL`| Space-separated list of packages to install during the startup of the container.  Packages are installed from the repository of the Linux distribution this container is based on. | (no value) |
 |`SUP_GROUP_IDS_INTERNAL`| Comma-separated list of supplementary group IDs of the application. These are merged with the ones that might be supplied by `SUP_GROUP_IDS`. | (no value) |
+|`SERVICES_GRACETIME`| During container shutdown, this defines the amount of time (in milliseconds) allowed to services to gracefully terminate before sending the KILL signal to everyone. | `5000` |
 
 #### Adding/Removing Internal Environment Variables
 
@@ -437,6 +438,7 @@ http://<HOST IP ADDR>:5800
 ```
 <HOST IP ADDR>:5900
 ```
+
 ### Security
 
 By default, access to the application's GUI is done over an unencrypted
@@ -627,6 +629,7 @@ setting.
 | finish                 | Program          | Program invoked when the service terminates. The service's exit code is given to the program as parameter. | N/A |
 | params                 | String           | Parameter for the service's program to run.  One parameter per line. | No parameter |
 | environment            | String           | Environment to use for the service.  One environment variable per line, of the form `key=value`. | Environment untouched |
+| environment_extra      | String           | Extra variables to add to the environment of the service.  One environment variable per line, of the form `key=value`. | No extra variable |
 | respawn                | Boolean          | Whether or not the process must be respawned when it dies. | `FALSE`  |
 | sync                   | Boolean          | Whether or not the process supervisor waits until the service ends.  This is mutually exclusive with `respawn`. | `FALSE` |
 | ready_timeout          | Unsigned integer | Maximum amount of time (in milliseconds) to wait for the service to be ready. | `5000` |
@@ -828,15 +831,6 @@ to set an environment variable.
 Once support is enabled, PulseAudio environment is automatically configured
 for the application and additional services are started to capture and stream
 the audio.
-
-### Adding glibc
-
-For baseimages based on Alpine Linux, glibc can be installed to the image by
-adding the following line to your `Dockerfile`:
-
-```Dockerfile
-RUN install-glibc
-```
 
 ### Helpers
 
@@ -1111,7 +1105,7 @@ To find the value of a property for a particular window:
   - Create and start an instance of the container.
   - From the host, start the `obxprop` tool:
 ```shell
-docker exec [container name or id] obxprop | grep "^_OB_APP"
+docker exec <container name or id> obxprop | grep "^_OB_APP"
 ```
   - Access the GUI of the application and click somewhere on the
     interested window.
