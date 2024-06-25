@@ -13,7 +13,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-FONTCONFIG_VERSION=2.14.0
+FONTCONFIG_VERSION=2.15.0
 
 # Define software download URLs.
 FONTCONFIG_URL=https://www.freedesktop.org/software/fontconfig/release/fontconfig-${FONTCONFIG_VERSION}.tar.gz
@@ -22,7 +22,7 @@ FONTCONFIG_URL=https://www.freedesktop.org/software/fontconfig/release/fontconfi
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--strip-all -Wl,--as-needed"
+export LDFLAGS="-Wl,--strip-all -Wl,--as-needed,-O1,--sort-common"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -52,13 +52,13 @@ xx-apk --no-cache --no-scripts add \
 
 #
 # Install Noto fonts.
-# Only the fonts used by JWM are installed.
+# Only the fonts used by Openbox are installed.
 #
 log "Installing Noto fonts..."
 mkdir -p /tmp/fontconfig-install/opt/base/share/fonts
 for FONT in Arimo-Regular Arimo-Bold
 do
-    cp -v /usr/share/fonts/noto/$FONT.ttf /tmp/fontconfig-install/opt/base/share/fonts/
+    cp -v /usr/share/fonts/croscore/$FONT.ttf /tmp/fontconfig-install/opt/base/share/fonts/
 done
 
 #

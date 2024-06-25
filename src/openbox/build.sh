@@ -13,18 +13,20 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Define software versions.
 OPENBOX_VERSION=3.6.1
 PANGO_VERSION=1.49.3
-LIBXRANDR_VERSION=1.5.3
+LIBXRANDR_VERSION=1.5.4
+BROTLI_VERSION=1.1.0
 
 # Define software download URLs.
 OPENBOX_URL=http://openbox.org/dist/openbox/openbox-${OPENBOX_VERSION}.tar.xz
 PANGO_URL=https://download.gnome.org/sources/pango/${PANGO_VERSION%.*}/pango-${PANGO_VERSION}.tar.xz
 LIBXRANDR_URL=https://www.x.org/releases/individual/lib/libXrandr-${LIBXRANDR_VERSION}.tar.xz
+BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
 
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed --static -static -Wl,--strip-all"
+export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
 export CC=xx-clang-wrapper
 export CXX=xx-clang++
@@ -40,6 +42,8 @@ log "Installing required Alpine packages..."
 apk --no-cache add \
     curl \
     build-base \
+    cmake \
+    abuild \
     clang \
     meson \
     pkgconfig \
@@ -58,6 +62,7 @@ xx-apk --no-cache --no-scripts add \
     cairo-static \
     libxft-dev \
     libxml2-dev \
+    libxml2-static \
     libx11-dev \
     libx11-static \
     libxcb-static \
@@ -69,12 +74,13 @@ xx-apk --no-cache --no-scripts add \
     libpng-static \
     zlib-static \
     bzip2-static \
-    pcre-dev \
+    pcre2-dev \
     libxrender-dev \
     graphite2-static \
     libffi-dev \
     xz-dev \
-    brotli-static \
+    xz-static \
+    libxext-static \
 
 # Copy the xx-clang wrapper.  Openbox compilation uses libtool.  During the link
 # phase, libtool re-orders all arguments from LDFLAGS.  Thus, libraries are no
@@ -163,6 +169,34 @@ log "Installing fontconfig..."
 cp -av /tmp/fontconfig-install/usr $(xx-info sysroot)
 
 #
+# Build brotli.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/brotli
+log "Downloading brotli..."
+curl -# -L -f ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
+log "Configuring brotli..."
+(
+    mkdir /tmp/brotli/build && \
+    cd /tmp/brotli/build && cmake \
+        $(xx-clang --print-cmake-defines) \
+        -DCMAKE_FIND_ROOT_PATH=$(xx-info sysroot) \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+	-DBUILD_SHARED_LIBS=OFF \
+        ..
+)
+log "Compiling brotli..."
+make -C /tmp/brotli/build -j$(nproc)
+log "Installing brotli..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
+
+#
 # Build Openbox.
 #
 mkdir /tmp/openbox
@@ -182,7 +216,7 @@ log "Configuring Openbox..."
     #cd /tmp/openbox && LIBS="$LDFLAGS" ./configure \
 
     cd /tmp/openbox && \
-        OB_LIBS="-lX11 -lxcb -lXdmcp -lXau -lXext -lXft -lXrandr -lfontconfig -lfreetype -lpng -lXrender -lexpat -lxml2 -lz -lbz2 -llzma -lbrotlidec -lbrotlicommon -lintl -lfribidi -lharfbuzz -lpangoxft-1.0 -lpangoft2-1.0 -lpango-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lpcre -lgraphite2 -lffi" \
+        OB_LIBS="-lX11 -lxcb -lXdmcp -lXau -lXext -lXft -lXrandr -lfontconfig -lfreetype -lpng -lXrender -lexpat -lxml2 -lz -lbz2 -llzma -lbrotlidec -lbrotlicommon -lintl -lfribidi -lharfbuzz -lpangoxft-1.0 -lpangoft2-1.0 -lpango-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lpcre2-8 -lgraphite2 -lffi" \
         LDFLAGS="$LDFLAGS -Wl,--start-group $OB_LIBS -Wl,--end-group" LIBS="$LDFLAGS" ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \

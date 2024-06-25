@@ -66,14 +66,14 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
 
 # Build Fontconfig.
-FROM --platform=$BUILDPLATFORM alpine:3.16 AS fontconfig
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS fontconfig
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/fontconfig/build.sh /tmp/build-fontconfig.sh
 RUN /tmp/build-fontconfig.sh
 
 # Build Openbox.
-FROM --platform=$BUILDPLATFORM alpine:3.16 AS openbox
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS openbox
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
@@ -88,7 +88,7 @@ RUN upx /tmp/openbox-install/usr/bin/obxprop
 
 # Build xdpyprobe.
 # Used to determine if the X server (Xvnc) is ready.
-FROM --platform=$BUILDPLATFORM alpine:3.16 AS xdpyprobe
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS xdpyprobe
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/xdpyprobe /tmp/xdpyprobe
@@ -101,12 +101,12 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xdpyprobe/xdpyprobe
 
 # Build yad.
-FROM --platform=$BUILDPLATFORM alpine:3.15 AS yad
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS yad
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
-COPY src/yad/build.sh /tmp/build-yad.sh
-RUN /tmp/build-yad.sh
+COPY src/yad /build
+RUN /build/build.sh
 RUN xx-verify --static /tmp/yad-install/usr/bin/yad
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/yad-install/usr/bin/yad

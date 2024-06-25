@@ -11,11 +11,14 @@ set -u # Treat unset variables as an error.
 # Define software versions.
 YAD_VERSION=0.42.43
 
-# Use the same versions has Alpine 3.16.
-PANGO_VERSION=1.50.7
+# Use the same versions has Alpine 3.20.
+PANGO_VERSION=1.52.2
 GTK_VERSION=2.24.33
 ATK_VERSION=2.38.0
-GDKPIXBUF_VERSION=2.42.8
+GDKPIXBUF_VERSION=2.42.11
+CAIRON_VERSION=1.18.0
+PIXMAN_VERSION=0.43.4
+BROTLI_VERSION=1.1.0
 
 # Define software download URLs.
 YAD_URL=https://github.com/step-/yad/archive/refs/tags/${YAD_VERSION}.tar.gz
@@ -23,15 +26,20 @@ PANGO_URL=https://download.gnome.org/sources/pango/${PANGO_VERSION%.*}/pango-${P
 GTK_URL=https://download.gnome.org/sources/gtk+/${GTK_VERSION%.*}/gtk%2B-${GTK_VERSION}.tar.xz
 ATK_URL=https://download.gnome.org/sources/atk/${ATK_VERSION%.*}/atk-${ATK_VERSION}.tar.xz
 GDKPIXBUF_URL=https://download.gnome.org/sources/gdk-pixbuf/${GDKPIXBUF_VERSION%.*}/gdk-pixbuf-${GDKPIXBUF_VERSION}.tar.xz
+CAIRO_URL=https://gitlab.freedesktop.org/cairo/cairo/-/archive/${CAIRON_VERSION}/cairo-${CAIRON_VERSION}.tar.bz2
+PIXMAN_URL=https://www.x.org/releases/individual/lib/pixman-${PIXMAN_VERSION}.tar.xz
+BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
 
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed"
+export LDFLAGS="-Wl,--as-needed,-O1,--sort-common"
 
 export CC=xx-clang
 export CXX=xx-clang++
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 function log {
     echo ">>> $*"
@@ -41,7 +49,9 @@ log "Installing required Alpine packages..."
 apk --no-cache add \
     curl \
     build-base \
+    abuild \
     clang \
+    cmake \
     meson \
     autoconf \
     automake \
@@ -55,15 +65,14 @@ xx-apk --no-cache --no-scripts add \
     glib-dev \
     glib-static \
     util-linux-dev \
-    brotli-static \
+    util-linux-static \
     gettext-static \
-    pcre-dev \
+    pcre2-dev \
     expat-static \
     libffi-dev \
     zlib-static \
     bzip2-static \
     graphite2-static \
-    pixman-static \
     libpng-static \
     libx11-static \
     libxcb-static \
@@ -75,8 +84,8 @@ xx-apk --no-cache --no-scripts add \
     harfbuzz-dev \
     harfbuzz-static \
     freetype-static \
-    cairo-dev \
-    cairo-static \
+    libxext-static \
+    libeconf-dev \
 
 echo "[binaries]
 pkgconfig = '$(xx-info)-pkg-config'
@@ -161,13 +170,15 @@ curl -# -L -f ${GDKPIXBUF_URL} | tar -xJ --strip 1 -C /tmp/gdkpixbuf
 log "Configuring GdkPixbuf..."
 (
     cd /tmp/gdkpixbuf && abuild-meson \
-        -Ddefault_library=static \
+        -Ddefault_library=both \
         -Dpng=enabled \
         -Dtiff=disabled \
         -Djpeg=disabled \
+        -Dgif=disabled \
         -Dbuiltin_loaders=png \
         -Dgtk_doc=false \
         -Ddocs=false \
+        -Dtests=false \
         -Dintrospection=disabled \
         -Dman=false \
         -Drelocatable=false \
@@ -190,6 +201,8 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/gdkpixbuf/build
 mkdir /tmp/gtk
 log "Downloading GTK..."
 curl -# -L -f ${GTK_URL} | tar -xJ --strip 1 -C /tmp/gtk
+log "Patching GTK..."
+patch -p1 -d /tmp/gtk < "$SCRIPT_DIR"/gtk+-2.24.33-Fix-casts.patch
 log "Configuring GTK..."
 (
     cd /tmp/gtk && ./configure \
@@ -219,6 +232,83 @@ log "Installing GTK..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/gtk install
 
 #
+# Build cairo.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/cairo
+log "Downloading cairo..."
+curl -# -L -f ${CAIRO_URL} | tar -xj --strip 1 -C /tmp/cairo
+log "Patching cairo..."
+patch -p1 -d /tmp/cairo < "$SCRIPT_DIR"/cairo-meson-fix.patch
+log "Configuring cairo..."
+(
+    cd /tmp/cairo && abuild-meson \
+        -Ddefault_library=both \
+        -Dtests="disabled" \
+        -Dgtk_doc=false \
+        --cross-file /tmp/meson-cross.txt \
+        build \
+)
+log "Compiling cairo..."
+meson compile -C /tmp/cairo/build
+log "Installing cairo..."
+DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/cairo/build
+
+#
+# Build pixman.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/pixman
+log "Downloading pixman..."
+curl -# -L -f ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
+log "Configuring pixman..."
+(
+    cd /tmp/pixman && \
+    LDFLAGS="$LDFLAGS -Wl,-z,stack-size=2097152" \
+    abuild-meson \
+        -Db_lto=false \
+        -Ddefault_library=static \
+        -Dtests=disabled \
+        -Ddemos=disabled \
+        --cross-file /tmp/meson-cross.txt \
+        . build
+)
+log "Compiling pixman..."
+meson compile -C /tmp/pixman/build
+log "Installing pixman..."
+DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pixman/build
+
+#
+# Build brotli.
+# The library in Alpine repository is built with LTO, which causes static
+# linking issue, so we need to build it ourself.
+#
+mkdir /tmp/brotli
+log "Downloading brotli..."
+curl -# -L -f ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
+log "Configuring brotli..."
+(
+    mkdir /tmp/brotli/build && \
+    cd /tmp/brotli/build && cmake \
+        $(xx-clang --print-cmake-defines) \
+        -DCMAKE_FIND_ROOT_PATH=$(xx-info sysroot) \
+        -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+        -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+        -DCMAKE_INSTALL_PREFIX=/usr \
+        -DCMAKE_BUILD_TYPE=None \
+	-DBUILD_SHARED_LIBS=OFF \
+        ..
+)
+log "Compiling brotli..."
+make -C /tmp/brotli/build -j$(nproc)
+log "Installing brotli..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
+
+#
 # Build YAD.
 #
 mkdir /tmp/yad
@@ -230,7 +320,7 @@ export LDFLAGS="$LDFLAGS --static -static -Wl,--strip-all" && \
     cd /tmp/yad && \
     autoreconf -ivf && \
     intltoolize && \
-    LIBS="-Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -lpcre -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -Wl,--end-group" ./configure \
+    LIBS="-Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -lpcre2-8 -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -leconf -lgmodule-2.0 -Wl,--end-group" ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
