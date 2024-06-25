@@ -823,8 +823,7 @@ container:
       unraid_template:
         title: WEB Port for GUI (Bridge Network Type)
         description: >-
-          Port to access the application's GUI via the web interface.  NOTE:
-          This applies only when Network Type is set to Bridge.
+          Port to access the application's GUI via the web interface.
         default: "{{ 7800 + app.id|int }}"
         display: advanced-hide
         required: true
@@ -841,8 +840,7 @@ container:
         title: VNC Port for GUI (Bridge Network Type)
         description: >-
           Port to access the application's GUI via VNC protocol.  Optional if no
-          VNC client is used.  NOTE: This applies only when Network Type is set
-          to Bridge.
+          VNC client is used.
         default: "{{ 7900 + app.id|int }}"
         display: advanced-hide
         required: false
