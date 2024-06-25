@@ -429,10 +429,16 @@ const UI = {
 
             document.getElementById('noVNC_control_bar_anchor')
                 .classList.remove("noVNC_hidden");
-            UI.openControlbar();
 
-            // Hide the control bar after 2 seconds
-            UI.closeControlbarTimeout = setTimeout(UI.closeControlbar, 2000);
+            // On first run, show the control bar and automatically hide it
+            // after 2 seconds.
+            if (WebUtil.readSetting('first_run') != 'false') {
+                UI.openControlbar();
+
+                // Hide the control bar after 2 seconds
+                UI.closeControlbarTimeout = setTimeout(UI.closeControlbar, 2000);
+                WebUtil.writeSetting('first_run', 'false');
+            }
         } else {
             UI.closeControlbar();
             document.getElementById('noVNC_control_bar_anchor')
