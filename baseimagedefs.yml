@@ -659,35 +659,35 @@ container:
         display: advanced
         required: false
         mask: false
-    - name: WEB_AUTHENTICATION_DEFAULT_USERNAME
+    - name: WEB_AUTHENTICATION_USERNAME
       description: >-
         Optional username to configure for the web authentication.  This is a
-        quick and easy way to configure credentials of a single user.  To
+        quick and easy way to configure credentials for a single user.  To
         configure credentials in a more secure way, or to add more users, see
         the [Web Authentication](#web-authentication) section.
       type: public
       unraid_template:
-        title: Web Authentication Defaut Username
+        title: Web Authentication Username
         description: >-
           Optional username to configure for the web authentication.  This is a
-          quick and easy way to configure credentials of a single user.  To
+          quick and easy way to configure credentials for a single user.  To
           configure credentials in a more secure way, or to add more users, see
           the documentation.
         display: advanced
         required: false
         mask: false
-    - name: WEB_AUTHENTICATION_DEFAULT_PASSWORD
+    - name: WEB_AUTHENTICATION_PASSWORD
       description: >-
         Optional password to configure for the web authentication.  This is a
-        quick and easy way to configure credentials of a single user.  To
+        quick and easy way to configure credentials for a single user.  To
         configure credentials in a more secure way, or to add more users, see
         the [Web Authentication](#web-authentication) section.
       type: public
       unraid_template:
-        title: Web Authentication Defaut Password
+        title: Web Authentication Password
         description: >-
           Optional password to configure for the web authentication.  This is a
-          quick and easy way to configure credentials of a single user.  To
+          quick and easy way to configure credentials for a single user.  To
           configure credentials in a more secure way, or to add more users, see
           the documentation.
         display: advanced
