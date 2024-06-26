@@ -19,6 +19,28 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.6.0
+      date: 2024-07-26
+      changes:
+        added:
+          - 'Audio support through web browser.'
+          - 'Web authentication support.'
+          - 'Better support of GTK4 applications.'
+          - 'Added by the update of jlesage/baseimage to version 3.6.0:'
+          - '2:The amount of time allowed to services to gracefully terminate is configurable via the `SERVICES_GRACETIME` environment variable.'
+          - '2:Variables can be added to environment of a service via the `environment_extra` parameter.'
+          - 'Image based on Alpine Linux 3.20.'
+        changed:
+          - 'Updated noVNC to version 1.5.0.'
+          - 'Updated web UI components (Bootstrap, Font Awesome).'
+          - 'When connecting, the control bar is now temporarily shown only once.'
+        removed:
+          - 'Helper script to install glibc on Alpine Linux based images.'
+          - 'Image based on Alpine 3.14 (reached end of support on 2023-05-01).'
+          - 'Image based on Alpine 3.15 (reached end of support on 2023-11-01).'
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.6.0:'
+          - '2:During package mirror setup, make sure to keep permissions of copied files.'
     - version: 4.5.3
       date: 2023-12-20
       changes:
