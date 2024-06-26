@@ -54,6 +54,13 @@ else
     printf ',\n    audioSupport: false' >> "$WEB_DATA_FILE"
 fi
 
+# Add web authentication support.
+if is-bool-val-true "${WEB_AUTHENTICATION:-0}"; then
+    printf ',\n    webAuthSupport: true' >> "$WEB_DATA_FILE"
+else
+    printf ',\n    webAuthSupport: false' >> "$WEB_DATA_FILE"
+fi
+
 # End of the JavaScript file.
 printf '\n};\n' >> "$WEB_DATA_FILE"
 printf 'export default WebData;\n' >> "$WEB_DATA_FILE"

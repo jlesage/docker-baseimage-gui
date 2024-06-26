@@ -152,6 +152,7 @@ func main() {
 	// Create HTTP router.
 	router := httprouter.New()
 	router.POST("/login", loginHandler)
+	router.GET("/logout", logoutHandler)
 	router.GET("/auth", authHandler)
 	router.NotFound = notFoundHandler()
 	router.MethodNotAllowed = methodNotAllowedHandler()
@@ -374,6 +375,29 @@ func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 }
 
+func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	token := ""
+
+	// Try to extract token from cookie.
+	if cookie, err := r.Cookie(gConfig.TokenCookieName); err == nil {
+		value := make(map[string]string)
+		// Try to decode it.
+		if err := gConfig.SecureCookieInstance.Decode(gConfig.TokenCookieName, cookie.Value, &value); err == nil {
+			token = value["token"];
+		}
+	}
+
+	// Remove the token.
+	if token != "" {
+		RemoveToken(token)
+	} else {
+		log.Error("no token provided for logout request")
+	}
+
+	// Respond with a redirect to the login page.
+	http.Redirect(w, r, "/login", http.StatusFound)
+}
+
 func GenerateToken(length int) (string, error) {
 	b := make([]byte, length)
 	if _, err := rand.Read(b); err != nil {
@@ -414,6 +438,18 @@ func ValidateToken(token string) bool {
 	}
 
 	return false
+}
+
+func RemoveToken(token string) {
+	gTokensMutex.Lock()
+	defer gTokensMutex.Unlock();
+
+	if token != "" {
+		_, found := gTokens[token]
+		if found {
+			delete(gTokens, token)
+		}
+	}
 }
 
 func CleanupTokens(mutextLocked bool) {

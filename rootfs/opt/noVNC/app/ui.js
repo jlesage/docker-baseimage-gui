@@ -112,6 +112,11 @@ const UI = {
                 .classList.remove("noVNC_hidden");
         }
 
+        if (WebData.webAuthSupport) {
+            document.getElementById('noVNC_logout_button')
+                .classList.remove("noVNC_hidden");
+        }
+
         // Adapt the interface for touch screen devices
         if (isTouchDevice) {
             document.documentElement.classList.add("noVNC_touch");
