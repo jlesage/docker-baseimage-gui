@@ -19,6 +19,12 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.6.1
+      date: 2024-07-27
+      changes:
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.6.1:'
+          - '2:Return code of environment variable loading script was not handled properly.'
     - version: 4.6.0
       date: 2024-07-26
       changes:
