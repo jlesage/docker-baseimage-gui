@@ -33,14 +33,17 @@ function log {
     echo ">>> $*"
 }
 
-log "Installing required Alpine packages..."
-apk --no-cache add \
+#
+# Install required packages.
+#
+HOST_PKGS="\
     curl \
     build-base \
     clang \
     pkgconfig \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     libx11-static \
     libxcomposite-dev \
@@ -48,6 +51,11 @@ xx-apk --no-cache --no-scripts add \
     libxext-dev \
     libxext-static \
     libxcb-static \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 #
 # Build libXdamage.
@@ -93,3 +101,12 @@ log "Compiling xcompmgr..."
 make -C /tmp/xcompmgr -j$(nproc)
 log "Installing xcompmgr..."
 make DESTDIR=/tmp/xcompmgr-install -C /tmp/xcompmgr install
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/xcompmgr

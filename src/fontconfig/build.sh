@@ -34,8 +34,7 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     curl \
     build-base \
     clang \
@@ -43,12 +42,18 @@ apk --no-cache add \
     gperf \
     python3 \
     font-croscore \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     glib-dev \
     g++ \
     freetype-dev \
     expat-dev \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 #
 # Install Noto fonts.
@@ -96,3 +101,12 @@ make -C /tmp/fontconfig -j$(nproc)
 
 log "Installing fontconfig..."
 make DESTDIR=/tmp/fontconfig-install -C /tmp/fontconfig install
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/fontconfig

@@ -45,8 +45,10 @@ function log {
     echo ">>> $*"
 }
 
-log "Installing required Alpine packages..."
-apk --no-cache add \
+#
+# Install required packages.
+#
+HOST_PKGS="\
     curl \
     build-base \
     abuild \
@@ -59,8 +61,9 @@ apk --no-cache add \
     pkgconfig \
     glib-dev \
     gtk-update-icon-cache \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     glib-dev \
     glib-static \
@@ -86,6 +89,11 @@ xx-apk --no-cache --no-scripts add \
     freetype-static \
     libxext-static \
     libeconf-dev \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 echo "[binaries]
 pkgconfig = '$(xx-info)-pkg-config'
@@ -336,3 +344,12 @@ log "Compiling YAD..."
 make -C /tmp/yad -j$(nproc)
 log "Installing YAD..."
 make DESTDIR=/tmp/yad-install -C /tmp/yad install
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/yad

@@ -67,8 +67,7 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     curl \
     build-base \
     abuild \
@@ -83,8 +82,9 @@ apk --no-cache add \
     font-util-dev \
     xtrans \
     xz \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     xcb-util-dev \
     libx11-dev \
@@ -117,6 +117,11 @@ xx-apk --no-cache --no-scripts add \
     libbsd-dev \
     libbsd-static \
     libidn2-static \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 # Copy the xx-clang wrapper.  When compilation uses libtool, all arguments from
 # LDFLAGS are re-ordered during the link phase by libtool.  Thus, libraries are
@@ -450,3 +455,11 @@ make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/xserver install
 log "Installing TigerVNC vncpasswd tool..."
 make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/vncpasswd install
 
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/tigervnc

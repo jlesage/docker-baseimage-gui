@@ -34,8 +34,7 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     curl \
     build-base \
     abuild \
@@ -44,14 +43,20 @@ apk --no-cache add \
     m4 \
     pkgconfig \
     glib-dev \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     glib-dev \
     glib-static \
     libtool \
     libcap-dev \
     libcap-static \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 #
 # Build libsndfile
@@ -158,3 +163,16 @@ sed -i '/HAVE_NEON/d' /tmp/pulseaudio/build/config.h
 
 log "Compiling PulseAudio..."
 make -f "$SCRIPT_DIR"/Makefile -C /tmp/pulseaudio -j$(nproc)
+
+log "Installing PulseAudio..."
+mkdir -p /tmp/pulseaudio-install/usr/bin
+cp -v /tmp/pulseaudio/pulseaudio /tmp/pulseaudio-install/usr/bin/
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/pulseaudio

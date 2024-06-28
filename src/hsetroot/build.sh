@@ -23,18 +23,26 @@ function log {
     echo ">>> $*"
 }
 
-log "Installing required Alpine packages..."
-apk --no-cache add \
+#
+# Install required packages.
+#
+HOST_PKGS="\
     curl \
     build-base \
     clang \
     xz \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     libx11-dev \
     libx11-static \
     libxcb-static \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 #
 # Build hsetroot.
@@ -47,3 +55,12 @@ xx-clang $CFLAGS "$SCRIPT_DIR"/hsetroot.c -o /tmp/hsetroot/hsetroot $LDFLAGS -Wl
 log "Installing hsetroot..."
 mkdir -p /tmp/hsetroot-install/usr/bin
 cp -v /tmp/hsetroot/hsetroot /tmp/hsetroot-install/usr/bin/
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/hsetroot
