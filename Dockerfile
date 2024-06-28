@@ -86,6 +86,26 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/openbox-install/usr/bin/openbox
 RUN upx /tmp/openbox-install/usr/bin/obxprop
 
+# Build xcompmgr.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS xcompmgr
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/xcompmgr /build
+RUN /build/build.sh
+RUN xx-verify --static /tmp/xcompmgr-install/usr/bin/xcompmgr
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/xcompmgr-install/usr/bin/xcompmgr
+
+# Build hsetroot.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS hsetroot
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/hsetroot /build
+RUN /build/build.sh
+RUN xx-verify --static /tmp/hsetroot-install/usr/bin/hsetroot
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/hsetroot-install/usr/bin/hsetroot
+
 # Build xdpyprobe.
 # Used to determine if the X server (Xvnc) is ready.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS xdpyprobe
@@ -265,6 +285,8 @@ COPY --link --from=xkeyboard-config /tmp/xkb-install/usr/share/X11/xkb /opt/base
 COPY --link --from=xkbcomp /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/openbox /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/obxprop /opt/base/bin/
+COPY --link --from=xcompmgr /tmp/xcompmgr-install/usr/bin/xcompmgr /opt/base/bin/
+COPY --link --from=hsetroot /tmp/hsetroot-install/usr/bin/hsetroot /opt/base/bin/
 COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
 COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
