@@ -150,9 +150,9 @@ ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/pulseaudio /build-pulseaudio
 RUN /build-pulseaudio/build.sh
-RUN xx-verify --static /tmp/pulseaudio/pulseaudio
+RUN xx-verify --static /tmp/pulseaudio-install/usr/bin/pulseaudio
 COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/pulseaudio/pulseaudio
+RUN upx /tmp/pulseaudio-install/usr/bin/pulseaudio
 
 # Build the audio recorder.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS audiorecorder
@@ -181,9 +181,9 @@ ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/htpasswd /tmp/build-htpasswd
 RUN /tmp/build-htpasswd/build.sh
-RUN xx-verify --static /tmp/httpd/support/htpasswd
+RUN xx-verify --static /tmp/httpd-install/usr/bin/htpasswd
 COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/httpd/support/htpasswd
+RUN upx /tmp/httpd-install/usr/bin/htpasswd
 
 # Build noVNC.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS noVNC
@@ -291,10 +291,10 @@ COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
 COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
-COPY --link --from=pulseaudio /tmp/pulseaudio/pulseaudio /opt/base/bin/pulseaudio
+COPY --link --from=pulseaudio /tmp/pulseaudio-install/usr/bin/pulseaudio /opt/base/bin/pulseaudio
 COPY --link --from=audiorecorder /tmp/build-audiorecorder/audiorecorder /opt/base/bin/audiorecorder
 COPY --link --from=webauth /tmp/build-webauth/webauth /opt/base/bin/webauth
-COPY --link --from=htpasswd /tmp/httpd/support/htpasswd /opt/base/bin/htpasswd
+COPY --link --from=htpasswd /tmp/httpd-install/usr/bin/htpasswd /opt/base/bin/htpasswd
 COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --link --from=noVNC /opt/noVNC /opt/noVNC
 

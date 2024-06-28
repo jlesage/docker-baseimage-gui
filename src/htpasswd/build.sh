@@ -32,19 +32,24 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     curl \
     build-base \
     clang \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     apr-dev \
     apr-util-dev \
     pcre2-dev \
     expat-static \
     util-linux-static \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 #
 # Build httpd.
@@ -68,4 +73,17 @@ sed -i "s|-L/usr/lib|-L$(xx-info sysroot)usr/lib|" /tmp/httpd/build/config_vars.
 sed -i "s|-R/usr/lib|-R$(xx-info sysroot)usr/lib|" /tmp/httpd/build/config_vars.mk
 
 log "Compiling httpd..."
-make V=0 -C /tmp/httpd/support -j$(nproc) htpasswd
+make -C /tmp/httpd/support -j$(nproc) htpasswd
+
+log "Installing httpd..."
+mkdir -p /tmp/httpd-install/usr/bin
+cp -v /tmp/httpd/support/htpasswd /tmp/httpd-install/usr/bin/
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/httpd

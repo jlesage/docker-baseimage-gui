@@ -23,19 +23,28 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     build-base \
     curl \
     clang \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     gcc \
     musl-dev \
     linux-headers \
     openssl-dev \
     openssl-libs-static \
     pcre-dev \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
+
+#
+# Build nginx.
+#
 
 mkdir /tmp/nginx
 log "Downloading Nginx..."
@@ -136,3 +145,11 @@ rm -r \
     /tmp/nginx-install/var \
     /tmp/nginx-install/config \
 
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/nginx

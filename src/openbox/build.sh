@@ -38,8 +38,7 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     curl \
     build-base \
     cmake \
@@ -49,8 +48,9 @@ apk --no-cache add \
     pkgconfig \
     patch \
     glib-dev \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     glib-dev \
     glib-static \
@@ -81,6 +81,11 @@ xx-apk --no-cache --no-scripts add \
     xz-dev \
     xz-static \
     libxext-static \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 # Copy the xx-clang wrapper.  Openbox compilation uses libtool.  During the link
 # phase, libtool re-orders all arguments from LDFLAGS.  Thus, libraries are no
@@ -239,3 +244,12 @@ make V=0 -C /tmp/openbox -j$(nproc)
 
 log "Installing Openbox..."
 make DESTDIR=/tmp/openbox-install -C /tmp/openbox install
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/openbox

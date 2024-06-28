@@ -34,8 +34,7 @@ function log {
 #
 # Install required packages.
 #
-log "Installing required Alpine packages..."
-apk --no-cache add \
+HOST_PKGS="\
     curl \
     build-base \
     abuild \
@@ -46,12 +45,18 @@ apk --no-cache add \
     nasm \
     pkgconfig \
     glib-dev \
+"
 
-xx-apk --no-cache --no-scripts add \
+TARGET_PKGS="\
     g++ \
     glib-dev \
     glib-static \
     libtool \
+"
+
+log "Installing required Alpine packages..."
+apk --no-cache add $HOST_PKGS
+xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 #
 # Build libsndfile
@@ -161,6 +166,14 @@ cp -v $(xx-info sysroot)usr/lib/pulseaudio/libpulsecommon-${PULSEAUDIO_VERSION}.
 #
 # Build Audiostreamer
 #
-
 log "Compiling Audiostreamer..."
 make -C "$SCRIPT_DIR" -j$(nproc)
+
+#
+# Cleanup.
+#
+log "Performing cleanup..."
+apk --no-cache del $HOST_PKGS
+xx-apk --no-cache --no-scripts del $TARGET_PKGS
+apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
+rm -rf /tmp/pulseaudio
