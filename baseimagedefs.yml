@@ -23,7 +23,7 @@ baseimage:
       date: 2024-07-28
       changes:
         fixed:
-          - 'A Window compositor is requied to prevent display issues with GTK4 applications.'
+          - 'A Window compositor is required to prevent display issues with GTK4 applications.'
     - version: 4.6.1
       date: 2024-07-27
       changes:
