@@ -136,6 +136,7 @@ jobs:
 
       - name: Build and push to local registry
         uses: docker/build-push-action@v5
+        continue-on-error: true
         with:
           push: true
           pull: true
@@ -148,6 +149,11 @@ jobs:
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
           #cache-from: type=gha,scope=${{ fromJSON(matrix.info).tag_prefix }}
           #cache-to: type=gha,mode=max,scope=${{ fromJSON(matrix.info).tag_prefix }}
+
+      - name: Disk space
+        run: |
+          docker system df
+          df -h
 
       - name: Inspect
         id: inspect
