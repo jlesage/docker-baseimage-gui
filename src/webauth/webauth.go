@@ -38,6 +38,7 @@ type WebauthConfig struct {
 	LoginSuccessRedirectCookieName string
 	LoginFailureRedirectCookieName string
 	LoginResultCookieName string
+	LogoutRedirectCookieName string
 }
 
 type WebauthStats struct {
@@ -47,6 +48,8 @@ type WebauthStats struct {
 	LoginFailure atomic.Uint64
 	LoginBadRequest atomic.Uint64
 	LoginInternalError atomic.Uint64
+	LogoutSuccess atomic.Uint64
+	LogoutBadRequest atomic.Uint64
 	NotFound atomic.Uint64
 	MethodNotAllowed atomic.Uint64
 	TokenGenerated atomic.Uint64
@@ -96,6 +99,7 @@ func main() {
 	gConfig.LoginSuccessRedirectCookieName = "login_success_url"
 	gConfig.LoginFailureRedirectCookieName = "login_failure_url"
 	gConfig.LoginResultCookieName = "login_result"
+	gConfig.LogoutRedirectCookieName = "logout_redirect_url"
 
 	// Load the password database.
 	gPasswordDb, err = htpasswd.New(*passwordFile, htpasswd.DefaultSystems, nil)
@@ -131,7 +135,9 @@ func main() {
 			log.Println("  LoginFailure:       ", gStats.LoginFailure.Load())
 			log.Println("  LoginBadRequest:    ", gStats.LoginBadRequest.Load())
 			log.Println("  LoginInternalError: ", gStats.LoginInternalError.Load())
-		        log.Println("  NotFound:           ", gStats.NotFound.Load())
+			log.Println("  LogoutSuccess:      ", gStats.LogoutSuccess.Load())
+			log.Println("  LogoutBadRequest:   ", gStats.LogoutBadRequest.Load())
+			log.Println("  NotFound:           ", gStats.NotFound.Load())
 			log.Println("  MethodNotAllowed:   ", gStats.MethodNotAllowed.Load())
 			log.Println("  TokenGenerated:     ", gStats.TokenGenerated.Load())
 			gTokensMutex.Lock()
@@ -199,7 +205,7 @@ func methodNotAllowedHandler() http.Handler {
 }
 
 func notFoundHandler() http.Handler {
-        return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		gStats.NotFound.Add(1)
 		http.NotFound(w, r)
 	})
@@ -244,8 +250,8 @@ func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	username := r.PostFormValue("username")
 	password := r.PostFormValue("password")
-	successRawUrl := "";
-	failureRawUrl := "";
+	successRawUrl := ""
+	failureRawUrl := ""
 
 	// Make sure all form fields are present and valid.
 	if username == "" || password == "" {
@@ -267,7 +273,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid login request: login success url cookie:", err)
 		gStats.LoginBadRequest.Add(1)
-                return
+		return
 	}
 	if cookie, err := r.Cookie(gConfig.LoginFailureRedirectCookieName); err == nil {
 		failureRawUrl = cookie.Value
@@ -275,7 +281,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid login request: login failure url cookie:", err)
 		gStats.LoginBadRequest.Add(1)
-                return
+		return
 	}
 
 	// Validate redirect URLs.
@@ -283,13 +289,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid login request: invalid login success url:", err)
 		gStats.LoginBadRequest.Add(1)
-                return
+		return
 	}
 	if _, err := url.Parse(failureRawUrl); err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid login request: invalid login failure url:", err)
 		gStats.LoginBadRequest.Add(1)
-                return
+		return
 	}
 
 	// Validate provided credentials.
@@ -383,7 +389,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 		value := make(map[string]string)
 		// Try to decode it.
 		if err := gConfig.SecureCookieInstance.Decode(gConfig.TokenCookieName, cookie.Value, &value); err == nil {
-			token = value["token"];
+			token = value["token"]
 		}
 	}
 
@@ -394,8 +400,36 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 		log.Error("no token provided for logout request")
 	}
 
+	// Fetch redirect URL via cookie.
+	redirectRawUrl := ""
+	if cookie, err := r.Cookie(gConfig.LogoutRedirectCookieName); err == nil {
+		redirectRawUrl = cookie.Value
+	} else {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		log.Debug("invalid logout request: logout redirect url cookie:", err)
+		gStats.LogoutBadRequest.Add(1)
+		return
+	}
+
+	// Validate redirect URL.
+	if _, err := url.Parse(redirectRawUrl); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		log.Debug("invalid logout request: invalid logout redirect url:", err)
+		gStats.LogoutBadRequest.Add(1)
+		return
+	}
+
+	// Remove cookie containing the token.
+	http.SetCookie(w, &http.Cookie{
+		Name:    gConfig.TokenCookieName,
+		Value:   "deleted",
+		Expires: time.Now().Add(time.Hour * -24),
+		Path:    "/",
+	})
+
 	// Respond with a redirect to the login page.
-	http.Redirect(w, r, "/login", http.StatusFound)
+	gStats.LogoutSuccess.Add(1)
+	http.Redirect(w, r, redirectRawUrl, http.StatusFound)
 }
 
 func GenerateToken(length int) (string, error) {
@@ -409,7 +443,7 @@ func GenerateToken(length int) (string, error) {
 
 func SaveToken(token string, validityDuration time.Duration) error {
 	gTokensMutex.Lock()
-	defer gTokensMutex.Unlock();
+	defer gTokensMutex.Unlock()
 
 	// Check if we reached the maximum number of tokens.  If yes,
 	// perform an immediate cleanup and check again.
@@ -427,7 +461,7 @@ func SaveToken(token string, validityDuration time.Duration) error {
 
 func ValidateToken(token string) bool {
 	gTokensMutex.Lock()
-	defer gTokensMutex.Unlock();
+	defer gTokensMutex.Unlock()
 
 	if token != "" {
 		expiration, found := gTokens[token]
@@ -442,7 +476,7 @@ func ValidateToken(token string) bool {
 
 func RemoveToken(token string) {
 	gTokensMutex.Lock()
-	defer gTokensMutex.Unlock();
+	defer gTokensMutex.Unlock()
 
 	if token != "" {
 		_, found := gTokens[token]
@@ -455,7 +489,7 @@ func RemoveToken(token string) {
 func CleanupTokens(mutextLocked bool) {
 	if !mutextLocked {
 		gTokensMutex.Lock()
-		defer gTokensMutex.Unlock();
+		defer gTokensMutex.Unlock()
 	}
 
 	log.Info("cleaning tokens...")
