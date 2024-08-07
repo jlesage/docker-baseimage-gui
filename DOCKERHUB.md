@@ -59,7 +59,7 @@ Here are the main components of the baseimage:
 
 ### Versioning
 
-Images are versioned.  Version number follows the [semantic versioning].  The
+Images are versioned. Version number follows the [semantic versioning]. The
 version format is `MAJOR.MINOR.PATCH`, where an increment of the:
 
   - `MAJOR` version indicates that a backwards-incompatible change has been done.
@@ -70,7 +70,7 @@ version format is `MAJOR.MINOR.PATCH`, where an increment of the:
 
 ### Tags
 
-The baseimage is available under multiple tags.  A tag is made from the
+The baseimage is available under multiple tags. A tag is made from the
 corresponding Linux distribution and the release version.
 
 | Tag           | Description                                              |

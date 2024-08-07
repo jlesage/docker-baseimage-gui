@@ -11,9 +11,8 @@ needed on the client side) or via any VNC client.
 ## Table of Content
 
    * [Images](#images)
-      * [Content](#content)
       * [Versioning](#versioning)
-      * [Tags](#tags)
+      * [Content](#content)
    * [Getting started](#getting-started)
    * [Using the Baseimage](#using-the-baseimage)
       * [Selecting a Baseimage](#selecting-a-baseimage)
@@ -73,19 +72,34 @@ needed on the client side) or via any VNC client.
 
 Multiple docker images, based on different Linux distributions, are available:
 
-| Base Distribution  | Docker Image Base Tag | Size |
+| Linux Distribution | Docker Image Tag      | Size |
 |--------------------|-----------------------|------|
-| [Alpine 3.16]      | alpine-3.16           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16-v4?style=for-the-badge)](#)  |
-| [Alpine 3.17]      | alpine-3.17           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.17-v4?style=for-the-badge)](#)  |
-| [Alpine 3.18]      | alpine-3.18           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.18-v4?style=for-the-badge)](#)  |
-| [Alpine 3.19]      | alpine-3.19           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.19-v4?style=for-the-badge)](#)  |
-| [Alpine 3.20]      | alpine-3.20           | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.20-v4?style=for-the-badge)](#)  |
-| [Debian 10]        | debian-10             | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4?style=for-the-badge)](#)    |
-| [Debian 11]        | debian-11             | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4?style=for-the-badge)](#)    |
-| [Ubuntu 16.04 LTS] | ubuntu-16.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-16.04-v4?style=for-the-badge)](#) |
-| [Ubuntu 18.04 LTS] | ubuntu-18.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-18.04-v4?style=for-the-badge)](#) |
-| [Ubuntu 20.04 LTS] | ubuntu-20.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04-v4?style=for-the-badge)](#) |
-| [Ubuntu 22.04 LTS] | ubuntu-22.04          | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-22.04-v4?style=for-the-badge)](#) |
+| [Alpine 3.16]      | alpine-3.16-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.16-v4?style=for-the-badge)](#)  |
+| [Alpine 3.17]      | alpine-3.17-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.17-v4?style=for-the-badge)](#)  |
+| [Alpine 3.18]      | alpine-3.18-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.18-v4?style=for-the-badge)](#)  |
+| [Alpine 3.19]      | alpine-3.19-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.19-v4?style=for-the-badge)](#)  |
+| [Alpine 3.20]      | alpine-3.20-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.20-v4?style=for-the-badge)](#)  |
+| [Debian 10]        | debian-10-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4?style=for-the-badge)](#)    |
+| [Debian 11]        | debian-11-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4?style=for-the-badge)](#)    |
+| [Debian 12]        | debian-12-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-12-v4?style=for-the-badge)](#)    |
+| [Ubuntu 16.04 LTS] | ubuntu-16.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-16.04-v4?style=for-the-badge)](#) |
+| [Ubuntu 18.04 LTS] | ubuntu-18.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-18.04-v4?style=for-the-badge)](#) |
+| [Ubuntu 20.04 LTS] | ubuntu-20.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04-v4?style=for-the-badge)](#) |
+| [Ubuntu 22.04 LTS] | ubuntu-22.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-22.04-v4?style=for-the-badge)](#) |
+| [Ubuntu 24.04 LTS] | ubuntu-24.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-24.04-v4?style=for-the-badge)](#) |
+
+Each Docker image is tagged with the Linux distribution and the release version.
+All release versions can be found under the [Releases] page.
+
+Version part of the tag can be decomposed in the following way:
+
+| Tag           | Description                                              |
+|---------------|----------------------------------------------------------|
+| distro-vX.Y.Z | Exact version of the image.                              |
+| distro-vX.Y   | Latest version of a specific minor version of the image. |
+| distro-vX     | Latest version of a specific major version of the image. |
+
+Finally, all available Docker image tags can also be consulted on [Docker Hub].
 
 [Alpine 3.16]: https://alpinelinux.org
 [Alpine 3.17]: https://alpinelinux.org
@@ -94,10 +108,25 @@ Multiple docker images, based on different Linux distributions, are available:
 [Alpine 3.20]: https://alpinelinux.org
 [Debian 10]: https://www.debian.org/releases/buster/
 [Debian 11]: https://www.debian.org/releases/bullseye/
+[Debian 12]: https://www.debian.org/releases/bookworm/
 [Ubuntu 16.04 LTS]: http://releases.ubuntu.com/16.04/
 [Ubuntu 18.04 LTS]: http://releases.ubuntu.com/18.04/
 [Ubuntu 20.04 LTS]: http://releases.ubuntu.com/20.04/
 [Ubuntu 22.04 LTS]: http://releases.ubuntu.com/22.04/
+[Ubuntu 24.04 LTS]: http://releases.ubuntu.com/24.04/
+[Releases]: https://github.com/jlesage/docker-baseimage-gui/releases
+[Docker Hub]: https://hub.docker.com/r/jlesage/baseimage-gui/tags
+
+### Versioning
+
+Images are versioned. Version number follows the [semantic versioning]. The
+version format is `MAJOR.MINOR.PATCH`, where an increment of the:
+
+  - `MAJOR` version indicates that a backwards-incompatible change has been done.
+  - `MINOR` version indicates that functionality has been added in a backwards-compatible manner.
+  - `PATCH` version indicates that a bug fix has been done in a backwards-compatible manner.
+
+[semantic versioning]: https://semver.org
 
 ### Content
 
@@ -117,32 +146,6 @@ Here are the main components of the baseimage:
 [Openbox]: http://openbox.org
 [noVNC]: https://github.com/novnc/noVNC
 [NGINX]: https://www.nginx.com
-
-### Versioning
-
-Images are versioned.  Version number follows the [semantic versioning].  The
-version format is `MAJOR.MINOR.PATCH`, where an increment of the:
-
-  - `MAJOR` version indicates that a backwards-incompatible change has been done.
-  - `MINOR` version indicates that functionality has been added in a backwards-compatible manner.
-  - `PATCH` version indicates that a bug fix has been done in a backwards-compatible manner.
-
-[semantic versioning]: https://semver.org
-
-### Tags
-
-The baseimage is available under multiple tags.  A tag is made from the
-corresponding Linux distribution and the release version.
-
-| Tag           | Description                                              |
-|---------------|----------------------------------------------------------|
-| distro-vX.Y.Z | Exact version of the image.                              |
-| distro-vX.Y   | Latest version of a specific minor version of the image. |
-| distro-vX     | Latest version of a specific major version of the image. |
-
-All available tags can be consulted on [Docker Hub].
-
-[Docker Hub]: https://hub.docker.com/r/jlesage/baseimage-gui/tags
 
 ## Getting started
 
@@ -199,7 +202,7 @@ http://[HOST IP ADDR]:5800
 
 ### Selecting a Baseimage
 
-Using a baseimage based on Alpine Linux is the recommended choice.  Not only
+Using a baseimage based on Alpine Linux is the recommended choice. Not only
 because of its small size, but also because Alpine Linux is a distribution based
 on [musl] and [BusyBox] that is designed for security, simplicity and resource
 efficiency.
@@ -207,7 +210,7 @@ efficiency.
 However, using this baseimage to integrate an application not part of the
 Alpine's software repository or without its source code available may be harder.
 This is because Alpine Linux uses [musl] C standard library instead of GNU C
-library ([glibc]) that most applications are built against.  Compatibility
+library ([glibc]) that most applications are built against. Compatibility
 between these two libraries is very limited.
 
 Else, `Debian` and `Ubuntu` images are well known Linux distributions that
@@ -258,15 +261,15 @@ and its application.
 There are two types of environment variables:
 
   - **Public**: These variables are targeted to people using the container.
-    They provide a way to configure it.  They are declared in the `Dockerfile`,
-    via the `ENV` instruction.  Their value can be set by users during the
+    They provide a way to configure it. They are declared in the `Dockerfile`,
+    via the `ENV` instruction. Their value can be set by users during the
     creation of the container, via the `-e "<VAR>=<VALUE>"` argument of the
-    `docker run` command.  Also, many Docker container management systems use
+    `docker run` command. Also, many Docker container management systems use
     these variables to automatically provide configuration parameters to the
     user.
 
   - **Internal**: These variables are the ones that don't need to be exposed to
-    users.  They are useful for the application itself, but are not intended to
+    users. They are useful for the application itself, but are not intended to
     be changed by users.
 
 **NOTE**: If a variable is defined as both an internal and public one, the value
@@ -350,7 +353,7 @@ container, they are always available to all your scripts and services, as soon
 as the container starts.
 
 For internal environment variables, they first need to be loaded during the
-startup of the container before they can be used.  Since this is done before
+startup of the container before they can be used. Since this is done before
 running init scripts and services, availability should not be an issue.
 
 #### Docker Secrets
@@ -371,7 +374,7 @@ For example, for a secret named `CONT_ENV_MY_PASSWORD`, the environment variable
 
 ### Ports
 
-Here is the list of ports used by the baseimage.  With a container using the
+Here is the list of ports used by the baseimage. With a container using the
 default bridge network, these ports can be mapped to the host via the
 `-p <HOST_PORT>:<CONTAINER_PORT>` parameter.
 
@@ -383,9 +386,9 @@ default bridge network, these ports can be mapped to the host via the
 ### User/Group IDs
 
 When mapping data volumes (via the `-v` flag of the `docker run` command),
-permissions issues can occur between the host and the container.  Files and
+permissions issues can occur between the host and the container. Files and
 folders of a data volume are owned by a user, which is probably not the same as
-the default user under which the implemented application is running.  Depending
+the default user under which the implemented application is running. Depending
 on permissions, this situation could prevent the container from accessing files
 and folders on the shared volume.
 
@@ -409,8 +412,8 @@ be given the container.
 
 ### Locales
 
-The default locale of the container is set to `POSIX`.  If this cause issues
-with your application, the proper locale can be installed.  For example, adding
+The default locale of the container is set to `POSIX`. If this cause issues
+with your application, the proper locale can be installed. For example, adding
 the following instructions to your `Dockerfile` set the locale to `en_US.UTF-8`.
 ```Dockerfile
 RUN \
@@ -446,22 +449,22 @@ By default, access to the application's GUI is done over an unencrypted
 connection (HTTP or VNC).
 
 Secure connection can be enabled via the `SECURE_CONNECTION` environment
-variable.  See the [Environment Variables](#environment-variables) section for
+variable. See the [Environment Variables](#environment-variables) section for
 more details on how to set an environment variable.
 
 When enabled, application's GUI is performed over an HTTPs connection when
-accessed with a browser.  All HTTP accesses are automatically redirected to
+accessed with a browser. All HTTP accesses are automatically redirected to
 HTTPs.
 
-When using a VNC client, the VNC connection is performed over SSL.  Note that
-few VNC clients support this method.  [SSVNC] is one of them.
+When using a VNC client, the VNC connection is performed over SSL. Note that
+few VNC clients support this method. [SSVNC] is one of them.
 
 #### SSVNC
 
 [SSVNC] is a VNC viewer that adds encryption security to VNC connections.
 
 While the Linux version of [SSVNC] works well, the Windows version has some
-issues.  At the time of writing, the latest version `1.0.30` is not functional,
+issues. At the time of writing, the latest version `1.0.30` is not functional,
 as a connection fails with the following error:
 
 ```
@@ -481,8 +484,8 @@ problems.
 
 #### Certificates
  
-Here are the certificate files needed by the container.  By default, when they
-are missing, self-signed certificates are generated and used.  All files are
+Here are the certificate files needed by the container. By default, when they
+are missing, self-signed certificates are generated and used. All files are
 PEM encoded, x509 certificates.
 
 | Container Path                  | Purpose                    | Content |
@@ -499,11 +502,11 @@ restarted when changes are detected.
 
 #### VNC Password
 
-To restrict access to your application, a password can be specified.  This can
+To restrict access to your application, a password can be specified. This can
 be done via two methods:
   * By using the `VNC_PASSWORD` environment variable.
   * By creating a `.vncpass_clear` file at the root of the `/config` volume.
-    This file should contains the password in clear-text.  During the container
+    This file should contains the password in clear-text. During the container
     startup, content of the file is obfuscated and moved to `.vncpass`.
 
 The level of security provided by the VNC password depends on two things:
@@ -516,10 +519,10 @@ connection to prevent sending the password in clear over an unencrypted channel.
 Access to the host by unexpected users with sufficient privileges can be
 dangerous as they can retrieve the password with the following methods:
   * By looking at the `VNC_PASSWORD` environment variable value via the
-    `docker inspect` command.  By defaut, the `docker` command can be run only
-    by the root user.  However, it is possible to configure the system to allow
+    `docker inspect` command. By defaut, the `docker` command can be run only
+    by the root user. However, it is possible to configure the system to allow
     the `docker` command to be run by any users part of a specific group.
-  * By decrypting the `/config/.vncpass` file.  This requires the user to have
+  * By decrypting the `/config/.vncpass` file. This requires the user to have
     the appropriate permission to read the file: it has to be root or be the
     user defined by the `USER_ID` environment variable.
 
@@ -529,8 +532,8 @@ Diffie-Hellman (DH) parameters define how the [DH key-exchange] is performed.
 More details about this algorithm can be found on the [OpenSSL Wiki].
 
 DH Parameters are saved into the PEM encoded file located inside the container
-at `/config/certs/dhparam.pem`.  By default, when this file is missing, 2048
-bits DH parameters are automatically generated.  Note that this one-time
+at `/config/certs/dhparam.pem`. By default, when this file is missing, 2048
+bits DH parameters are automatically generated. Note that this one-time
 operation takes some time to perform and increases the startup time of the
 container.
 
@@ -540,7 +543,7 @@ container.
 #### Web Authentication
 
 Access to the application's GUI via a web browser can be protected with a login
-page.  When web authentication is enabled, users have to provide valid
+page. When web authentication is enabled, users have to provide valid
 credentials, otherwise access is denied.
 
 Web authentication can be enabled by setting the `WEB_AUTHENTICATION`
@@ -560,7 +563,7 @@ Two methods can be used to configure users credentials:
   2. Via password database.
 
 Containers environment variables can be used to quickly and easily configure
-a single user.  Username and pasword are defined via the following environment
+a single user. Username and pasword are defined via the following environment
 variables:
   - `WEB_AUTHENTICATION_USERNAME`
   - `WEB_AUTHENTICATION_PASSWORD`
@@ -570,9 +573,9 @@ on how to set an environment variable.
 
 The second method is more secure and allows multiple users to be configured.
 The usernames and password hashes are saved into a password database, located at
-`/config/webauth-htpasswd` inside the container.  This database file has the
-same format as htpasswd files of the Apache HTTP server.  Note that password
-themselves are not saved into the database, but only their hash.  The bcrypt
+`/config/webauth-htpasswd` inside the container. This database file has the
+same format as htpasswd files of the Apache HTTP server. Note that password
+themselves are not saved into the database, but only their hash. The bcrypt
 password hashing function is used to generate hashes.
 
 Users are managed via the `webauth-user` tool included in the container:
@@ -584,7 +587,7 @@ Users are managed via the `webauth-user` tool included in the container:
 ### Initialization Scripts
 
 During the container startup, initialization scripts are executed in
-alphabetical order.  They are executed before starting services.
+alphabetical order. They are executed before starting services.
 
 Initialization scripts are located at `/etc/cont-init.d/` inside the container.
 
@@ -602,7 +605,7 @@ should use the range 50-59.
 ### Finalization Scripts
 
 Finalization scripts are executed, in alphabetical order, during the shutdown
-process of the container.  They are executed after all services have been
+process of the container. They are executed after all services have been
 stopped.
 
 Finalization scripts are located under `/etc/cont-finish.d/` inside the
@@ -613,51 +616,51 @@ container.
 Services are programs handled by the process supervisor that run in background.
 When a service dies, it can be configured to be automatically restarted.
 
-Services are defined under `/etc/services.d/` in the container.  Each service
+Services are defined under `/etc/services.d/` in the container. Each service
 has its own directory, in which different files are used to store the behavior
 of the service.
 
 The content of files provides the value for the associated configuration
-setting.  If the file has execution permission, it will be executed by the
+setting. If the file has execution permission, it will be executed by the
 process supervisor and its output is taked as the value of the configuration
 setting.
 
 | File                   | Type             | Description | Default |
 |------------------------|------------------|-------------|---------|
 | run                    | Program          | The program to run. | N/A |
-| is_ready               | Program          | Program invoked by the process supervisor to verify if the service is ready.  The program should exit with an exit code of `0` when service is ready.  PID of the service if given to the program as parameter. | N/A |
-| kill                   | Program          | Program to run when service needs to be killed.  The PID of the service if given to the program as parameter.  Note that the `TERM` signal is still sent to the service after executing the program. | N/A |
+| is_ready               | Program          | Program invoked by the process supervisor to verify if the service is ready. The program should exit with an exit code of `0` when service is ready. PID of the service if given to the program as parameter. | N/A |
+| kill                   | Program          | Program to run when service needs to be killed. The PID of the service if given to the program as parameter. Note that the `TERM` signal is still sent to the service after executing the program. | N/A |
 | finish                 | Program          | Program invoked when the service terminates. The service's exit code is given to the program as parameter. | N/A |
-| params                 | String           | Parameter for the service's program to run.  One parameter per line. | No parameter |
-| environment            | String           | Environment to use for the service.  One environment variable per line, of the form `key=value`. | Environment untouched |
-| environment_extra      | String           | Extra variables to add to the environment of the service.  One environment variable per line, of the form `key=value`. | No extra variable |
+| params                 | String           | Parameter for the service's program to run. One parameter per line. | No parameter |
+| environment            | String           | Environment to use for the service. One environment variable per line, of the form `key=value`. | Environment untouched |
+| environment_extra      | String           | Extra variables to add to the environment of the service. One environment variable per line, of the form `key=value`. | No extra variable |
 | respawn                | Boolean          | Whether or not the process must be respawned when it dies. | `FALSE`  |
-| sync                   | Boolean          | Whether or not the process supervisor waits until the service ends.  This is mutually exclusive with `respawn`. | `FALSE` |
+| sync                   | Boolean          | Whether or not the process supervisor waits until the service ends. This is mutually exclusive with `respawn`. | `FALSE` |
 | ready_timeout          | Unsigned integer | Maximum amount of time (in milliseconds) to wait for the service to be ready. | `5000` |
-| interval               | Interval         | Interval, in seconds, at which the service should be executed.  This is mutually exclusive with `respawn`. | No interval |
+| interval               | Interval         | Interval, in seconds, at which the service should be executed. This is mutually exclusive with `respawn`. | No interval |
 | uid                    | Unsigned integer | The user ID under which the service will run. | `$USER_ID` |
 | gid                    | Unsigned integer | The group ID under which the service will run. | `$GROUP_ID` |
-| sgid                   | Unsigned integer | List of supplementary group IDs of the service.  One group ID per line. | Empty list |
+| sgid                   | Unsigned integer | List of supplementary group IDs of the service. One group ID per line. | Empty list |
 | umask                  | Octal integer    | The umask value (in octal notation) of the service. | `0022` |
-| priority               | Signed integer   | Priority at which the service should run.  A niceness value of -20 is the highest priority and 19 is the lowest priority. | `0` |
+| priority               | Signed integer   | Priority at which the service should run. A niceness value of -20 is the highest priority and 19 is the lowest priority. | `0` |
 | workdir                | String           | The working directory of the service. | Service's directory path  |
 | ignore_failure         | Boolean          | When set, the inability to start the service won't prevent the container to start. | `FALSE` |
 | shutdown_on_terminate  | Boolean          | Indicates that the container should be shut down when the service terminates. | `FALSE` |
 | min_running_time       | Unsigned integer | The minimum amount of time (in milliseconds) the service should be running before considering it as ready. | `500` |
 | disabled               | Boolean          | Indicates that the service is disabled, meaning that it won't be loaded nor started. | `FALSE` |
-| <service>.dep          | Boolean          | Indicates that the service depends on another one.  For example, having `srvB.dep` means that `srvB` should be started before this service. | N/A |
+| <service>.dep          | Boolean          | Indicates that the service depends on another one. For example, having `srvB.dep` means that `srvB` should be started before this service. | N/A |
 
 The following table provides more details about some value types:
 
 | Type     | Description |
 |----------|-------------|
-| Program  | An executable binary, a script or a symbolic link to the program to run.  The program file must have the execute permission. |
-| Boolean  | A boolean value.  A *true* value can be `1`, `true`, `on`, `yes`, `y`, `enable`, `enabled`.  A *false* value can  be `0`, `false`, `off`, `no`, `n`, `disable`, `disabled`.  Values are case insensitive.  Also, the presence of an empty file indicates a *true* value (i.e. the file can be "touched"). |
-| Interval | An unsigned integer value.  The following values are also accepted (case insensitive): `yearly`, `monthly`, `weekly`, `daily`, `hourly`. |
+| Program  | An executable binary, a script or a symbolic link to the program to run. The program file must have the execute permission. |
+| Boolean  | A boolean value. A *true* value can be `1`, `true`, `on`, `yes`, `y`, `enable`, `enabled`. A *false* value can be `0`, `false`, `off`, `no`, `n`, `disable`, `disabled`. Values are case insensitive. Also, the presence of an empty file indicates a *true* value (i.e. the file can be "touched"). |
+| Interval | An unsigned integer value. The following values are also accepted (case insensitive): `yearly`, `monthly`, `weekly`, `daily`, `hourly`. |
 
 #### Service Group
 
-A service group is a service for which there is no `run` program.  The process
+A service group is a service for which there is no `run` program. The process
 supervisor will only load its dependencies.
 
 #### Default Service
@@ -673,9 +676,9 @@ and ran for a minimum amount of time (500ms by default).
 
 This behavior can be adjusted with the following methods:
   - By adjusting the minimum amount of time the service should run before 
-    considering it as ready.  This can be done by adding the
+    considering it as ready. This can be done by adding the
     `min_running_time` file to the service's directory.
-  - By informing the process supervisor when the service is ready.  This is done
+  - By informing the process supervisor when the service is ready. This is done
     by adding the `is_ready` program to the service's directory, along with
     `ready_timeout` file to indicate the maximum amount of time to wait for the
     service to be ready.
@@ -685,12 +688,12 @@ This behavior can be adjusted with the following methods:
 Applications often need to write configuration, data, states, logs, etc.
 Inside the container, this data should be stored under the `/config` directory.
 
-This directory is intended to be mapped to a folder on the host.  The goal is to
+This directory is intended to be mapped to a folder on the host. The goal is to
 write stuff outside the container to keep this data persistent.
 
 **NOTE**: During the container startup, ownership of this folder and all its
-          content is taken.  This is to make sure that `/config` can be accessed
-          by the user configured through `USER_ID`/`GROUP_ID`.  This behavior
+          content is taken. This is to make sure that `/config` can be accessed
+          by the user configured through `USER_ID`/`GROUP_ID`. This behavior
           can be adjusted via the `TAKE_CONFIG_OWNERSHIP` internal environment
           variable.
 
@@ -698,7 +701,7 @@ write stuff outside the container to keep this data persistent.
 
 A lot of applications use the environment variables defined by the
 [XDG Base Directory Specification] to determine where to store
-various data.  The baseimage sets these variables so they all fall under
+various data. The baseimage sets these variables so they all fall under
 `/config/`:
 
   * XDG_DATA_HOME=/config/xdg/data
@@ -716,9 +719,9 @@ The container log can be viewed with the command
 `docker logs <name of the container>`.
 
 To ease consultation of the log, all messages are prefixed with the name of the
-service or script.  Also, it is a good idea to limit the number of information
-written to this log.  If a program's output is too verbose, it is preferable
-to redirect it to a file.  For example, the `run` command of a service that
+service or script. Also, it is a good idea to limit the number of information
+written to this log. If a program's output is too verbose, it is preferable
+to redirect it to a file. For example, the `run` command of a service that
 redirects the standard output and standard error output to different files
 could be:
 
@@ -730,11 +733,11 @@ exec /usr/bin/my_service > /config/log/my_service_out.log 2> /config/log/my_serv
 ### Logrotate
 
 The baseimage integrates `logrotate`, an utility used to rotate and compress
-log files.  This tool runs automatically once a day via a service.  The service
+log files. This tool runs automatically once a day via a service. The service
 is automatically disabled when no log files are configured.
 
 To enable the rotation/compression of a log file, a configuration file needs to
-be added to the `/etc/cont-logrotate.d` directory inside the container.  This
+be added to the `/etc/cont-logrotate.d` directory inside the container. This
 configuration defines how to handle this specific log file.
 
 Here is a simple example of a configuration defined at
@@ -747,7 +750,7 @@ Here is a simple example of a configuration defined at
 ```
 
 This configuration file can override the default parameters, which are defined
-at `/opt/base/etc/logrotate.conf` inside the container.  In summary, by default:
+at `/opt/base/etc/logrotate.conf` inside the container. In summary, by default:
   - Log files are rotated weekly.
   - Four weeks worth of backlogs are kept.
   - Rotated log files are compressed.
@@ -758,7 +761,7 @@ manual at https://linux.die.net/man/8/logrotate.
 
 ### Log Monitor
 
-The baseimage includes a simple log monitor.  This monitor allows sending
+The baseimage includes a simple log monitor. This monitor allows sending
 notification(s) when a particular message is detected in a log or status file.
 
 This system has two main components:
@@ -766,19 +769,19 @@ This system has two main components:
     message, severity, etc),  how it is triggered (filtering function) and the
     associated monitored file(s).
   - **Backends (targets)**:  Once a matching string is found in a file, a
-    notification is triggered and sent to one or more backends.  A backend can
-    implement any functionality.  For example, it could send the notification to
+    notification is triggered and sent to one or more backends. A backend can
+    implement any functionality. For example, it could send the notification to
     the container's log, a file or an online service.
 
 There are two types of files that can be monitored:
   - **Log files**: A log file is a file having new content appended to it.
-  - **Status files*: A status file doesn't have new content appended.  Instead,
+  - **Status files*: A status file doesn't have new content appended. Instead,
     its whole content is refreshed/overwritten periodically.
 
 #### Notification Definition
 
 The definition of a notification consists in multiple files, stored in a
-directory under `/etc/logmonitor/notifications.d` inside the container.  For
+directory under `/etc/logmonitor/notifications.d` inside the container. For
 example, definition of notification `MYNOTIF` is found under
 `/etc/logmonitor/notifications.d/MYNOTIF/`.
 
@@ -786,35 +789,35 @@ The following table describe files part of the definition:
 
 | File     | Mandatory  | Description |
 |----------|------------|-------------|
-| `filter` | Yes        | Program (script or binary with executable permission) used to filter messages from a log file.  It is invoked by the log monitor with a single argument: a line from the log file.  On a match, the program should exit with a value of `0`.  Any other values is interpreted as non-match. |
-| `title`  | Yes        | File containing the title of the notification.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's title. |
-| `desc`   | Yes        | File containing the description/message of the notification.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's description/message. |
-| `level`  | Yes        | File containing severity level of the notification.  Valid severity level values are `ERROR`, `WARNING` or `INFO`.  To produce dynamic content, the file can be a program (script or binary with executable permission).  In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument.  Output of the program is used as the notification's severity level. |
-| `source` | Yes        | File containing the absolute path(s) to file(s) to monitor (one path per line).  Prepend the path with `status:` to indicate that the file is a status file.  A path with prefixed with `log:` or without any prefix is considered as a log file.  |
+| `filter` | Yes        | Program (script or binary with executable permission) used to filter messages from a log file. It is invoked by the log monitor with a single argument: a line from the log file. On a match, the program should exit with a value of `0`. Any other values is interpreted as non-match. |
+| `title`  | Yes        | File containing the title of the notification. To produce dynamic content, the file can be a program (script or binary with executable permission). In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument. Output of the program is used as the notification's title. |
+| `desc`   | Yes        | File containing the description/message of the notification. To produce dynamic content, the file can be a program (script or binary with executable permission). In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument. Output of the program is used as the notification's description/message. |
+| `level`  | Yes        | File containing severity level of the notification. Valid severity level values are `ERROR`, `WARNING` or `INFO`. To produce dynamic content, the file can be a program (script or binary with executable permission). In this case, the program is invoked by the log monitor with the matched message from the log file as the single argument. Output of the program is used as the notification's severity level. |
+| `source` | Yes        | File containing the absolute path(s) to file(s) to monitor (one path per line). Prepend the path with `status:` to indicate that the file is a status file. A path with prefixed with `log:` or without any prefix is considered as a log file. |
 
 #### Notification Backend
 
 Definition of a notification backend is stored in a directory under
-`/etc/cont-logmonitor/targets.d`.  For example, definition of `STDOUT` backend is
-found under `/etc/cont-logmonitor/target.d/STDOUT/`.  The following table
+`/etc/cont-logmonitor/targets.d`. For example, definition of `STDOUT` backend is
+found under `/etc/cont-logmonitor/target.d/STDOUT/`. The following table
 describe files part of the definition:
 
 | File         | Mandatory  | Description |
 |--------------|------------|-------------|
-| `send`       | Yes        | Program (script or binary with executable permission) that sends the notification.  It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level. |
-| `debouncing` | No         | File containing the minimum amount time (in seconds) that must elapse before sending the same notification with this backend.  A value of `0` means infinite (notification is sent once).  If this file is missing, no debouncing is done. |
+| `send`       | Yes        | Program (script or binary with executable permission) that sends the notification. It is invoked by the log monitor with the following notification properties as arguments: title, description/message and the severity level. |
+| `debouncing` | No         | File containing the minimum amount time (in seconds) that must elapse before sending the same notification with this backend. A value of `0` means infinite (notification is sent once). If this file is missing, no debouncing is done. |
 
 By default, the baseimage contains the following notification backends:
 
 | Backend  | Description | Debouncing time |
 |----------|-------------|-----------------|
-| `stdout` | Display a message to the standard output, making it visible in the container's log.  Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
+| `stdout` | Display a message to the standard output, making it visible in the container's log. Message of the format is `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
 | `yad`    | Display the notification in a window box, visible in the application's GUI. | Infinite |
 
 ### Web Audio
 
 The baseimage supports streaming audio from any application that supports
-PulseAudio.  The audio plays through the web browser of users.  Audio is not
+PulseAudio. The audio plays through the web browser of users. Audio is not
 supported when the application is accessed via a VNC client.
 
 Audio is streamed with the following specification:
@@ -825,7 +828,7 @@ Audio is streamed with the following specification:
   * 44.1KHZ sample rate
 
 Web audio support can be enabled by setting the value of the `WEB_AUDIO`
-environment variable to `1`.  See the
+environment variable to `1`. See the
 [Environment Variables](#environment-variables) section for more details on how
 to set an environment variable.
 
@@ -841,7 +844,7 @@ or during the execution of a container.
 #### Adding/Removing Packages
 
 To add or remove packages, use the helpers `add-pkg` and `del-pkg` provided by
-this baseimage.  To minimize the size of the container, these tools perform
+this baseimage. To minimize the size of the container, these tools perform
 proper cleanup and make sure that no useless files are left after addition or
 removal of packages.
 
@@ -851,7 +854,7 @@ them at a later time using the provided `NAME` (no need to repeat given
 packages).
 
 Note that if a specified package is already installed, it will be ignored and
-will not be removed automatically.  For example, the following commands could be
+will not be removed automatically. For example, the following commands could be
 added to `Dockerfile` to compile a project:
 
 ```Dockerfile
@@ -869,13 +872,13 @@ doesn't remove it.
 
 #### Modifying Files With Sed
 
-`sed` is a useful tool often used in container builds to modify files.  However,
+`sed` is a useful tool often used in container builds to modify files. However,
 one downside of this method is that there is no easy way to determine if `sed`
 actually modified the file or not.
 
 It's for this reason that the baseimage includes a helper that gives `sed` a
 "patch-like" behavior:  if applying a sed expression results in no change on the
-target file, then an error is reported.  This helper is named `sed-patch` and
+target file, then an error is reported. This helper is named `sed-patch` and
 has the following usage:
 
 ```shell
@@ -896,7 +899,7 @@ command fails and thus, the Docker build also.
 
 #### Evaluating Boolean Value
 
-Environment variables are often used to store a boolean value.  Using the
+Environment variables are often used to store a boolean value. Using the
 helpers `is-bool-value-true` and `is-bool-value-false` allows to easily
 determine if a value is "true" or "false".
 
@@ -931,8 +934,8 @@ The helper `take-ownership` recursively sets the user ID and group ID of a
 directory and all the files and directories under it.
 
 This helper is well suited for scenarios where the directory is mapped to the
-host.  If on the host this directory is a network share, setting/changing the
-ownership via `chown` can fail.  The helper handles this case by ignoring the
+host. If on the host this directory is a network share, setting/changing the
+ownership via `chown` can fail. The helper handles this case by ignoring the
 failure if a write test turns out to be positive.
 
 For example, the following command take ownership of `/config`, by automatically
@@ -943,7 +946,7 @@ variables:
 take-ownership /config
 ```
 
-User and group IDs can also be explicit.  For example, to set ownership to user
+User and group IDs can also be explicit. For example, to set ownership to user
 ID `99` and group ID `100`:
 
 ```shell
@@ -967,8 +970,8 @@ This automatically creates the environment variable file under
 
 ### Application Icon
 
-A picture of your application can be added to the image.  This picture is
-displayed in the WEB interface's navigation bar.  This is also the master
+A picture of your application can be added to the image. This picture is
+displayed in the WEB interface's navigation bar. This is also the master
 picture used to generate favicons that support different browsers and
 platforms.
 
@@ -989,7 +992,7 @@ Note that favicons are generated by [RealFaviconGenerator].
 
 ### Dark Mode
 
-Dark mode can be enabled via the `DARK_MODE` environment variable.  When
+Dark mode can be enabled via the `DARK_MODE` environment variable. When
 enabled, the web interface used to display the application is automatically
 adjusted accordingly.
 
@@ -1005,21 +1008,21 @@ The baseimage provides support for the [GTK] and [QT] toolkits.
 #### GTK
 
 When dark mode is enabled, the baseimage automatically setups the environment
-to force the application to use a dark theme.  Under the hood, this is done by
+to force the application to use a dark theme. Under the hood, this is done by
 setting the following environment variables:
-  - `GTK_THEME` is set to `Adwaita:dark`.  This is used by GTK3 and GTK4
+  - `GTK_THEME` is set to `Adwaita:dark`. This is used by GTK3 and GTK4
     applications.
-  - `GTK2_RC_FILES` is set to `/opt/base/share/themes/Dark/gtk-2.0/gtkrc`.  This
+  - `GTK2_RC_FILES` is set to `/opt/base/share/themes/Dark/gtk-2.0/gtkrc`. This
     is used by GTK2 applications.
 
 #### QT
 
 When dark mode is enabled, the baseimage automatically setup the environment
-to force the application to use a dark theme.  Under the hood, this is done by
+to force the application to use a dark theme. Under the hood, this is done by
 setting the `QT_STYLE_OVERRIDE` environment variable to `Adwaita-Dark`.
 
 In addition, the application's Dockerfile should install the Adwaita
-style/theme.  It is provided by the `adwaita-qt` package, available from the
+style/theme. It is provided by the `adwaita-qt` package, available from the
 Ubuntu, Debian or Alpine Linux software repositories.
 
 NOTE: Dark mode is currently supported by QT5 and QT6.
@@ -1028,12 +1031,12 @@ NOTE: Dark mode is currently supported by QT5 and QT6.
 
 #### Do Not Modify Baseimage Content
 
-Try to avoid modifications to files provided by the baseimage.  This minimizes
+Try to avoid modifications to files provided by the baseimage. This minimizes
 the risk of breaking your container after using a new version of the baseimage.
 
 #### Default Configuration Files
 
-It is often useful to keep the original version of a configuration file.  For
+It is often useful to keep the original version of a configuration file. For
 example, a copy of the original file could be modified by an initialization
 script before being installed.
 
@@ -1042,11 +1045,11 @@ These original files, also called default files, should be stored under the
 
 #### The $HOME Variable
 
-The application is run under a Linux user having its own ID.  This user has no
+The application is run under a Linux user having its own ID. This user has no
 login capability, has no password, no valid login shell and no home directory.
 It is effectively a kind of user used by daemons.
 
-Thus, by default, the `$HOME` environment variable is not set.  While this
+Thus, by default, the `$HOME` environment variable is not set. While this
 should be fine in most case, some applications may expect the `$HOME`
 environment variable to be set (since normally the application is run by a
 logged user) and may not behave correctly otherwise.
@@ -1057,7 +1060,7 @@ of the `startapp.sh` script:
 export HOME=/config
 ```
 
-Adjust the location of the home directory to fit your needs.  However, if the
+Adjust the location of the home directory to fit your needs. However, if the
 application uses the home directory to write data, make sure it is done in a
 volume mapped to the host (e.g. `/config`),
 
@@ -1069,14 +1072,14 @@ directory into their `run` script.
 The Linux user/group under which the application is running can be referenced
 via:
   - Its ID, as indicated by the `USER_ID`/`GROUP_ID` environment variable.
-  - By the user/group `app`.  The `app` user/group is setup during the startup
+  - By the user/group `app`. The `app` user/group is setup during the startup
     to match the configured `USER_ID`/`GROUP_ID`.
 
 #### Using `rootfs` Directory
 
 All files that need to be copied into the container should be stored in your
-source tree under the directory `rootfs`.  The folder structure into this
-directory should reflect the structure inside the container.  For example, the
+source tree under the directory `rootfs`. The folder structure into this
+directory should reflect the structure inside the container. For example, the
 file `/etc/cont-init.d/my-init.sh` inside the container should be saved as
 `rootfs/etc/cont-init.d/my-init.sh` in your source tree.
 
@@ -1094,7 +1097,7 @@ When the application has multiple windows, this behavior may need to be
 restricted to only the main one.
 
 The window manager can be configured to apply different behaviors for different
-windows of the application.  A specific window is identified by matching one or
+windows of the application. A specific window is identified by matching one or
 more of its properties:
   - Name of the window.
   - Class of the window.
@@ -1121,16 +1124,16 @@ The following table shows how to find the relevant information:
 | Title      | The window's `_OB_APP_TITLE` property. |
 | GroupName  | The window's `_OB_APP_GROUP_NAME property`. |
 | GroupClass | The window's `_OB_APP_GROUP_CLASS property`. |
-| Type       | The window's `_OB_APP_TYPE property`.  The type can be one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`. |
+| Type       | The window's `_OB_APP_TYPE property`. The type can be one of the following values: `desktop`, `dialog`, `dock`, `menu`, `normal`, `notification`, `splash`, `toolbar`, `utility`. |
 | Role       | The window's `_OB_APP_ROLE` property. |
 
 By default, the window manager configuration matches only the type of the
-window, which must be `normal`.  More restrictions can be added to better
+window, which must be `normal`. More restrictions can be added to better
 select the correct window.
 
 To do this, matching criterias can be defined by adding a file located at
-`/etc/openbox/main-window-selection.xml` in the container.  This file should
-have one matching critera per line, in XML format.  For example, to match
+`/etc/openbox/main-window-selection.xml` in the container. This file should
+have one matching critera per line, in XML format. For example, to match
 against both the type and the name of the window, the file content should be:
 
 ```xml
@@ -1145,11 +1148,11 @@ against both the type and the name of the window, the file content should be:
 #### Adaptations from the 3.x Version
 
 For existing applications using the previous version of the baseimage, few
-adaptations are needed when updating to the new baseimage.  Here are a few
+adaptations are needed when updating to the new baseimage. Here are a few
 tips:
 
   - Verify exposed environment variables: each of them should be categorized as
-    a public or private one.  See the
+    a public or private one. See the
     [Environment Variables](#environment-variables) section.
   - Initialization scripts should be renamed to have the proper naming format.
     See the [Initialization Scripts](#initialization-scripts) section.
@@ -1160,6 +1163,6 @@ tips:
   - Set the `APP_VERSION` and `DOCKER_IMAGE_VERSION` internal environment
     variables when/if needed.
   - Any adjustment to the window manager config (e.g. to maximize only the main
-    window) should be adapted to use the new mechanism.  See the
+    window) should be adapted to use the new mechanism. See the
     [Maximizing Only the Main Window](#maximizing-only-the-main-window) section.
 
