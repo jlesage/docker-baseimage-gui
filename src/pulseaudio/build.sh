@@ -13,7 +13,7 @@ PULSEAUDIO_VERSION=16.1
 LIBSNDFILE_VERSION=1.2.2
 
 # Define software download URLs.
-PULSEAUDIO_URL=https://freedesktop.org/software/pulseaudio/releases/pulseaudio-${PULSEAUDIO_VERSION}.tar.xz
+PULSEAUDIO_URL=https://www.freedesktop.org/software/pulseaudio/releases/pulseaudio-${PULSEAUDIO_VERSION}.tar.xz
 LIBSNDFILE_URL=https://github.com/libsndfile/libsndfile/releases/download/${LIBSNDFILE_VERSION}/libsndfile-${LIBSNDFILE_VERSION}.tar.xz
 
 # Set same default compilation flags as abuild.
