@@ -8,14 +8,14 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/login/fonts/pxiEyp8kv8JHgFVrFJA.ttf) format('truetype');
+  src: url(../fonts/pxiEyp8kv8JHgFVrFJA.ttf) format('truetype');
 }
 @font-face {
   font-family: 'Poppins';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(/login/fonts/pxiByp8kv8JHgFVrLGT9V1s.ttf) format('truetype');
+  src: url(../fonts/pxiByp8kv8JHgFVrLGT9V1s.ttf) format('truetype');
 }
 
 body {
