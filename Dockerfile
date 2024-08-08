@@ -18,7 +18,7 @@ ARG ALPINE_PKGS="\
 # Define the Debian/Ubuntu packages to be installed into the image.
 ARG DEBIAN_PKGS="\
     # Used to determine if nginx is ready.
-    netcat \
+    netcat-openbsd \
     # For ifconfig
     net-tools \
     # Needed to generate self-signed certificates
