@@ -19,6 +19,17 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.6.4
+      date: 2024-08-31
+      changes:
+        added:
+          - 'Image based on Debian 12.'
+          - 'Image based on Ubuntu 24.04.'
+        changed:
+          - 'Updated jlesage/baseimage to version 3.6.3.'
+          - 'Rebuild against latest distro images to get security fixes.'
+        fixed:
+          - 'Web authentication feature with URL path-based reverse proxy.'
     - version: 4.6.3
       date: 2024-07-29
       changes:
