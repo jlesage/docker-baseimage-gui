@@ -259,6 +259,7 @@ const UI = {
         UI.initSetting('view_only', false);
         UI.initSetting('show_dot', false);
         UI.initSetting('path', 'websockify');
+        UI.initSetting('audio_path', 'websockify-audio');
         UI.initSetting('repeaterID', '');
     },
 
@@ -1520,12 +1521,22 @@ const UI = {
         if (!UI.audioContext) return;
 
         function connectWebSocket() {
-            var socketURL = (window.location.protocol == 'https:' ? 'wss:' : 'ws:')+'//'+document.location.hostname+':'+window.location.port+'/websockify-audio';
+            const host = UI.getSetting('host');
+            const port = UI.getSetting('port');
+            const audio_path = UI.getSetting('audio_path');
+
+            let url;
+            url = UI.getSetting('encrypt') ? 'wss' : 'ws';
+            url += '://' + host;
+            if (port) {
+                url += ':' + port;
+            }
+            url += '/' + window.location.pathname.substr(1) + audio_path;
 
             if (!UI.audioContext.audioEnabled) return;
 
             Log.Info("Establishing WebSocket connection for audio...");
-            UI.audioContext.webSocket = new WebSocket(socketURL, ['binary']);
+            UI.audioContext.webSocket = new WebSocket(url, ['binary']);
             UI.audioContext.webSocket.binaryType = 'arraybuffer';
 
             UI.audioContext.webSocket.onmessage = (event) => {
