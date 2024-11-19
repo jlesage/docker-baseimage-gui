@@ -22,21 +22,30 @@
  endif()
 --- a/common/rfb/SSecurityPlain.cxx	2023-02-15 13:08:20.122930689 -0500
 +++ b/common/rfb/SSecurityPlain.cxx	2023-02-15 13:10:03.848414138 -0500
-@@ -25,7 +25,7 @@
- #include <rfb/SConnection.h>
+@@ -26,7 +26,7 @@
  #include <rfb/Exception.h>
+ #include <rfb/util.h>
  #include <rdr/InStream.h>
 -#if !defined(WIN32) && !defined(__APPLE__)
-+#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
++#if(ENABLE_UNIX_PASSWORD_VALIDATOR)
  #include <rfb/UnixPasswordValidator.h>
- #endif
- #ifdef WIN32
-@@ -68,7 +68,7 @@
+ #include <unistd.h>
+ #include <pwd.h>
+@@ -55,7 +55,7 @@
+   for (size_t i = 0; i < users.size(); i++) {
+     if (users[i] == "*")
+       return true;
+-#if !defined(WIN32) && !defined(__APPLE__)
++#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
+     if (users[i] == "%u") {
+       struct passwd *pw = getpwnam(username);
+       if (pw && pw->pw_uid == getuid())
+@@ -72,7 +72,7 @@
  {
  #ifdef WIN32
    valid = new WinPasswdValidator();
 -#elif !defined(__APPLE__)
-+#elif defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
++#elif(ENABLE_UNIX_PASSWORD_VALIDATOR)
    valid = new UnixPasswordValidator();
  #else
    valid = NULL;
