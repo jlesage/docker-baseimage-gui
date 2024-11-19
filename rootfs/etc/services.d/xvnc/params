@@ -73,6 +73,7 @@ if [ -n "$PASSWORD_FILE" ]; then
     else
         echo "-SecurityTypes=X509Vnc,TLSVnc"
     fi
+    echo "-InternalConnectionSecurityTypes=VncAuth"
     echo "-rfbauth=$PASSWORD_FILE"
 else
     # Without password.
@@ -81,6 +82,7 @@ else
     else
         echo "-SecurityTypes=X509None,TLSNone"
     fi
+    echo "-InternalConnectionSecurityTypes=None"
 fi
 
 if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" != "SSL" ]; then

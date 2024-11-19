@@ -364,6 +364,8 @@ patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/vncpasswd-static.patch
 patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/disable-pam.patch
 # Fix static build.
 patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/static-build.patch
+# Support for internal connection security types.
+patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/internal-conn-sec-types.patch
 
 log "Configuring TigerVNC..."
 (
