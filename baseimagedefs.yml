@@ -19,6 +19,15 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.6.5
+      date: 2024-12-01
+      changes:
+        changed:
+          - 'Updated TigerVNC to version 1.14.1.'
+        fixed:
+          - 'Web audio feature with URL path-based reverse proxy.'
+          - 'TLS secure connection method for VNC was preventing web access.'
+          - 'CJK font installation on Alpine Linux.'
     - version: 4.6.4
       date: 2024-08-31
       changes:
