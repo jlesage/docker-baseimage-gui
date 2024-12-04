@@ -250,7 +250,7 @@ RUN \
     install_app_icon.sh --no-tools-install "$APP_ICON_URL"
 
 # Generate default DH params.
-FROM --platform=$BUILDPLATFORM alpine:3.16 AS dhparam
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS dhparam
 RUN apk --no-cache add openssl
 RUN echo "Generating default DH parameters (2048 bits)..."
 RUN openssl dhparam \
