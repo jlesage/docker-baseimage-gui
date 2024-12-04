@@ -208,6 +208,7 @@ RUN \
         jq \
         npm \
         minify \
+        imagemagick \
         && \
     npm install clean-css-cli -g
 RUN \
