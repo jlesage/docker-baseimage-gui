@@ -19,6 +19,11 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.6.6
+      date: 2024-12-04
+      changes:
+        fixed:
+          - 'Generation of favicons, by using an offline method instead of relying on online service.'
     - version: 4.6.5
       date: 2024-12-01
       changes:
