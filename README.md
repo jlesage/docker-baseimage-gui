@@ -79,6 +79,7 @@ Multiple docker images, based on different Linux distributions, are available:
 | [Alpine 3.18]      | alpine-3.18-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.18-v4?style=for-the-badge)](#)  |
 | [Alpine 3.19]      | alpine-3.19-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.19-v4?style=for-the-badge)](#)  |
 | [Alpine 3.20]      | alpine-3.20-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.20-v4?style=for-the-badge)](#)  |
+| [Alpine 3.21]      | alpine-3.21-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.21-v4?style=for-the-badge)](#)  |
 | [Debian 10]        | debian-10-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4?style=for-the-badge)](#)    |
 | [Debian 11]        | debian-11-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4?style=for-the-badge)](#)    |
 | [Debian 12]        | debian-12-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-12-v4?style=for-the-badge)](#)    |
@@ -106,6 +107,7 @@ Finally, all available Docker image tags can also be consulted on [Docker Hub].
 [Alpine 3.18]: https://alpinelinux.org
 [Alpine 3.19]: https://alpinelinux.org
 [Alpine 3.20]: https://alpinelinux.org
+[Alpine 3.21]: https://alpinelinux.org
 [Debian 10]: https://www.debian.org/releases/buster/
 [Debian 11]: https://www.debian.org/releases/bullseye/
 [Debian 12]: https://www.debian.org/releases/bookworm/
