@@ -19,6 +19,13 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.6.7
+      date: 2024-12-06
+      changes:
+        added:
+          - 'Image based on Alpine 3.21.'
+        changed:
+          - 'Rebuild against latest distro images to get security fixes.'
     - version: 4.6.6
       date: 2024-12-04
       changes:
