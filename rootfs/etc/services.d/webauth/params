@@ -6,3 +6,7 @@ if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
     echo "--log-level"
     echo "debug"
 fi
+
+# Token validity time.
+echo "--token-validity-time"
+echo "${WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME:-24}"

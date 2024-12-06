@@ -730,6 +730,19 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME
+      description: >-
+        The lifetime of a token, in hours. A token is attributed to the user
+        after a successful login. As long as the token is valid, user can access
+        the application's GUI without having to log in again. Once the token
+        expires, the login page is prompted again.
+      type: public
+      default: 24
+      unraid_template:
+        title: Web Authentication Token Validity Time
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_AUTHENTICATION_USERNAME
       description: >-
         Optional username to configure for the web authentication. This is a
