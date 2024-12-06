@@ -14,7 +14,7 @@ baseimage:
     containers
   description: |-
     This is a docker baseimage that can be used to create containers able to run
-    any X application on a headless server very easily.  The application's GUI
+    any X application on a headless server very easily. The application's GUI
     is accessed through a modern web browser (no installation or configuration
     needed on the client side) or via any VNC client.
   gui: true
@@ -165,7 +165,7 @@ baseimage:
       changes:
         fixed:
           - 'Fixed by the update of `jlesage/baseimage` to version 3.4.5:'
-          - '2:Limit the maximum number of opened files on system having a very large, unlimited value.  This prevents unnecessary waste of CPU resources and time for applications trying to close all possible file descriptors.'
+          - '2:Limit the maximum number of opened files on system having a very large, unlimited value. This prevents unnecessary waste of CPU resources and time for applications trying to close all possible file descriptors.'
     - version: 4.3.5
       date: 2023-02-09
       changes:
@@ -214,7 +214,7 @@ baseimage:
         changed:
           - 'Changed by the update of `jlesage/baseimage` to version 3.4.1:'
           - '2:Declaration of files to be monitored by the logmonitor has been moved to the notification''s definitions.'
-          - 'Window manager changed back to Openbox.  Unfortunately, a lot of applications don''t display correctly with JWM.  Note that the way to define the main window remains backward compatible.  See documentation for more details.'
+          - 'Window manager changed back to Openbox. Unfortunately, a lot of applications don''t display correctly with JWM. Note that the way to define the main window remains backward compatible. See documentation for more details.'
         fixed:
           - 'Fixed by the update of `jlesage/baseimage` to version 3.4.1:'
           - '2:Conversion of a service''s interval non-numeric value.'
@@ -225,7 +225,7 @@ baseimage:
       changes:
         fixed:
           - 'Fixed by the update of `jlesage/baseimage` to version 3.3.3:'
-          - '2:Force the value of the `PATH` environment variable.  Any value configured during creation of the container should not affect operation of the container.'
+          - '2:Force the value of the `PATH` environment variable. Any value configured during creation of the container should not affect operation of the container.'
     - version: 4.2.1
       date: 2022-12-01
       changes:
@@ -354,7 +354,7 @@ baseimage:
           - 'Make sure to read the documentation to understand how to adjust applications built with version 3.x of the baseimage.'
         removed:
           - 'Baseimages based on Alpine Linux 3.10, 3.11 and 3.12.'
-          - 'Glibc version of Alpine Linux Docker images.  Glibc can instead be installed manually with the provided install script.'
+          - 'Glibc version of Alpine Linux Docker images. Glibc can instead be installed manually with the provided install script.'
           - 'The `with-contenv` script: its usage is no longer needed.'
     - version: 3.5.8
       date: 2021-12-29
@@ -552,7 +552,7 @@ baseimage:
       date: 2017-07-28
       changes:
         - 'Now using version 1.1.1 of `jlesage/baseimage`, which brings the following changes:'
-        - '2:Make sure to remove the container shutdown indication during startup.  This fixes the behavior of `KEEP_APP_RUNNING` variable after a restart of the container.'
+        - '2:Make sure to remove the container shutdown indication during startup. This fixes the behavior of `KEEP_APP_RUNNING` variable after a restart of the container.'
         - 'Removed unneeded files from the image.'
     - version: 2.0.3
       date: 2017-07-27
@@ -716,32 +716,32 @@ container:
         mask: false
     - name: WEB_AUTHENTICATION
       description: >-
-        When set to `1`, the application' GUI is protected via a login page when
-        accessed via a web browser.  Access is allowed only when providing valid
-        credentials.  **NOTE**: This feature requires secure connection
+        When set to `1`, the application's GUI is protected via a login page
+        when accessed via a web browser. Access is allowed only when providing
+        valid credentials. **NOTE**: This feature requires secure connection
         (`SECURE_CONNECTION` environment variable) to be enabled.
       type: public
       default: 0
       unraid_template:
         title: Web Authentication
         description: >-
-          When set to "1", the application' GUI is protected via a login page when
-          accessed via a web browser.
+          When set to "1", the application's GUI is protected via a login page
+          when accessed via a web browser.
         display: advanced
         required: false
         mask: false
     - name: WEB_AUTHENTICATION_USERNAME
       description: >-
-        Optional username to configure for the web authentication.  This is a
-        quick and easy way to configure credentials for a single user.  To
+        Optional username to configure for the web authentication. This is a
+        quick and easy way to configure credentials for a single user. To
         configure credentials in a more secure way, or to add more users, see
         the [Web Authentication](#web-authentication) section.
       type: public
       unraid_template:
         title: Web Authentication Username
         description: >-
-          Optional username to configure for the web authentication.  This is a
-          quick and easy way to configure credentials for a single user.  To
+          Optional username to configure for the web authentication. This is a
+          quick and easy way to configure credentials for a single user. To
           configure credentials in a more secure way, or to add more users, see
           the documentation.
         display: advanced
@@ -749,16 +749,16 @@ container:
         mask: false
     - name: WEB_AUTHENTICATION_PASSWORD
       description: >-
-        Optional password to configure for the web authentication.  This is a
-        quick and easy way to configure credentials for a single user.  To
+        Optional password to configure for the web authentication. This is a
+        quick and easy way to configure credentials for a single user. To
         configure credentials in a more secure way, or to add more users, see
         the [Web Authentication](#web-authentication) section.
       type: public
       unraid_template:
         title: Web Authentication Password
         description: >-
-          Optional password to configure for the web authentication.  This is a
-          quick and easy way to configure credentials for a single user.  To
+          Optional password to configure for the web authentication. This is a
+          quick and easy way to configure credentials for a single user. To
           configure credentials in a more secure way, or to add more users, see
           the documentation.
         display: advanced
@@ -767,7 +767,7 @@ container:
     - name: SECURE_CONNECTION
       description: >-
         When set to `1`, an encrypted connection is used to access the
-        application's GUI (either via a web browser or VNC client).  See the
+        application's GUI (either via a web browser or VNC client). See the
         [Security](#security) section for more details.
       type: public
       default: 0
@@ -775,10 +775,10 @@ container:
         title: Secure Connection
         description: >-
           Whether or not an encrypted connection should be used to access the
-          application's GUI.  Set to "1" to encrypt the connection.
+          application's GUI. Set to "1" to encrypt the connection.
           NOTE: When enabling the secure connection, security parameters needs
-          to be generated.  This one-time operation is done during container
-          startup.  Depending on your system, this could take a few minutes.
+          to be generated. This one-time operation is done during container
+          startup. Depending on your system, this could take a few minutes.
           GUI of the application won't be available until the operation
           completes.
         display: advanced
@@ -786,14 +786,14 @@ container:
         mask: false
     - name: SECURE_CONNECTION_VNC_METHOD
       description: >-
-        Method used to perform the secure VNC connection.  Possible values are
-        `SSL` or `TLS`.  See the [Security](#security) section for more details.
+        Method used to perform the secure VNC connection. Possible values are
+        `SSL` or `TLS`. See the [Security](#security) section for more details.
       type: public
       default: SSL
       unraid_template:
         title: Secure Connection VNC Method
         description: >-
-          Method used to perform the secure VNC connection.  Possible values are
+          Method used to perform the secure VNC connection. Possible values are
           "SSL" or "TLS".
         display: advanced
         required: false
@@ -801,8 +801,8 @@ container:
     - name: SECURE_CONNECTION_CERTS_CHECK_INTERVAL
       description: >-
         Interval, in seconds, at which the system verifies if web or VNC
-        certificates have changed.  When a change is detected, the affected
-        services are automatically restarted.  A value of `0` disables the
+        certificates have changed. When a change is detected, the affected
+        services are automatically restarted. A value of `0` disables the
         check.
       type: public
       default: 60
@@ -810,22 +810,22 @@ container:
         title: Secure Connection Certificate Check Interval
         description: >-
           Interval, in seconds, at which the system verifies if web or VNC
-          certificates have changed.  When a change is detected, the affected
-          services are automatically restarted.  A value of "0" disables the
+          certificates have changed. When a change is detected, the affected
+          services are automatically restarted. A value of "0" disables the
           check.
         display: advanced
         required: false
         mask: false
     - name: WEB_LISTENING_PORT
       description: >-
-        Port used by the web server to serve the UI of the application.  This
+        Port used by the web server to serve the UI of the application. This
         port is used internally by the container and it is usually not required
-        to be changed.  By default, a container is created with the default
+        to be changed. By default, a container is created with the default
         bridge network, meaning that, to be accessible, each internal container
         port must be mapped to an external port (using the `-p` or `--publish`
-        argument).  However, if the container is created with another network
+        argument). However, if the container is created with another network
         type, changing the port used by the container might be useful to prevent
-        conflict with other services/containers.  **NOTE**: a value of `-1`
+        conflict with other services/containers. **NOTE**: a value of `-1`
         disables listening, meaning that the application's UI won't be
         accessible over HTTP/HTTPs.
       type: public
@@ -833,23 +833,23 @@ container:
       unraid_template:
         title: Web Listening Port (Non-Bridge Network Type)
         description: >-
-          Port used by the web server to serve the UI of the application.  This
+          Port used by the web server to serve the UI of the application. This
           port is used internally by the container and it is usually not
-          required to be changed.  NOTE: This setting is relevant only when the
+          required to be changed. NOTE: This setting is relevant only when the
           Network Type is set to something else than Bridge.
         display: advanced
         required: false
         mask: false
     - name: VNC_LISTENING_PORT
       description: >-
-        Port used by the VNC server to serve the UI of the application.  This
+        Port used by the VNC server to serve the UI of the application. This
         port is used internally by the container and it is usually not required
-        to be changed.  By default, a container is created with the default
+        to be changed. By default, a container is created with the default
         bridge network, meaning that, to be accessible, each internal container
         port must be mapped to an external port (using the `-p` or `--publish`
-        argument).  However, if the container is created with another network
+        argument). However, if the container is created with another network
         type, changing the port used by the container might be useful to prevent
-        conflict with other services/containers.  **NOTE**: a value of `-1`
+        conflict with other services/containers. **NOTE**: a value of `-1`
         disables listening, meaning that the application's UI won't be
         accessible over VNC.
       type: public
@@ -857,22 +857,22 @@ container:
       unraid_template:
         title: VNC Listening Port (Non-Bridge Network Type)
         description: >-
-          Port used by the VNC server to serve the UI of the application.  This
+          Port used by the VNC server to serve the UI of the application. This
           port is used internally by the container and it is usually not
-          required to be changed.  NOTE: This setting is relevant only when the
+          required to be changed. NOTE: This setting is relevant only when the
           Network Type is set to something else than Bridge.
         display: advanced
         required: false
         mask: false
     - name: VNC_PASSWORD
       description: >-
-        Password needed to connect to the application's GUI.  See the
+        Password needed to connect to the application's GUI. See the
         [VNC Password](#vnc-password) section for more details.
       type: public
     - name: ENABLE_CJK_FONT
       description: >-
         When set to `1`, open-source computer font `WenQuanYi Zen Hei` is
-        installed.  This font contains a large range of
+        installed. This font contains a large range of
         Chinese/Japanese/Korean characters.
       type: public
       default: 0
@@ -885,9 +885,9 @@ container:
     - number: 5800
       protocol: tcp
       description: >-
-        Port to access the application's GUI via the web interface.  Mapping
+        Port to access the application's GUI via the web interface. Mapping
         to the host is optional if access through the web interface is not
-        wanted.  For a container not using the default bridge network, the port
+        wanted. For a container not using the default bridge network, the port
         can be changed with the `WEB_LISTENING_PORT` environment variable.
       mandatory: false
       include_in_quick_start: true
@@ -902,15 +902,15 @@ container:
     - number: 5900
       protocol: tcp
       description: >-
-        Port to access the application's GUI via the VNC protocol.  Mapping
+        Port to access the application's GUI via the VNC protocol. Mapping
         to the host is optional if access through the VNC protocol is not
-        wanted.  For a container not using the default bridge network, the port
+        wanted. For a container not using the default bridge network, the port
         can be changed with the `VNC_LISTENING_PORT` environment variable.
       mandatory: false
       unraid_template:
         title: VNC Port for GUI (Bridge Network Type)
         description: >-
-          Port to access the application's GUI via VNC protocol.  Optional if no
+          Port to access the application's GUI via VNC protocol. Optional if no
           VNC client is used.
         default: "{{ 7900 + app.id|int }}"
         display: advanced-hide

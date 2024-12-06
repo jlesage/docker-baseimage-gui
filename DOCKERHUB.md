@@ -4,7 +4,7 @@
 [![Donate](https://img.shields.io/badge/Donate-PayPal-green.svg?style=for-the-badge)](https://paypal.me/JocelynLeSage)
 
 This is a docker baseimage that can be used to create containers able to run
-any X application on a headless server very easily.  The application's GUI
+any X application on a headless server very easily. The application's GUI
 is accessed through a modern web browser (no installation or configuration
 needed on the client side) or via any VNC client.
 
