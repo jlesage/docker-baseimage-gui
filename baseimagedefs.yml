@@ -19,6 +19,13 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.7.0
+      date: 2025-01-19
+      changes:
+        added:
+          - 'Environment variable that allows configuring the web authentication token lifetime.'
+        changed:
+          - 'Rebuild against latest distro images to get security fixes.'
     - version: 4.6.7
       date: 2024-12-06
       changes:
