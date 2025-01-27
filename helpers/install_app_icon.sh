@@ -50,7 +50,7 @@ install_build_dependencies_alpine() {
     if [ -z "$(which curl)" ]; then
         INSTALLED_PKGS="$INSTALLED_PKGS curl"
     fi
-    if [ -z "$(which magick)" ]; then
+    if [ -z "$(which magick)" ] && [ -z "$(which convert)" ]; then
         INSTALLED_PKGS="$INSTALLED_PKGS imagemagick"
     fi
     if [ -z "$(which sed)" ] || ! sed --version | grep -q "(GNU sed)"; then
@@ -67,7 +67,7 @@ install_build_dependencies_debian() {
     if [ -z "$(which curl)" ]; then
         INSTALLED_PKGS="$INSTALLED_PKGS curl ca-certificates"
     fi
-    if [ -z "$(which magick)" ]; then
+    if [ -z "$(which magick)" ] && [ -z "$(which convert)" ]; then
         INSTALLED_PKGS="$INSTALLED_PKGS imagemagick"
     fi
 
@@ -179,17 +179,22 @@ fi
 
 echo "Generating favicons..."
 
+MAGICK_CMD="convert"
+if [ -n "$(which magick)" ]; then
+    MAGICK_CMD="magick convert"
+fi
+
 # favicon.ico for legacy browsers.
 # ICO can pack files with different resolutions, but it is recommended to stick
 # to a single 32x32 image.
-magick convert "$ICONS_DIR"/master_icon.png -define icon:auto-resize=32 -colors 256 "$ICONS_DIR"/favicon.ico
+$MAGICK_CMD "$ICONS_DIR"/master_icon.png -define icon:auto-resize=32 -colors 256 "$ICONS_DIR"/favicon.ico
 
 # Web app manifest with 192×192 and 512×512 PNG icons for Android devices.
 # The maskable icon should have bigger paddings around the icon so it can be
 # cropped by the launcher to fit its design.
-magick convert "$ICONS_DIR"/master_icon.png -resize 192x192 "$ICONS_DIR"/android-chrome-192x192.png
-magick convert "$ICONS_DIR"/master_icon.png -resize 512x512 "$ICONS_DIR"/android-chrome-512x512.png
-magick convert "$ICONS_DIR"/master_icon.png -resize 409x409 -gravity center -background transparent -extent 512x512 "$ICONS_DIR"/android-chrome-512x512-mask.png
+$MAGICK_CMD "$ICONS_DIR"/master_icon.png -resize 192x192 "$ICONS_DIR"/android-chrome-192x192.png
+$MAGICK_CMD "$ICONS_DIR"/master_icon.png -resize 512x512 "$ICONS_DIR"/android-chrome-512x512.png
+$MAGICK_CMD "$ICONS_DIR"/master_icon.png -resize 409x409 -gravity center -background transparent -extent 512x512 "$ICONS_DIR"/android-chrome-512x512-mask.png
 cat <<EOF > "$ICONS_DIR"/site.webmanifest
 {
   "icons": [
@@ -203,7 +208,7 @@ EOF
 # 180×180 PNG image for Apple devices.
 # Apple touch icon will look better if a 20px padding around the icon is used
 # and add with some background color.
-magick convert "$ICONS_DIR"/master_icon.png -resize 140x140 -gravity center -background transparent -extent 180x180 -background white -alpha remove -alpha off "$ICONS_DIR"/apple-touch-icon.png
+$MAGICK_CMD "$ICONS_DIR"/master_icon.png -resize 140x140 -gravity center -background transparent -extent 180x180 -background white -alpha remove -alpha off "$ICONS_DIR"/apple-touch-icon.png
 
 # Create the HTML code to be inserted.
 cat <<EOF > "$WORKDIR"/htmlCode
