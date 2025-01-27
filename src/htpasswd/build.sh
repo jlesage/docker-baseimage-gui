@@ -11,7 +11,7 @@ set -u # Treat unset variables as an error.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # Define software versions.
-HTTPD_VERSION=2.4.62
+HTTPD_VERSION=2.4.63
 
 # Define software download URLs.
 HTTPD_URL=https://dlcdn.apache.org/httpd/httpd-${HTTPD_VERSION}.tar.gz
