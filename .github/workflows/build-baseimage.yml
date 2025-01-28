@@ -130,6 +130,7 @@ jobs:
       - name: Setup QEMU
         uses: docker/setup-qemu-action@v3
         with:
+          image: tonistiigi/binfmt:qemu-v8.1.5
           platforms: arm,arm64,ppc64le,mips64,s390x
 
       - name: Setup Docker Buildx
