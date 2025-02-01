@@ -26,9 +26,9 @@ BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
+export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
-export CC=xx-clang-wrapper
+export CC=xx-clang
 export CXX=xx-clang++
 
 function log {
@@ -44,6 +44,7 @@ HOST_PKGS="\
     cmake \
     abuild \
     clang \
+    lld \
     meson \
     pkgconfig \
     patch \
@@ -86,12 +87,6 @@ TARGET_PKGS="\
 log "Installing required Alpine packages..."
 apk --no-cache add $HOST_PKGS
 xx-apk --no-cache --no-scripts add $TARGET_PKGS
-
-# Copy the xx-clang wrapper.  Openbox compilation uses libtool.  During the link
-# phase, libtool re-orders all arguments from LDFLAGS.  Thus, libraries are no
-# longer between the -Wl,--start-group and -Wl,--end-group arguments.  The
-# wrapper detects this scenario and fixes arguments.
-cp "$SCRIPT_DIR"/xx-clang-wrapper /usr/bin/
 
 # Create the meson cross compile file.
 echo "[binaries]
@@ -218,11 +213,9 @@ cp -v "$SCRIPT_DIR"/config.sub /tmp/openbox
 
 log "Configuring Openbox..."
 (
-    #cd /tmp/openbox && LIBS="$LDFLAGS" ./configure \
-
     cd /tmp/openbox && \
-        OB_LIBS="-lX11 -lxcb -lXdmcp -lXau -lXext -lXft -lXrandr -lfontconfig -lfreetype -lpng -lXrender -lexpat -lxml2 -lz -lbz2 -llzma -lbrotlidec -lbrotlicommon -lintl -lfribidi -lharfbuzz -lpangoxft-1.0 -lpangoft2-1.0 -lpango-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lpcre2-8 -lgraphite2 -lffi" \
-        LDFLAGS="$LDFLAGS -Wl,--start-group $OB_LIBS -Wl,--end-group" LIBS="$LDFLAGS" ./configure \
+        LIBS="-lX11 -lxcb -lXdmcp -lXau -lXext -lXft -lXrandr -lfontconfig -lfreetype -lpng -lXrender -lexpat -lxml2 -lz -lbz2 -llzma -lbrotlidec -lbrotlicommon -lintl -lfribidi -lharfbuzz -lpangoxft-1.0 -lpangoft2-1.0 -lpango-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lpcre2-8 -lgraphite2 -lffi" \
+        ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
@@ -239,7 +232,6 @@ log "Configuring Openbox..."
 )
 
 log "Compiling Openbox..."
-#sed -i 's|--silent|--verbose|' /tmp/openbox/Makefile
 make V=0 -C /tmp/openbox -j$(nproc)
 
 log "Installing Openbox..."

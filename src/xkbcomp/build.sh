@@ -21,7 +21,7 @@ XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
+export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -39,6 +39,7 @@ HOST_PKGS="\
     curl \
     build-base \
     clang \
+    lld \
     pkgconfig \
 "
 

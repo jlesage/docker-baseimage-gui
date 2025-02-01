@@ -34,7 +34,7 @@ BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed,-O1,--sort-common"
+export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -53,6 +53,7 @@ HOST_PKGS="\
     build-base \
     abuild \
     clang \
+    lld \
     cmake \
     meson \
     autoconf \
@@ -328,7 +329,8 @@ export LDFLAGS="$LDFLAGS --static -static -Wl,--strip-all" && \
     cd /tmp/yad && \
     autoreconf -ivf && \
     intltoolize && \
-    LIBS="-Wl,--start-group -lX11 -lxcb -lXdmcp -lXau -lpcre2-8 -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -leconf -lgmodule-2.0 -Wl,--end-group" ./configure \
+    LIBS="-lX11 -lxcb -lXdmcp -lXau -lpcre2-8 -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -leconf -lgmodule-2.0" \
+    ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \

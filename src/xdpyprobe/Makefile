@@ -4,7 +4,7 @@ RM = rm -f
 
 CPPFLAGS = -MMD
 CFLAGS = -Wall -Werror -std=gnu11 -Os -fomit-frame-pointer
-LDFLAGS = -static -Wl,--strip-all
+LDFLAGS = -fuse-ld=lld -static -Wl,--strip-all
 LDLIBS = -lX11 -lxcb -lXau -lXdmcp
 
 SOURCES = xdpyprobe.c

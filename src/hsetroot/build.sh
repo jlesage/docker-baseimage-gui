@@ -12,7 +12,7 @@ set -u # Treat unset variables as an error.
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined -Wall"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
+export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -30,6 +30,7 @@ HOST_PKGS="\
     curl \
     build-base \
     clang \
+    lld \
     xz \
 "
 
@@ -50,7 +51,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 log "Compiling hsetroot..."
 mkdir /tmp/hsetroot
 LIBS="-lX11 -lxcb -lXdmcp -lXau"
-xx-clang $CFLAGS "$SCRIPT_DIR"/hsetroot.c -o /tmp/hsetroot/hsetroot $LDFLAGS -Wl,--start-group $LIBS -Wl,--end-group
+xx-clang $CFLAGS "$SCRIPT_DIR"/hsetroot.c -o /tmp/hsetroot/hsetroot $LDFLAGS $LIBS
 
 log "Installing hsetroot..."
 mkdir -p /tmp/hsetroot-install/usr/bin

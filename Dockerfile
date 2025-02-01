@@ -112,7 +112,7 @@ FROM --platform=$BUILDPLATFORM alpine:3.20 AS xdpyprobe
 ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/xdpyprobe /tmp/xdpyprobe
-RUN apk --no-cache add make clang
+RUN apk --no-cache add make clang lld
 RUN xx-apk --no-cache add gcc musl-dev libx11-dev libx11-static libxcb-static
 RUN CC=xx-clang \
     make -C /tmp/xdpyprobe
