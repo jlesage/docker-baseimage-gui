@@ -1,18 +1,9 @@
 #!/bin/sh
 #
-# This is part of the workaround for GTK4 applications that display large black
-# border around menus. The problem occurs because the X server in the baseimage
-# doesn't have GLX support. Adding GLX support is possible, but increases a lot
-# the size of the image. As a workaround, we force GTK4 applications to use the
-# cairo fallback renderer, by specifying these environment variables:
-#
-#     - LIBGL_DRIVERS_PATH=/dev/null: Make sure mesa drivers are not found, even
-#                                     when installed.
-#     - EGL_LOG_LEVEL=fatal: Prevent warning messages from MESA-LOADER about
-#                            shared libraries (drivers) not found.
-#     - GSK_RENDERER=cairo: This should select the renderer to use, but GTK
-#                           still try to use the GL renderer first. This however
-#                           prevents non-fatal messages when starting the app.
+# For GTK4 applications, this forces to use the cairo fallback renderer. Without
+# this, GTK tries to use the GL renderer, which fails and produces non fatal
+# errors. The GL render uses the X GLX extension, which is not supported by the
+# X # server of the baseimage.
 #
 
 set -e # Exit immediately if a command exits with a non-zero status.
