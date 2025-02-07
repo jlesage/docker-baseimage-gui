@@ -53,15 +53,38 @@ XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
+export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-all"
 
-export CC=xx-clang-wrapper
-export CXX=xx-clang++-wrapper
+export CC=xx-clang
+export CXX=xx-clang++
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 function log {
     echo ">>> $*"
+}
+
+function to_cmake_cpu_family() {
+    _arch="$1"
+    case "$(xx-info march)" in
+        amd64|x86_64)
+            _arch="x86_64"
+            ;;
+        386|i386)
+            _arch="x86";
+            ;;
+        arm64|aarch64)
+            _arch="aarch64";
+            ;;
+        arm|armv7l|armv6l)
+            _arch="arm";
+            ;;
+        *)
+            echo "ERROR: Unknown arch '$_arch'."
+            exit 1
+            ;;
+    esac
+    echo "$_arch"
 }
 
 #
@@ -72,6 +95,7 @@ HOST_PKGS="\
     build-base \
     abuild \
     clang \
+    lld \
     cmake \
     autoconf \
     automake \
@@ -92,11 +116,9 @@ TARGET_PKGS="\
     libgcrypt-static \
     libgpg-error-static \
     libxkbfile-dev \
-    libxfont2-dev \
     libjpeg-turbo-dev \
     nettle-dev \
     libunistring-dev \
-    gnutls-dev \
     fltk-dev \
     libxrandr-dev \
     libxtst-dev \
@@ -123,13 +145,6 @@ log "Installing required Alpine packages..."
 apk --no-cache add $HOST_PKGS
 xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
-# Copy the xx-clang wrapper.  When compilation uses libtool, all arguments from
-# LDFLAGS are re-ordered during the link phase by libtool.  Thus, libraries are
-# no longer between the -Wl,--start-group and -Wl,--end-group arguments.  The
-# wrapper detects this scenario and fixes arguments.
-cp "$SCRIPT_DIR"/xx-clang-wrapper /usr/bin/
-cp "$SCRIPT_DIR"/xx-clang++-wrapper /usr/bin/
-
 echo "[binaries]
 pkgconfig = '$(xx-info)-pkg-config'
 
@@ -139,8 +154,8 @@ pkg_config_libdir = '$(xx-info sysroot)/usr/lib/pkgconfig'
 
 [host_machine]
 system = 'linux'
-cpu_family = '$(xx-info arch)'
-cpu = '$(xx-info arch)'
+cpu_family = '$(to_cmake_cpu_family "$(xx-info arch)")'
+cpu = '$(to_cmake_cpu_family "$(xx-info arch)")'
 endian = 'little'
 " > /tmp/meson-cross.txt
 
@@ -166,6 +181,30 @@ log "Compiling GMP..."
 make -C /tmp/gmp -j$(nproc)
 log "Installing GMP..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/gmp install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
+
+#
+# Build libtasn1
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
+#
+mkdir /tmp/libtasn1
+log "Downloading libtasn1..."
+curl -# -L -f ${LIBTASN1_URL} | tar -xz --strip 1 -C /tmp/libtasn1
+log "Configuring libtasn1..."
+(
+    cd /tmp/libtasn1 && CFLAGS="$CFLAGS -Wno-error=inline" ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --enable-static \
+        --disable-shared \
+)
+log "Compiling libtasn1..."
+make -C /tmp/libtasn1 -j$(nproc)
+log "Installing libtasn1..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libtasn1 install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build GNU TLS.
@@ -196,8 +235,31 @@ log "Compiling GNU TLS..."
 make -C /tmp/gnutls -j$(nproc)
 log "Installing GNU TLS..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/gnutls install
-# Fix libtool file that references a file without sysroot.
-sed -i "s|/usr/lib/libgmp.la|$(xx-info sysroot)/usr/lib/libgmp.la|" $(xx-info sysroot)/usr/lib/libgnutls.la
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
+
+#
+# Build libfontenc
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
+#
+mkdir /tmp/libfontenc
+log "Downloading libfontenc..."
+curl -# -L -f ${LIBFONTENC_URL} | tar -xz --strip 1 -C /tmp/libfontenc
+log "Configuring libfontenc..."
+(
+    cd /tmp/libfontenc && ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --with-encodingsdir=/usr/share/fonts/encodings \
+        --enable-static \
+        --disable-shared \
+)
+log "Compiling libfontenc..."
+make -C /tmp/libfontenc -j$(nproc)
+log "Installing libfontenc..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libfontenc install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build libXfont2
@@ -224,51 +286,7 @@ sed 's/^noinst_PROGRAMS = /#noinst_PROGRAMS = /' -i /tmp/libxfont2/Makefile.in
 make -C /tmp/libxfont2 -j$(nproc)
 log "Installing libXfont2..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxfont2 install
-
-#
-# Build libfontenc
-# The static library is not provided by Alpine repository, so we need to build
-# it ourself.
-#
-mkdir /tmp/libfontenc
-log "Downloading libfontenc..."
-curl -# -L -f ${LIBFONTENC_URL} | tar -xz --strip 1 -C /tmp/libfontenc
-log "Configuring libfontenc..."
-(
-    cd /tmp/libfontenc && ./configure \
-        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
-        --host=$(xx-clang --print-target-triple) \
-        --prefix=/usr \
-        --with-encodingsdir=/usr/share/fonts/encodings \
-        --enable-static \
-        --disable-shared \
-)
-log "Compiling libfontenc..."
-make -C /tmp/libfontenc -j$(nproc)
-log "Installing libfontenc..."
-make DESTDIR=$(xx-info sysroot) -C /tmp/libfontenc install
-
-#
-# Build libtasn1
-# The static library is not provided by Alpine repository, so we need to build
-# it ourself.
-#
-mkdir /tmp/libtasn1
-log "Downloading libtasn1..."
-curl -# -L -f ${LIBTASN1_URL} | tar -xz --strip 1 -C /tmp/libtasn1
-log "Configuring libtasn1..."
-(
-    cd /tmp/libtasn1 && CFLAGS="$CFLAGS -Wno-error=inline" ./configure \
-        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
-        --host=$(xx-clang --print-target-triple) \
-        --prefix=/usr \
-        --enable-static \
-        --disable-shared \
-)
-log "Compiling libtasn1..."
-make -C /tmp/libtasn1 -j$(nproc)
-log "Installing libtasn1..."
-make DESTDIR=$(xx-info sysroot) -C /tmp/libtasn1 install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build libxshmfence
@@ -292,6 +310,7 @@ log "Compiling libxshmfence..."
 make -C /tmp/libxshmfence -j$(nproc)
 log "Installing libxshmfence..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxshmfence install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build pixman.
@@ -317,6 +336,7 @@ log "Compiling pixman..."
 meson compile -C /tmp/pixman/build
 log "Installing pixman..."
 DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pixman/build
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build brotli.
@@ -345,6 +365,7 @@ log "Compiling brotli..."
 make -C /tmp/brotli/build -j$(nproc)
 log "Installing brotli..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build TigerVNC
@@ -393,7 +414,10 @@ make -C /tmp/tigervnc/unix/vncpasswd -j$(nproc)
 log "Configuring TigerVNC server..."
 autoreconf -fiv /tmp/tigervnc/unix/xserver
 (
-    cd /tmp/tigervnc/unix/xserver && CFLAGS="$CFLAGS -Wno-implicit-function-declaration" ./configure \
+    cd /tmp/tigervnc/unix/xserver && \
+        CFLAGS="$CFLAGS -Wno-implicit-function-declaration" \
+        LIBS="-ltasn1 -lunistring -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lbz2" \
+        ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
@@ -443,13 +467,8 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
         --disable-xephyr \
 )
 
-# Remove all automatic dependencies on libraries and manually define them to
-# have the correct order.
-find /tmp/tigervnc -name "*.la" -exec sed 's/^dependency_libs/#dependency_libs/' -i {} ';'
-sed 's/^XSERVER_SYS_LIBS = .*/XSERVER_SYS_LIBS = -Wl,--start-group -lXau -lXdmcp -lpixman-1 -ljpeg -lXfont2 -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lz -lbz2 -lgnutls -lhogweed -lgmp -lnettle -lunistring -ltasn1 -lbsd -lmd -Wl,--end-group/' -i /tmp/tigervnc/unix/xserver/hw/vnc/Makefile
-
 log "Compiling TigerVNC server..."
-make -C /tmp/tigervnc/unix/xserver -j$(nproc)
+make V=0 -C /tmp/tigervnc/unix/xserver -j$(nproc)
 
 log "Installing TigerVNC server..."
 make DESTDIR=/tmp/tigervnc-install -C /tmp/tigervnc/unix/xserver install
