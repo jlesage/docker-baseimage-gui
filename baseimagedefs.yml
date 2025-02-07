@@ -19,6 +19,16 @@ baseimage:
     needed on the client side) or via any VNC client.
   gui: true
   history:
+    - version: 4.7.1
+      date: 2025-02-07
+      changes:
+        added:
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.6.5:'
+          - '2:Increased the default service ready timeout from 5 seconds to 10 seconds and allow runtime adjustment via environment variable.'
+        fixed:
+          - 'Generation of favicons on Ubuntu.'
+          - 'Compatibility issues that were introduced with support of GTK4 applications.'
     - version: 4.7.0
       date: 2025-01-19
       changes:
