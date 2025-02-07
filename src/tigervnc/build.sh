@@ -416,7 +416,7 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
 (
     cd /tmp/tigervnc/unix/xserver && \
         CFLAGS="$CFLAGS -Wno-implicit-function-declaration" \
-        LIBS="-ltasn1 -lunistring -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lbz2" \
+        LIBS="-ltasn1 -lunistring -lfreetype -lfontenc -lpng16 -lbrotlidec -lbrotlicommon -lbz2 -lintl" \
         ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
