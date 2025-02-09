@@ -181,7 +181,7 @@ echo "Generating favicons..."
 
 MAGICK_CMD="convert"
 if [ -n "$(which magick)" ]; then
-    MAGICK_CMD="magick convert"
+    MAGICK_CMD="magick"
 fi
 
 # favicon.ico for legacy browsers.
