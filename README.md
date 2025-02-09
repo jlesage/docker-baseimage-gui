@@ -639,7 +639,7 @@ setting.
 | environment_extra      | String           | Extra variables to add to the environment of the service. One environment variable per line, of the form `key=value`. | No extra variable |
 | respawn                | Boolean          | Whether or not the process must be respawned when it dies. | `FALSE`  |
 | sync                   | Boolean          | Whether or not the process supervisor waits until the service ends. This is mutually exclusive with `respawn`. | `FALSE` |
-| ready_timeout          | Unsigned integer | Maximum amount of time (in milliseconds) to wait for the service to be ready. | `5000` |
+| ready_timeout          | Unsigned integer | Maximum amount of time (in milliseconds) to wait for the service to be ready. | `10000` |
 | interval               | Interval         | Interval, in seconds, at which the service should be executed. This is mutually exclusive with `respawn`. | No interval |
 | uid                    | Unsigned integer | The user ID under which the service will run. | `$USER_ID` |
 | gid                    | Unsigned integer | The group ID under which the service will run. | `$GROUP_ID` |
