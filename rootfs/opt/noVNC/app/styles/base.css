@@ -376,7 +376,11 @@ body {
 
 /* Transition screen */
 #noVNC_transition {
-  display: none;
+  transition: 0.5s ease-in-out;
+
+  display: flex;
+  opacity: 0;
+  visibility: hidden;
 
   position: fixed;
   top: 0;
@@ -396,6 +400,13 @@ body {
 :root.noVNC_loading #noVNC_transition,
 :root.noVNC_connecting #noVNC_transition,
 :root.noVNC_disconnecting #noVNC_transition,
+:root.noVNC_reconnecting #noVNC_transition {
+    opacity: 1;
+    visibility: visible;
+}
+:root:not(.noVNC_reconnecting) #noVNC_cancel_reconnect_button {
+  display: none;
+}
 #noVNC_transition_text {
   font-size: 1.5em;
 }

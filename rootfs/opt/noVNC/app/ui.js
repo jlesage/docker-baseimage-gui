@@ -38,6 +38,11 @@ const UI = {
     lastKeyboardinput: null,
     defaultKeyboardinputLen: 100,
 
+    ongoingReconnect: false,
+    reconnectCallback: null,
+    reconnectPassword: null,
+    reconnectPasswordFailures: 0,
+
     audioContext: null,
 
     prime() {
@@ -261,6 +266,8 @@ const UI = {
         UI.initSetting('path', 'websockify');
         UI.initSetting('audio_path', 'websockify-audio');
         UI.initSetting('repeaterID', '');
+        UI.initSetting('reconnect', true);
+        UI.initSetting('reconnect_delay', 5000);
     },
 
 /* ------^-------
@@ -403,9 +410,30 @@ const UI = {
     // Disable/enable controls depending on connection state
     updateVisualState(state) {
 
+        // While reconnecting, inhibit some visual state changes.
+        if (UI.ongoingReconnect) {
+            switch (state) {
+                case 'connecting':
+                    return;
+                case 'reconnecting':
+                    if (document.documentElement.classList.contains("noVNC_reconnecting")) {
+                        return;
+                    } else {
+                        break;
+                    }
+                case 'disconnected':
+                    return;
+                case 'connected':
+                    break;
+                default:
+                    Log.Error("Unexpected state while reconnecting: " + state);
+            }
+        }
+
         document.documentElement.classList.remove("noVNC_connecting");
         document.documentElement.classList.remove("noVNC_connected");
         document.documentElement.classList.remove("noVNC_disconnecting");
+        document.documentElement.classList.remove("noVNC_reconnecting");
 
         const transitionElem = document.getElementById("noVNC_transition_text");
         switch (state) {
@@ -423,6 +451,10 @@ const UI = {
                 document.documentElement.classList.add("noVNC_disconnecting");
                 break;
             case 'disconnected':
+                break;
+            case 'reconnecting':
+                transitionElem.textContent = "Reconnecting...";
+                document.documentElement.classList.add("noVNC_reconnecting");
                 break;
             default:
                 Log.Error("Invalid visual state: " + state);
@@ -457,16 +489,21 @@ const UI = {
             .classList.remove('noVNC_open');
     },
 
-    showStatus(text, statusType, time) {
+    showStatus(text, statusType, time, force) {
         const statusElem = document.getElementById('noVNC_status');
 
         if (typeof statusType === 'undefined') {
             statusType = 'normal';
         }
 
+        // Do not change status messages while reconnecting.
+        if (!force && UI.ongoingReconnect) {
+            return;
+        }
+
         // Don't overwrite more severe visible statuses and never
         // errors. Only shows the first error.
-        if (statusElem.classList.contains("noVNC_open")) {
+        if (!force && statusElem.classList.contains("noVNC_open")) {
             if (statusElem.classList.contains("noVNC_status_error")) {
                 return;
             }
@@ -894,14 +931,16 @@ const UI = {
 
         if (typeof password === 'undefined') {
             password = WebUtil.getConfigVar('password');
-            //UI.reconnectPassword = password;
+            UI.reconnectPassword = password;
         }
 
         if (password === null) {
             password = undefined;
         }
 
-        UI.hideStatus();
+        if (!UI.ongoingReconnect) {
+            UI.hideStatus();
+        }
 
         UI.updateVisualState('connecting');
 
@@ -952,18 +991,16 @@ const UI = {
         UI.updateViewOnly(); // requires UI.rfb
     },
 
-    disconnect() {
-        UI.rfb.disconnect();
-
-        UI.connected = false;
-
-        UI.updateVisualState('disconnecting');
-
-        // Don't display the connection settings until we're actually disconnected
+    // Called from timer.
+    reconnect() {
+        UI.reconnectCallback = null;
+        UI.connect(null, UI.reconnectPassword);
     },
 
     connectFinished(e) {
         UI.connected = true;
+        UI.ongoingReconnect = false;
+        UI.reconnectPasswordFailures = 0;
 
         let msg;
         if (UI.getSetting('encrypt')) {
@@ -971,7 +1008,7 @@ const UI = {
         } else {
             msg = UI.desktopName + " - Connected (unencrypted)";
         }
-        UI.showStatus(msg, 'normal', 2500);
+        UI.showStatus(msg, 'normal', 2500, true);
         UI.updateVisualState('connected');
 
         // Do this last because it can only be used on rendered elements
@@ -989,22 +1026,21 @@ const UI = {
 
         UI.rfb = undefined;
 
-        if (!e.detail.clean) {
-            UI.updateVisualState('disconnected');
-            if (wasConnected) {
-                UI.showStatus("Something went wrong, connection is closed",
-                              'error');
-            } else {
-                UI.showStatus("Failed to connect", 'error');
-            }
+        UI.showStatus(UI.desktopName + " - Disconnected", 'error');
+
+        // If reconnecting is allowed process it now
+        if (UI.getSetting('reconnect', false) === true) {
+            UI.ongoingReconnect = true;
+            UI.updateVisualState('reconnecting');
+
+            const delay = parseInt(UI.getSetting('reconnect_delay'));
+            UI.reconnectCallback = setTimeout(UI.reconnect, delay);
         } else {
+            UI.ongoingReconnect = false;
             UI.updateVisualState('disconnected');
-            UI.showStatus(UI.desktopName + " - Disconnected", 'error');
         }
 
-        //UI.openControlbar();
         UI.closeControlbar()
-        //UI.openConnectPanel();
 
         // Make sure audio is also stopped.
         if (UI.audioContext) {
@@ -1024,7 +1060,17 @@ const UI = {
         } else {
             msg = "New connection has been rejected";
         }
-        UI.showStatus(msg, 'error');
+
+        // Clear the saved password for reconnect: reconnecting with the same invalid
+        // credentials won't help.
+        UI.reconnectPassword = null;
+        UI.reconnectPasswordFailures++;
+
+        if (UI.ongoingReconnect) {
+            UI.showStatus(msg, 'error', undefined, UI.reconnectPasswordFailures > 1);
+        } else {
+            UI.showStatus(msg, 'error');
+        }
     },
 
 /* ------^-------
@@ -1057,7 +1103,7 @@ const UI = {
             .getElementById(inputFocus).focus(), 100);
 
         Log.Warn("Server asked for credentials");
-        UI.showStatus("Credentials are required", "warning", 3000);
+        UI.showStatus("Credentials are required", "warning", 3000, true);
     },
 
     setCredentials(e) {
@@ -1073,6 +1119,7 @@ const UI = {
         inputElemPassword.value = "";
 
         UI.rfb.sendCredentials({ username: username, password: password });
+        UI.reconnectPassword = password;
         document.getElementById('noVNC_credentials_dlg')
             .classList.remove('noVNC_open');
     },
