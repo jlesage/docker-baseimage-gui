@@ -56,7 +56,7 @@ fi
 
 # Handle SSL configuration.
 if is-bool-val-true "${SECURE_CONNECTION:-0}"; then
-    cp /defaults/default_ssl.conf "$SSL_CONF"
+    cp -a /defaults/default_ssl.conf "$SSL_CONF"
 fi
 
 # Handle stream configuration.
@@ -65,7 +65,7 @@ fi
 if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ] && [ "${VNC_LISTENING_PORT:-5900}" -ne -1 ]
 then
     # Copy the default config.
-    cp /defaults/default_stream.conf "$STREAM_CONF"
+    cp -a /defaults/default_stream.conf "$STREAM_CONF"
 
     # Generate the listen directive for stream config.
     echo "listen ${VNC_LISTENING_PORT:-5900} ssl;" >> "$STREAM_LISTEN_CONF"
@@ -73,12 +73,12 @@ fi
 
 # Handle configuration for audio support.
 if is-bool-val-true "${WEB_AUDIO:-0}"; then
-    cp /defaults/default_audio.conf "$AUDIO_CONF"
+    cp -a /defaults/default_audio.conf "$AUDIO_CONF"
 fi
 
 # Handle configuration for web authentication.
 if is-bool-val-true "${WEB_AUTHENTICATION:-0}"; then
-    cp /defaults/default_auth.conf "$AUTH_CONF"
+    cp -a /defaults/default_auth.conf "$AUTH_CONF"
 else
     # Feature is disabled, so we need to prevent access to the login page.
     printf "location /login/ {" >> "$AUTH_CONF"
