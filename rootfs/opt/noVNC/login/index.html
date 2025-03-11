@@ -34,11 +34,29 @@
                     </div>
                     <form action="login" method="post" id="loginForm" novalidate>
                     <div class="form-floating mb-3">
-                        <input type="text" name="username" id="usernameInput" class="form-control form-control-lg fs-6" placeholder="Username" required maxlength="128">
+                        <input
+                            type="text"
+                            class="form-control form-control-lg fs-6"
+                            id="usernameInput"
+                            name="username"
+                            placeholder="Username"
+                            maxlength="128"
+                            autocomplete="username"
+                            required
+                            >
                         <label for="usernameInput">Username</label>
                     </div>
                     <div class="form-floating mb-3">
-                        <input type="password" name="password" id="passwordInput" class="form-control form-control-lg fs-6" placeholder="Password" required maxlength="128">
+                        <input
+                            type="password"
+                            class="form-control form-control-lg fs-6"
+                            id="passwordInput"
+                            name="password"
+                            placeholder="Password"
+                            maxlength="128"
+                            autocomplete="current-password"
+                            required
+                        >
                         <label for="passwordInput">Password</label>
                     </div>
                     <div>
