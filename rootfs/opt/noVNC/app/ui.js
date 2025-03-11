@@ -16,12 +16,13 @@ import keysyms from "../core/input/keysymdef.js";
 import Keyboard from "../core/input/keyboard.js";
 import RFB from "../core/rfb.js";
 import * as WebUtil from "./webutil.js";
-import WebData from "./webdata.js";
 import { PCMPlayer } from "./pcm-player.min.js"
 
 // const PAGE_TITLE = "noVNC";
 
 const UI = {
+
+    webData: null,
 
     connected: false,
     desktopName: "",
@@ -39,6 +40,7 @@ const UI = {
     defaultKeyboardinputLen: 100,
 
     ongoingReconnect: false,
+    reconnectAttempts: 0,
     reconnectCallback: null,
     reconnectPassword: null,
     reconnectPasswordFailures: 0,
@@ -46,13 +48,15 @@ const UI = {
     audioContext: null,
 
     prime() {
-        return WebUtil.initSettings().then(() => {
-            if (document.readyState === "interactive" || document.readyState === "complete") {
-                return UI.start();
-            }
+        return UI.fetchWebData().then(() => {
+            return WebUtil.initSettings().then(() => {
+                if (document.readyState === "interactive" || document.readyState === "complete") {
+                    return UI.start();
+                }
 
-            return new Promise((resolve, reject) => {
-                document.addEventListener('DOMContentLoaded', () => UI.start().then(resolve).catch(reject));
+                return new Promise((resolve, reject) => {
+                    document.addEventListener('DOMContentLoaded', () => UI.start().then(resolve).catch(reject));
+                });
             });
         });
     },
@@ -63,46 +67,46 @@ const UI = {
         UI.initSettings();
 
         // Set page title.
-        document.title = WebData.applicationName;
-        UI.desktopName = WebData.applicationName;
+        document.title = UI.webData.applicationName;
+        UI.desktopName = UI.webData.applicationName;
         Array.from(document.getElementsByName('noVNC_app_name'))
-            .forEach(el => el.innerText = WebData.applicationName);
+            .forEach(el => el.innerText = UI.webData.applicationName);
 
         // Update logo image properties.
-        document.getElementById('noVNC_app_logo').alt = WebData.applicationName + 'logo';
-        document.getElementById('noVNC_app_logo').title = WebData.applicationName;
+        document.getElementById('noVNC_app_logo').alt = UI.webData.applicationName + 'logo';
+        document.getElementById('noVNC_app_logo').title = UI.webData.applicationName;
 
         // Set or hide the application version.
-        if (WebData.applicationVersion) {
+        if (UI.webData.applicationVersion) {
             document.getElementById('noVNC_version_app')
-                .innerText = WebData.applicationName + ' v' + WebData.applicationVersion;
+                .innerText = UI.webData.applicationName + ' v' + UI.webData.applicationVersion;
             document.getElementById('noVNC_version_app')
                 .classList.remove("noVNC_hidden");
         }
 
         // Set or hide the Docker image version.
-        if (WebData.dockerImageVersion) {
+        if (UI.webData.dockerImageVersion) {
             document.getElementById('noVNC_version_docker_image')
-                .innerText = 'Docker Image v' + WebData.dockerImageVersion;
+                .innerText = 'Docker Image v' + UI.webData.dockerImageVersion;
             document.getElementById('noVNC_version_docker_image')
                 .classList.remove("noVNC_hidden");
         }
 
         // Display the control bar footer if a version is set.
-        if (WebData.applicationVersion || WebData.dockerImageVersion) {
+        if (UI.webData.applicationVersion || UI.webData.dockerImageVersion) {
             document.getElementById('noVNC_version_footer')
                 .classList.remove("noVNC_hidden");
         }
 
         // Enable dark mode.
-        if (WebData.darkMode) {
+        if (UI.webData.darkMode) {
             document.documentElement.setAttribute('data-bs-theme', 'dark');
         }
 
         // Enable audio support.
         if (!(window.AudioContext || window.webkitAudioContext)) {
             Log.Info("Web audio not supported by browser.");
-        } else if (WebData.audioSupport) {
+        } else if (UI.webData.audioSupport) {
             UI.audioContext = {
                 audioEnabled: false,
                 player: new PCMPlayer({
@@ -117,7 +121,8 @@ const UI = {
                 .classList.remove("noVNC_hidden");
         }
 
-        if (WebData.webAuthSupport) {
+        // Web authentication support.
+        if (UI.webData.webAuthSupport) {
             document.getElementById('noVNC_logout_button')
                 .classList.remove("noVNC_hidden");
         }
@@ -242,11 +247,11 @@ const UI = {
         if (isTouchDevice) {
             // ... unless we run on a touch device.
             resize = 'scale';
-        } else if (WebData.applicationWindowWidth && window.innerWidth < 0.8 * WebData.applicationWindowWidth) {
+        } else if (UI.webData.applicationWindowWidth && window.innerWidth < 0.8 * UI.webData.applicationWindowWidth) {
             // ... unless the browser's window width is less than 80% of the
             // defined application's window width.
             resize = 'scale';
-        } else if (WebData.applicationWindowHeight && window.innerHeight < 0.8 * WebData.applicationWindowHeight) {
+        } else if (UI.webData.applicationWindowHeight && window.innerHeight < 0.8 * UI.webData.applicationWindowHeight) {
             // ... unless the browser's window height is less than 80% of the
             // defined application's window height.
             resize = 'scale';
@@ -268,6 +273,37 @@ const UI = {
         UI.initSetting('repeaterID', '');
         UI.initSetting('reconnect', true);
         UI.initSetting('reconnect_delay', 5000);
+    },
+
+    fetchWebData() {
+        return fetch('./webdata.json')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Could not fetch web data: HTTP error: Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                Log.Debug('Web data:', data);
+                UI.webData = data;
+            })
+            .catch(error => {
+                throw new Error(`Could not load web data: ${error}`);
+            });
+    },
+
+    checkWebData() {
+        let currentContainerInstanceUID = UI.webData.containerInstanceUID;
+        UI.fetchWebData().then(() => {
+            if (currentContainerInstanceUID === UI.webData.containerInstanceUID) {
+                Log.Error("Container instance UID remained the same.");
+            } else {
+                Log.Error("Container instance UID changed. Reloading page.");
+                window.location.reload();
+            }
+        }).catch((e) => {
+            Log.Error(e);
+        });
     },
 
 /* ------^-------
@@ -993,6 +1029,7 @@ const UI = {
 
     // Called from timer.
     reconnect() {
+        UI.reconnectAttempts++;
         UI.reconnectCallback = null;
         UI.connect(null, UI.reconnectPassword);
     },
@@ -1001,6 +1038,12 @@ const UI = {
         UI.connected = true;
         UI.ongoingReconnect = false;
         UI.reconnectPasswordFailures = 0;
+
+        // Now that we re-gained connectivity, make sure web data is still
+        // up-to-date.
+        if (UI.reconnectAttempts > 0) {
+            UI.checkWebData();
+        }
 
         let msg;
         if (UI.getSetting('encrypt')) {

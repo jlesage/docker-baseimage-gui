@@ -73,21 +73,34 @@
 
 <script src="js.cookie.min.js?v=UNIQUE_VERSION"></script>
 <script type="module">
-    import WebData from "./webdata.js";
+    let webData = null;
+    await fetch('./webdata.json')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Could not fetch web data: HTTP error: Status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            webData = data;
+        })
+        .catch(error => {
+            throw new Error(`Could not load web data: ${error}`);
+        });
 
     // Update page title.
-    document.title = 'Login - ' + WebData.applicationName;
+    document.title = 'Login - ' + webData.applicationName;
 
     // Update application name fields.
     Array.from(document.getElementsByName('appName'))
-        .forEach(el => el.innerText = WebData.applicationName);
+        .forEach(el => el.innerText = webData.applicationName);
 
     // Update logo image properties.
-    document.getElementById('appLogo').alt = WebData.applicationName + 'logo';
-    document.getElementById('appLogo').title = WebData.applicationName;
+    document.getElementById('appLogo').alt = webData.applicationName + 'logo';
+    document.getElementById('appLogo').title = webData.applicationName;
 
     // Enable dark mode.
-    if (WebData.darkMode) {
+    if (webData.darkMode) {
         document.documentElement.classList.add("dark");
         document.documentElement.setAttribute('data-bs-theme', 'dark');
     }
