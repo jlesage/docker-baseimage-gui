@@ -198,7 +198,7 @@ RUN upx /tmp/httpd-install/usr/bin/htpasswd
 # Build noVNC.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS noVNC
 ARG NOVNC_VERSION=1.5.0
-ARG BOOTSTRAP_VERSION=5.3.2
+ARG BOOTSTRAP_VERSION=5.3.3
 ARG FONTAWESOME_VERSION=5.15.4
 ARG NOVNC_URL=https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
