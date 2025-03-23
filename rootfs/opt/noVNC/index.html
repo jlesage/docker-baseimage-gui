@@ -37,8 +37,15 @@
 
     <!-- Scripts -->
     <script src="app/bootstrap.bundle.min.js?v=UNIQUE_VERSION"></script>
-    <script src="app/error-handler.js?v=UNIQUE_VERSION"></script>
-    <script type="module" crossorigin="anonymous" src="app/ui.js?v=UNIQUE_VERSION"></script>
+
+    <script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>
+
+    <script type="module">
+        import UI from "./app/ui.js?v=UNIQUE_VERSION";
+        import * as Log from './core/util/logging.js?v=UNIQUE_VERSION';
+
+        UI.start();
+    </script>
 </head>
 
 <body>

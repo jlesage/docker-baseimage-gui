@@ -47,22 +47,20 @@ const UI = {
 
     audioContext: null,
 
-    prime() {
-        return UI.fetchWebData().then(() => {
-            return WebUtil.initSettings().then(() => {
-                if (document.readyState === "interactive" || document.readyState === "complete") {
-                    return UI.start();
-                }
+    async start() {
 
-                return new Promise((resolve, reject) => {
-                    document.addEventListener('DOMContentLoaded', () => UI.start().then(resolve).catch(reject));
-                });
+        // Initialize setting storage
+        await WebUtil.initSettings();
+
+        // Wait for the page to load
+        if (document.readyState !== "interactive" && document.readyState !== "complete") {
+            await new Promise((resolve, reject) => {
+                document.addEventListener('DOMContentLoaded', resolve);
             });
-        });
-    },
+        }
 
-    // Render default UI and initialize settings menu
-    start() {
+        // Load web data.
+        await UI.fetchWebData();
 
         UI.initSettings();
 
@@ -1708,7 +1706,5 @@ const UI = {
  */
 
 };
-
-UI.prime();
 
 export default UI;
