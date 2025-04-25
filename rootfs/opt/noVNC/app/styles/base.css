@@ -370,6 +370,57 @@ body {
 }
 
 /* ----------------------------------------
+ * File Manager Dialog
+ * ----------------------------------------
+ */
+
+.fmgr-dialog {
+  position: relative;
+
+  transform: translateY(-50px);
+
+  visibility: hidden;
+  opacity: 0;
+
+  transition: 0.5s ease-in-out;
+}
+.fmgr-dialog.noVNC_open {
+  transform: translateY(0);
+  visibility: visible;
+  opacity: 1;
+}
+.noVNC_hidden {
+  display: none;
+}
+
+/*
+.toolbar {
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+*/
+.fmgr-dialog .toolbar .btn {
+  width: 50px;
+  height: 50px;
+  font-size: 1.2rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  margin-right: 8px;
+}
+.fmgr-dialog .toolbar .btn:hover {
+  /*transform: translateY(-2px);*/ /* Slight lift on hover */
+  /*box-shadow: 0 4px 8px rgba(0,0,0,0.3);*/
+}
+.fmgr-dialog .toolbar .btn:last-child {
+  margin-right: 0;
+}
+
+.fmgr-dialog .toolbar .btn-clicked {
+  transform: scale(0.90); /* Shrink the button slightly */
+}
+
+/* ----------------------------------------
  * Main Area
  * ----------------------------------------
  */

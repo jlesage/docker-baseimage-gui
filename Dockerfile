@@ -195,6 +195,17 @@ RUN xx-verify --static /tmp/build-webauth/webauth
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-webauth/webauth
 
+# Build the web services daemon.
+FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS webservices
+ARG TARGETPLATFORM
+ENV CGO_ENABLED=0
+COPY --from=xx / /
+COPY src/webservices /tmp/build-webservices
+RUN cd /tmp/build-webservices && xx-go build -ldflags "-s -w"
+RUN xx-verify --static /tmp/build-webservices/webservices
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/build-webservices/webservices
+
 # Build htpasswd
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS htpasswd
 ARG TARGETPLATFORM
@@ -316,6 +327,7 @@ COPY --link --from=nginx /tmp/nginx-install /opt/base/
 COPY --link --from=pulseaudio /tmp/pulseaudio-install/usr/bin/pulseaudio /opt/base/bin/pulseaudio
 COPY --link --from=audiorecorder /tmp/build-audiorecorder/audiorecorder /opt/base/bin/audiorecorder
 COPY --link --from=webauth /tmp/build-webauth/webauth /opt/base/bin/webauth
+COPY --link --from=webservices /tmp/build-webservices/webservices /opt/base/bin/webservices
 COPY --link --from=htpasswd /tmp/httpd-install/usr/bin/htpasswd /opt/base/bin/htpasswd
 COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --link --from=noVNC /opt/noVNC /opt/noVNC
@@ -336,7 +348,10 @@ ENV \
     WEB_AUTHENTICATION=0 \
     WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME=24 \
     WEB_AUTHENTICATION_USERNAME= \
-    WEB_AUTHENTICATION_PASSWORD=
+    WEB_AUTHENTICATION_PASSWORD= \
+    WEB_FILE_MANAGER=0 \
+    WEB_FILE_MANAGER_ALLOWED_PATHS=AUTO \
+    WEB_FILE_MANAGER_DENIED_PATHS=
 
 # Expose ports.
 #   - 5800: VNC web interface

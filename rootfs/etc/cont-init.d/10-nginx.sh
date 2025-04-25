@@ -19,6 +19,7 @@ STREAM_CONF=/var/tmp/nginx/stream.conf
 STREAM_LISTEN_CONF=/var/tmp/nginx/stream_listen.conf
 AUDIO_CONF=/var/tmp/nginx/audio.conf
 AUTH_CONF=/var/tmp/nginx/auth.conf
+FMGR_CONF=/var/tmp/nginx/fmgr.conf
 
 # Make sure required directories exist.
 for DIR in $NGINX_DIRS; do
@@ -84,6 +85,11 @@ else
     printf "location /login/ {" >> "$AUTH_CONF"
     printf "\treturn 404;" >> "$AUTH_CONF"
     printf "}" >> "$AUTH_CONF"
+fi
+
+# Handle configuration for file manager support.
+if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
+    cp -a /defaults/default_fmgr.conf "$FMGR_CONF"
 fi
 
 # Make sure required directories are properly owned.

@@ -16,9 +16,8 @@ import keysyms from "../core/input/keysymdef.js";
 import Keyboard from "../core/input/keyboard.js";
 import RFB from "../core/rfb.js";
 import * as WebUtil from "./webutil.js";
-import { PCMPlayer } from "./pcm-player.min.js"
-
-// const PAGE_TITLE = "noVNC";
+import { PCMPlayer } from "./pcm-player.min.js";
+import FileManager from "./fileManager.js";
 
 const UI = {
 
@@ -46,6 +45,8 @@ const UI = {
     reconnectPasswordFailures: 0,
 
     audioContext: null,
+
+    fileManager: null,
 
     async start() {
 
@@ -125,6 +126,33 @@ const UI = {
                 .classList.remove("noVNC_hidden");
         }
 
+        // Enable file manager.
+        if (UI.webData.fileManager) {
+            // Activate file manager button in control bar.
+            UI.addFileManagerHandlers();
+            document.getElementById('noVNC_file_manager_button')
+                .classList.remove("noVNC_hidden");
+
+            const host = UI.getSetting('host');
+            const port = UI.getSetting('port');
+            const path = UI.getSetting('filemanager_path');
+
+            let url;
+            url = UI.getSetting('encrypt') ? 'wss' : 'ws';
+            url += '://' + host;
+            if (port) {
+                url += ':' + port;
+            }
+            url += '/' + window.location.pathname.substr(1) + path;
+
+            // Initialize the file manager.
+            UI.fileManager = FileManager;
+            UI.fileManager.init(url);
+            UI.fileManager.addEventListener('close', function() {
+                UI.closeFileManager();
+            });
+        }
+
         // Adapt the interface for touch screen devices
         if (isTouchDevice) {
             document.documentElement.classList.add("noVNC_touch");
@@ -181,6 +209,7 @@ const UI = {
         // mutationObserver.observe(document.getElementById('noVNC_keyboard_button'), { attributes: true });
         mutationObserver.observe(document.getElementById('noVNC_fullscreen_button'), { attributes: true });
         mutationObserver.observe(document.getElementById('noVNC_view_drag_button'), { attributes: true });
+        mutationObserver.observe(document.getElementById('noVNC_file_manager_button'), { attributes: true });
 
         UI.updateActionIconsSection();
 
@@ -268,6 +297,7 @@ const UI = {
         UI.initSetting('show_dot', false);
         UI.initSetting('path', 'websockify');
         UI.initSetting('audio_path', 'websockify-audio');
+        UI.initSetting('filemanager_path', 'ws-filemanager');
         UI.initSetting('repeaterID', '');
         UI.initSetting('reconnect', true);
         UI.initSetting('reconnect_delay', 5000);
@@ -433,6 +463,11 @@ const UI = {
     addAudioHandlers() {
         document.getElementById("noVNC_audio_button")
             .addEventListener('click', UI.toggleAudio);
+    },
+
+    addFileManagerHandlers() {
+        document.getElementById("noVNC_file_manager_button")
+            .addEventListener('click', UI.toggleFileManager);
     },
 
 /* ------^-------
@@ -818,7 +853,8 @@ const UI = {
         // class.
         if (!document.documentElement.classList.contains('noVNC_touch') &&
             document.getElementById('noVNC_fullscreen_button').classList.contains('noVNC_hidden') &&
-            document.getElementById('noVNC_view_drag_button').classList.contains('noVNC_hidden')) {
+            document.getElementById('noVNC_view_drag_button').classList.contains('noVNC_hidden') &&
+            document.getElementById('noVNC_file_manager_button').classList.contains('noVNC_hidden')) {
             // All icons hidden: also hide the section.
             document.getElementById('noVNC_action_icons_section').classList.add('noVNC_hidden');
         }
@@ -1082,6 +1118,7 @@ const UI = {
         }
 
         UI.closeControlbar()
+        UI.closeFileManager()
 
         // Make sure audio is also stopped.
         if (UI.audioContext) {
@@ -1554,6 +1591,9 @@ const UI = {
         if (UI.audioContext) {
             UI.audioContext.player.initLogging(level);
         }
+        if (UI.fileManager) {
+            UI.fileManager.initLogging(level);
+        }
     },
 
     updateDesktopName(e) {
@@ -1702,6 +1742,30 @@ const UI = {
 
 /* ------^-------
  *    /AUDIO
+ * ==============
+ *  FILE MANAGER
+ * ------v------*/
+
+    closeFileManager() {
+        const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
+        fileManagerBtn.classList.remove('noVNC_selected');
+        UI.fileManager.close();
+    },
+
+    toggleFileManager() {
+        const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
+        if (fileManagerBtn.classList.contains('noVNC_selected')) {
+            fileManagerBtn.classList.remove('noVNC_selected');
+            UI.fileManager.close();
+        } else {
+            fileManagerBtn.classList.add('noVNC_selected');
+            UI.fileManager.open();
+            UI.closeControlbar();
+        }
+    },
+
+/* ------^-------
+ * /FILE MANAGER
  * ==============
  */
 

@@ -2,13 +2,6 @@
 <html lang="en" class="noVNC_loading">
 <head>
 
-    <!--
-    noVNC example: simple example using default UI
-    Copyright (C) 2019 The noVNC Authors
-    noVNC is licensed under the MPL 2.0 (see LICENSE.txt)
-    This file is licensed under the 2-Clause BSD license (see LICENSE.txt).
-    -->
-
     <title></title>
 
     <meta charset="utf-8">
@@ -37,6 +30,7 @@
 
     <!-- Scripts -->
     <script src="app/bootstrap.bundle.min.js?v=UNIQUE_VERSION"></script>
+    <script src="app/msgpack-ygoe.min.js?v=UNIQUE_VERSION"></script>
 
     <script type="module" crossorigin="anonymous" src="app/error-handler.js"></script>
 
@@ -77,6 +71,7 @@
                             <a class="btn shadow-none p-0 px-2" href="#" title="Show Keyboard" id="noVNC_keyboard_button"><i class="fas fa-keyboard fa-fw fa-lg"></i></a>
                             <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Fullscreen" id="noVNC_fullscreen_button"><i class="fas fa-expand fa-fw fa-lg"></i></a>
                             <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Move/Drag Viewport" id="noVNC_view_drag_button"><i class="fas fa-hand-rock fa-fw fa-lg"></i></a>
+                            <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Open File Manager" id="noVNC_file_manager_button"><i class="fas fa-folder fa-fw fa-lg"></i></a>
                         </div>
                     </li>
                     <!-- Clipboard -->
@@ -174,6 +169,43 @@
                         </div>
                         <button type="submit" id="noVNC_credentials_button" class="btn btn-primary">Submit</button>
                     </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- File Manager Dialog -->
+    <div class="noVNC_center">
+        <div class="fmgr-dialog container px-5" id="noVNC_file_manager_dlg">
+            <div class="card" style="min-width: 300px; min-height: 250px;">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    File Manager
+                    <button type="button" class="fmgr-dialog-close-btn btn-close" aria-label="Close"></button>
+                </div>
+                <div class="card-body d-flex flex-column row-gap-2" style="height: 60vh">
+                    <!-- Error message. -->
+                    <div class="fmgr-alert"></div>
+                    <!-- Toolbar buttons. -->
+                    <div>
+                        <div class="toolbar d-flex justify-content-start">
+                            <button type="button" class="fmgr-upload-btn btn btn-primary btn-click-effect" title="Upload Files"><i class="fas fa-upload"></i></button>
+                            <button type="button" class="fmgr-new-folder-btn btn btn-success btn-click-effect" title="Create New Folder"><i class="fas fa-folder-plus"></i></button>
+                            <button type="button" class="fmgr-go-up-btn btn btn-secondary btn-click-effect" title="Go to Parent Folder" disabled><i class="fas fa-arrow-up"></i></button>
+                            <button type="button" class="fmgr-refresh-btn btn btn-secondary btn-click-effect" title="Refresh"><i class="fas fa-sync"></i></button>
+                        </div>
+                        <input type="file" class="d-none fmgr-file-input" multiple>
+                    </div>
+                    <!-- Current path. -->
+                    <div class="d-flex flex-nowrap"><span class="me-1">Path:</span><span class="fmgr-current-path text-truncate">/</span></div>
+                    <!-- Progress bar for upload. -->
+                    <div class="fmgr-upload-progress d-flex align-items-center column-gap-1 d-none">
+                        <div class="fmgr-progress-bar progress w-100" role="progressbar" aria-label="Upload progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                            <div class="progress-bar" style="width: 25%"></div>
+                        </div>
+                        <a class="fmgr-upload-cancel-btn btn shadow-none p-0 text-danger border-0" href="#" title="Cancel Upload"><i class="fas fa-times-circle"></i></a>
+                    </div>
+                    <!-- File list. -->
+                    <div class="fmgr-file-list d-flex flex-column align-items-stretch overflow-y-auto border-top"></div>
                 </div>
             </div>
         </div>
