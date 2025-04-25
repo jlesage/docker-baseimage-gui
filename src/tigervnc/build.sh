@@ -60,11 +60,11 @@ export CXX=xx-clang++
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-function log {
+log() {
     echo ">>> $*"
 }
 
-function to_cmake_cpu_family() {
+to_cmake_cpu_family() {
     _arch="$1"
     case "$(xx-info march)" in
         amd64|x86_64)
