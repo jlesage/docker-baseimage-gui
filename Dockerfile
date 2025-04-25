@@ -96,6 +96,16 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/openbox-install/usr/bin/openbox
 RUN upx /tmp/openbox-install/usr/bin/obxprop
 
+# Build xrdb.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS xrdb
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/xrdb /build
+RUN /build/build.sh
+RUN xx-verify --static /tmp/xrdb-install/usr/bin/xrdb
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/xrdb-install/usr/bin/xrdb
+
 # Build xcompmgr.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS xcompmgr
 ARG TARGETPLATFORM
@@ -293,6 +303,7 @@ COPY --link rootfs/ /
 COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
 COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
 COPY --link --from=xkeyboard-config /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
+COPY --link --from=xrdb /tmp/xrdb-install/usr/bin/xrdb /opt/base/bin/
 COPY --link --from=xkbcomp /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/openbox /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/obxprop /opt/base/bin/
