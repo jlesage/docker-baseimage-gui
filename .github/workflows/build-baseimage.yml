@@ -18,7 +18,7 @@ on:
 jobs:
   build:
     name: Build image
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     services:
       registry:
@@ -204,7 +204,7 @@ jobs:
   post-build:
     name: Post-build
     needs: [ build ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Prepare
         id: prep
@@ -246,7 +246,7 @@ jobs:
   notification:
     name: Notification
     needs: [ build, post-build ]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     if: ${{ always() }}
 
     steps:
