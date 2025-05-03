@@ -8,6 +8,7 @@ set -u # Treat unset variables as an error.
 #
 
 NGINX_DIRS="\
+    /config/log \
     /config/log/nginx \
     /var/run/nginx \
     /var/tmp/nginx \
@@ -23,7 +24,7 @@ FMGR_CONF=/var/tmp/nginx/fmgr.conf
 
 # Make sure required directories exist.
 for DIR in $NGINX_DIRS; do
-    mkdir -p "$DIR"
+    [ -d "$DIR" ] || mkdir --mode=755 "$DIR"
 done
 
 # First, clear all dynamic config files.

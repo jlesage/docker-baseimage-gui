@@ -26,7 +26,7 @@ restart_xvnc() {
     killall Xvnc
 }
 
-mkdir -p "$RUN_DIR"
+[ -d "$RUN_DIR" ] || mkdir --mode=755 "$RUN_DIR"
 
 # Get previous hashes.
 WEB_CERTS_HASH="$(cat "$WEB_CERTS_HASH_FILE" 2>/dev/null || true)"

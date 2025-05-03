@@ -3,7 +3,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-mkdir -p /var/run/openbox
+[ -d /var/run/openbox ] || mkdir --mode=755 /var/run/openbox
 chown $USER_ID:$GROUP_ID /var/run/openbox
 
 #
