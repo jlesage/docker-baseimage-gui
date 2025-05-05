@@ -16,8 +16,67 @@ on:
   pull_request:
 
 jobs:
+  build-common:
+    name: Build common
+    runs-on: ubicloud-standard-30-ubuntu-2204
+    outputs:
+      base-common-image-tag: ${{ steps.set-tag.outputs.tag }}
+
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: false
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm,arm64,ppc64le,mips64,s390x
+
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Set image tag
+        id: set-tag
+        run: echo "tag=ghcr.io/${{ github.repository }}/baseimage-gui-common-ci:${{ github.run_id }}" >> $GITHUB_OUTPUT
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          pull: true
+          provenance: false
+          platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8
+          file: Dockerfile.common
+          tags: ${{ steps.set-tag.outputs.tag }}
+          #cache-from: type=gha,scope=${{ github.head_ref || github.ref_name }}
+          #cache-to: type=gha,mode=max,scope=${{ github.head_ref || github.ref_name }}
+
+      - name: Inspect
+        id: inspect
+        run: |
+          docker buildx imagetools inspect ${{ steps.set-tag.outputs.tag }}
+          echo "raw=$(docker buildx imagetools inspect --raw ${{ steps.set-tag.outputs.tag }} | tr -d '\n')" >> $GITHUB_OUTPUT
+
   build:
     name: Build image
+    needs: [ build-common ]
     runs-on: ubuntu-22.04
 
     services:
@@ -46,17 +105,6 @@ jobs:
           - '{ "tag_prefix": "ubuntu-24.04", "baseimage": "jlesage/baseimage:ubuntu-24.04-v3.6.5", "platforms": "linux/amd64,linux/arm/v7,linux/arm64/v8" }'
 
     steps:
-      - name: Free disk space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          tool-cache: true
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          docker-images: true
-          swap-storage: false
-
       - name: Prepare
         id: prep
         run: |
@@ -145,20 +193,27 @@ jobs:
         with:
           driver-opts: network=host
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push to local registry
         uses: docker/build-push-action@v5
         with:
           push: true
           pull: true
           provenance: false
-          no-cache: true
           platforms: ${{ fromJSON(matrix.info).platforms }}
           tags: localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci
           build-args: |
+            BASEIMAGE_COMMON=${{ needs.build-common.outputs.base-common-image-tag }}
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-          #cache-from: type=gha,scope=${{ fromJSON(matrix.info).tag_prefix }}
-          #cache-to: type=gha,mode=max,scope=${{ fromJSON(matrix.info).tag_prefix }}
+          #cache-from: type=gha,scope=${{ github.head_ref || github.ref_name }}-${{ fromJSON(matrix.info).tag_prefix }}
+          #cache-to: type=gha,mode=max,scope=${{ github.head_ref || github.ref_name }}-${{ fromJSON(matrix.info).tag_prefix }}
 
       - name: Inspect
         id: inspect
@@ -199,13 +254,13 @@ jobs:
           platforms: ${{ fromJSON(matrix.info).platforms }}
           tags: ${{ steps.prep.outputs.tags }}
           build-args: |
+            BASEIMAGE_COMMON=${{ needs.build-common.outputs.base-common-image-tag }}
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-          #cache-from: type=gha,scope=${{ fromJSON(matrix.info).tag_prefix }}
 
   post-build:
     name: Post-build
-    needs: [ build ]
+    needs: [ build-common, build ]
     runs-on: ubuntu-22.04
     steps:
       - name: Prepare
@@ -247,7 +302,7 @@ jobs:
 
   notification:
     name: Notification
-    needs: [ build, post-build ]
+    needs: [ build-common, build, post-build ]
     runs-on: ubuntu-22.04
     if: ${{ always() }}
 
