@@ -1,0 +1,39 @@
+--- a/src/glx/meson.build	2024-06-21 16:07:19.135318896 -0400
++++ b/src/glx/meson.build	2024-06-21 16:07:34.563338528 -0400
+@@ -140,7 +140,7 @@
+   ],
+ )
+ 
+-libgl = shared_library(
++libgl = static_library(
+   gl_lib_name,
+   [],
+   link_with : [libglapi_static, libglapi],
+@@ -151,8 +151,6 @@
+     dep_x11_xcb, dep_xcb_dri2, dep_xext, dep_xfixes, dep_xxf86vm,
+     dep_xcb_shm, extra_deps_libgl,
+   ],
+-  version : gl_lib_version,
+-  darwin_versions : '4.0.0',
+   install : true,
+ )
+ 
+--- a/src/gbm/meson.build	2025-01-04 13:54:13.127380220 -0500
++++ b/src/gbm/meson.build	2025-01-04 13:54:32.713399124 -0500
+@@ -51,7 +51,7 @@
+   libgbm_name = 'gbm_mesa'
+ endif
+ 
+-libgbm = shared_library(
++libgbm = static_library(
+   libgbm_name,
+   files_gbm,
+   include_directories : incs_gbm,
+@@ -60,7 +60,6 @@
+   link_with : libloader,
+   dependencies : [deps_gbm, dep_dl, dep_thread, idep_mesautil, idep_xmlconfig],
+   gnu_symbol_visibility : 'hidden',
+-  version : '1.0.0',
+   install : true,
+ )
+ 

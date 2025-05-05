@@ -1,0 +1,31 @@
+starting from llvm14 the install prefix breaks via symlinks;
+/usr/lib/llvm14/lib/cmake/llvm/LLVMConfig.cmake goes up 3 directories to find
+/usr/lib/llvm14/include as LLVM_INCLUDE_DIRS, but to even use this cmake folder
+at all it has to be symlinked to /usr/lib/cmake/llvm .. so the directory it
+instead uses is just /usr/include, which is not where the cmake includes are.
+this hardcodes them to the install prefix we pass via cmake, which should
+always be correct, and what cmake tries to autodetect anyway.
+
+also see: https://reviews.llvm.org/D29969
+
+this is supposedly fixed now, but for some reason it still isn't
+--- a/llvm/cmake/modules/CMakeLists.txt
++++ b/llvm/cmake/modules/CMakeLists.txt
+@@ -41,6 +41,8 @@
+ #
+ 
+ set(LLVM_CONFIG_CODE "
++# this is wrong when automatically detected
++set(LLVM_INSTALL_PREFIX \"${CMAKE_INSTALL_PREFIX}\")
+ # LLVM_BUILD_* values available only from LLVM build tree.
+ set(LLVM_BUILD_BINARY_DIR \"${LLVM_BINARY_DIR}\")
+ set(LLVM_BUILD_LIBRARY_DIR \"${LLVM_LIBRARY_DIR}\")
+@@ -109,8 +111,6 @@
+ #
+ # Generate LLVMConfig.cmake for the install tree.
+ #
+-
+-find_prefix_from_config(LLVM_CONFIG_CODE LLVM_INSTALL_PREFIX "${LLVM_INSTALL_PACKAGE_DIR}")
+ 
+ extend_path(LLVM_CONFIG_MAIN_INCLUDE_DIR "\${LLVM_INSTALL_PREFIX}" "${CMAKE_INSTALL_INCLUDEDIR}")
+ # This is the same as the above because the handwritten and generated headers

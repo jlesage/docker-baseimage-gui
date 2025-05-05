@@ -1,0 +1,23 @@
+Patch-Source: https://github.com/chimera-linux/cports/blob/8c0359f31b9d888e59ced0320e93ca8ad79ba1f9/main/llvm/patches/0010-always-set-a-larger-stack-size-explicitly.patch
+From 18e09846d9333b554e3dfbbd768ada6643bf92c0 Mon Sep 17 00:00:00 2001
+From: Daniel Kolesa <daniel@octaforge.org>
+Date: Sat, 27 Nov 2021 01:03:28 +0100
+Subject: [PATCH 10/22] always set a larger stack size explicitly
+
+---
+ llvm/lib/Support/Threading.cpp | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/llvm/lib/Support/Threading.cpp b/llvm/lib/Support/Threading.cpp
+index 923935bbc..26594aac8 100644
+--- a/llvm/lib/Support/Threading.cpp
++++ b/llvm/lib/Support/Threading.cpp
+@@ -77,7 +77,7 @@ unsigned llvm::ThreadPoolStrategy::compute_thread_count() const {
+ // keyword.
+ #include "llvm/Support/thread.h"
+ 
+-#if defined(__APPLE__)
++#if 1
+   // Darwin's default stack size for threads except the main one is only 512KB,
+   // which is not enough for some/many normal LLVM compilations. This implements
+   // the same interface as std::thread but requests the same stack size as the

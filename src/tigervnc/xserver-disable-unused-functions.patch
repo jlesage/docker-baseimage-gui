@@ -1,0 +1,38 @@
+#
+# Disable unused functions that conflicts with libx11 when static linking.
+#
+--- a/xkb/xkbgeom.h	2024-12-31 18:54:47.528422018 -0500
++++ b/xkb/xkbgeom.h	2024-12-31 18:55:18.365439483 -0500
+@@ -398,12 +398,14 @@
+                        Bool     /* freeAll */
+     );
+ 
++#if 0
+ extern void
+  XkbFreeGeomOverlayKeys(XkbOverlayRowPtr /* row */ ,
+                         int /* first */ ,
+                         int /* count */ ,
+                         Bool    /* freeAll */
+     );
++#endif
+ 
+ extern void
+  XkbFreeGeomOverlayRows(XkbOverlayPtr /* overlay */ ,
+--- a/xkb/XKBGAlloc.c	2024-12-31 18:54:52.650424916 -0500
++++ b/xkb/XKBGAlloc.c	2024-12-31 18:55:30.448446345 -0500
+@@ -238,6 +238,7 @@
+ 
+ /***====================================================================***/
+ 
++#if 0
+ void
+ XkbFreeGeomOverlayKeys(XkbOverlayRowPtr row, int first, int count, Bool freeAll)
+ {
+@@ -246,6 +247,7 @@
+                           (char **) &row->keys, sizeof(XkbOverlayKeyRec));
+     return;
+ }
++#endif
+ 
+ /***====================================================================***/
+ 

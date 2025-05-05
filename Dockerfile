@@ -30,7 +30,7 @@ FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 
 # Get UPX (statically linked).
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS upx
-ARG UPX_VERSION=4.2.4
+ARG UPX_VERSION=5.0.0
 RUN \
     if echo "${UPX_VERSION}" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$'; then \
         apk --no-cache add curl && \
@@ -52,11 +52,14 @@ ARG TARGETPLATFORM
 COPY --from=xx / /
 COPY src/tigervnc /build
 RUN /build/build.sh
-RUN xx-verify --static /tmp/tigervnc-install/usr/bin/Xvnc
-RUN xx-verify --static /tmp/tigervnc-install/usr/bin/vncpasswd
+RUN xx-verify /tmp/tigervnc-rootfs/opt/base/bin/Xvnc
+RUN xx-verify /tmp/tigervnc-rootfs/opt/base/lib/*.*
+RUN xx-verify /tmp/tigervnc-rootfs/opt/base/lib/*/*
+RUN xx-verify --static /tmp/tigervnc-rootfs/opt/base/bin/vncpasswd
+
 COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/tigervnc-install/usr/bin/Xvnc
-RUN upx /tmp/tigervnc-install/usr/bin/vncpasswd
+RUN upx /tmp/tigervnc-rootfs/opt/base/bin/Xvnc
+RUN upx /tmp/tigervnc-rootfs/opt/base/bin/vncpasswd
 
 # Build xkeyboard-config.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS xkeyboard-config
@@ -311,8 +314,7 @@ RUN \
 # Add files.
 COPY --link helpers/* /opt/base/bin/
 COPY --link rootfs/ /
-COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/Xvnc /opt/base/bin/
-COPY --link --from=tigervnc /tmp/tigervnc-install/usr/bin/vncpasswd /opt/base/bin/
+COPY --link --from=tigervnc /tmp/tigervnc-rootfs /
 COPY --link --from=xkeyboard-config /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
 COPY --link --from=xrdb /tmp/xrdb-install/usr/bin/xrdb /opt/base/bin/
 COPY --link --from=xkbcomp /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/

@@ -1,0 +1,12 @@
+--- a/meson.build	2025-05-02 15:19:27.608224878 -0400
++++ b/meson.build	2025-05-02 15:20:37.813670034 -0400
+@@ -1736,6 +1736,9 @@
+ endif
+ 
+ llvm_modules = ['bitwriter', 'engine', 'mcdisassembler', 'mcjit', 'core', 'executionengine', 'scalaropts', 'transformutils', 'instcombine']
++if meson.is_cross_build()
++  llvm_modules += [ 'selectiondag' ]
++endif
+ llvm_optional_modules = ['coroutines']
+ if with_amd_vk or with_gallium_radeonsi or with_gallium_r600
+   llvm_modules += ['amdgpu', 'bitreader', 'ipo']

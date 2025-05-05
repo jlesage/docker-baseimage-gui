@@ -1,0 +1,22 @@
+--- a/configure	2025-01-04 12:58:34.745290150 -0500
++++ b/configure	2025-01-04 12:58:48.976298553 -0500
+@@ -29371,7 +29371,7 @@
+   test "$prefix_NONE" && prefix=NONE
+   test "$exec_prefix_NONE" && exec_prefix=NONE
+ 
+-dridriverdir=`$PKG_CONFIG --variable=dridriverdir dri`
++dridriverdir="/opt/base/lib/dri"
+ 
+   prefix_NONE=
+   exec_prefix_NONE=
+--- a/configure.ac	2025-01-04 12:58:34.745290150 -0500
++++ b/configure.ac	2025-01-04 12:58:48.976298553 -0500
+@@ -1451,7 +1451,7 @@
+ AC_DEFINE_DIR(COMPILEDDEFAULTFONTPATH, FONTPATH, [Default font path])
+ AC_DEFINE_DIR(SERVER_MISC_CONFIG_PATH, SERVERCONFIG, [Server miscellaneous config path])
+ AC_DEFINE_DIR(BASE_FONT_PATH, FONTROOTDIR, [Default base font path])
+-dridriverdir=`$PKG_CONFIG --variable=dridriverdir dri`
++dridriverdir="/opt/base/lib/dri"
+ AC_DEFINE_DIR(DRI_DRIVER_PATH, dridriverdir, [Default DRI driver path])
+ AC_DEFINE_UNQUOTED(XVENDORNAME, ["$VENDOR_NAME"], [Vendor name])
+ AC_DEFINE_UNQUOTED(XVENDORNAMESHORT, ["$VENDOR_NAME_SHORT"], [Short vendor name])
