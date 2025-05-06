@@ -126,6 +126,8 @@ jobs:
 
       - name: Setup BATS
         uses: mig4/setup-bats@v1
+        with:
+          bats-version: 1.11.1
 
       - name: Setup QEMU
         #uses: docker/setup-qemu-action@v3
@@ -171,7 +173,7 @@ jobs:
             export DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci@$SHA
             docker pull $DOCKER_IMAGE
             docker run --rm $DOCKER_IMAGE sh -c 'echo Testing image on $(uname -m)...'
-            bats tests
+            bats --no-parallelize-within-files -j $(nproc) tests
           done
 
       - name: Login to DockerHub

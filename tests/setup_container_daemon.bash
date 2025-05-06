@@ -1,5 +1,5 @@
 
-CONTAINER_DAEMON_NAME=dockertest
+CONTAINER_DAEMON_NAME="$(mktemp -u dockertest-XXXXXXXXXX)"
 
 exec_container_daemon() {
     [ -n "$CONTAINER_DAEMON_NAME" ]
