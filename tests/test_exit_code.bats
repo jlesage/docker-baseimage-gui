@@ -22,7 +22,7 @@ teardown() {
 }
 
 @test "Checking container's exit code when forcing application's termination with success..." {
-    STARTAPP_SCRIPT="$(mktemp)"
+    STARTAPP_SCRIPT="$TESTS_WORKDIR/startapp.sh"
     echo '#!/bin/sh' >> "$STARTAPP_SCRIPT"
     echo 'exit 0' >> "$STARTAPP_SCRIPT"
     chmod a+rx "$STARTAPP_SCRIPT"
@@ -40,7 +40,7 @@ teardown() {
 }
 
 @test "Checking container's exit code when forcing application's termination with custom error..." {
-    STARTAPP_SCRIPT="$(mktemp)"
+    STARTAPP_SCRIPT="$TESTS_WORKDIR/startapp.sh"
     echo '#!/bin/sh' >> "$STARTAPP_SCRIPT"
     echo 'exit 10' >> "$STARTAPP_SCRIPT"
     chmod a+rx "$STARTAPP_SCRIPT"
