@@ -1,5 +1,7 @@
 #!/bin/env bats
 
+BATS_NO_PARALLELIZE_WITHIN_FILE=true
+
 DOCKER_EXTRA_OPTS=("-p" "5901:5900" "-p" "5801:5800")
 
 setup() {

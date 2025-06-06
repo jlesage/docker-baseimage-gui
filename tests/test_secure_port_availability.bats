@@ -1,5 +1,7 @@
 #!/bin/env bats
 
+BATS_NO_PARALLELIZE_WITHIN_FILE=true
+
 setup() {
     load setup_common
 
