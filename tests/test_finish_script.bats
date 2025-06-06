@@ -2,15 +2,23 @@
 
 setup() {
     load setup_common
+
+    echo "#!/bin/sh
+    exit 50" > "$TESTS_WORKDIR"/startapp.sh
+    chmod a+rx "$TESTS_WORKDIR"/startapp.sh
 }
 
 teardown() {
     load teardown_common
 }
 
-@test "Checking that all init scripts terminate successfully..." {
-    docker_run --rm $DOCKER_IMAGE
-    regex=".* all container initialization scripts executed."
+@test "Checking container's exit code when finish script terminates successfully..." {
+    echo "#!/bin/sh
+    exit 0" > "$TESTS_WORKDIR"/00-test-script.sh
+    chmod a+rx "$TESTS_WORKDIR"/00-test-script.sh
+
+    docker_run --rm -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh -v "$TESTS_WORKDIR"/00-test-script.sh:/etc/cont-finish.d/00-test-script.sh $DOCKER_IMAGE
+    regex=".* 00-test-script.sh: terminated successfully"
     for item in "${lines[@]}"; do
         if [[ "$item" =~ $regex ]]; then
             break;
@@ -23,36 +31,18 @@ teardown() {
     echo "====================================================================="
     echo " END OUTPUT"
     echo "====================================================================="
+    echo "STATUS: $status"
+    [ "$status" -eq 50 ]
     [[ "$item" =~ $regex ]]
 }
 
-@test "Checking container's exit code when init script fails..." {
+@test "Checking container's exit code when finish script fails..." {
     echo "#!/bin/sh
-    exit 200" > "$TESTS_WORKDIR"/00-test-script-failure.sh
-    chmod a+rx "$TESTS_WORKDIR"/00-test-script-failure.sh
+    exit 200" > "$TESTS_WORKDIR"/00-test-script.sh
+    chmod a+rx "$TESTS_WORKDIR"/00-test-script.sh
 
-    docker_run --rm -v "$TESTS_WORKDIR"/00-test-script-failure.sh:/etc/cont-init.d/00-test-script-failure.sh $DOCKER_IMAGE
-    echo "====================================================================="
-    echo " OUTPUT"
-    echo "====================================================================="
-    echo "$output"
-    echo "====================================================================="
-    echo " END OUTPUT"
-    echo "====================================================================="
-    echo "STATUS: $status"
-    [ "$status" -eq 200 ]
-}
-
-@test "Checking that init script without execute permission is ignored..." {
-    echo "#!/bin/sh
-    exit 0" > "$TESTS_WORKDIR"/startapp.sh
-    chmod a+rx "$TESTS_WORKDIR"/startapp.sh
-
-    echo "#!/bin/sh
-    exit 200" > "$TESTS_WORKDIR"/00-test-script-failure.sh
-
-    docker_run --rm -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh -v "$TESTS_WORKDIR"/00-test-script-failure.sh:/etc/cont-init.d/00-test-script-failure.sh $DOCKER_IMAGE
-    regex=".* 00-test-script-failure.sh: WARNING: not executable, ignoring"
+    docker_run --rm -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh -v "$TESTS_WORKDIR"/00-test-script.sh:/etc/cont-finish.d/00-test-script.sh $DOCKER_IMAGE
+    regex=".* 00-test-script.sh: terminated with error 200"
     for item in "${lines[@]}"; do
         if [[ "$item" =~ $regex ]]; then
             break;
@@ -66,7 +56,30 @@ teardown() {
     echo " END OUTPUT"
     echo "====================================================================="
     echo "STATUS: $status"
-    [ "$status" -eq 0 ]
+    [ "$status" -eq 50 ]
+    [[ "$item" =~ $regex ]]
+}
+
+@test "Checking that finish script without execute permission is ignored..." {
+    echo "#!/bin/sh
+    exit 200" > "$TESTS_WORKDIR"/00-test-script.sh
+
+    docker_run --rm -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh -v "$TESTS_WORKDIR"/00-test-script.sh:/etc/cont-finish.d/00-test-script.sh $DOCKER_IMAGE
+    regex=".* 00-test-script.sh: WARNING: not executable, ignoring"
+    for item in "${lines[@]}"; do
+        if [[ "$item" =~ $regex ]]; then
+            break;
+        fi
+    done
+    echo "====================================================================="
+    echo " OUTPUT"
+    echo "====================================================================="
+    echo "$output"
+    echo "====================================================================="
+    echo " END OUTPUT"
+    echo "====================================================================="
+    echo "STATUS: $status"
+    [ "$status" -eq 50 ]
     [[ "$item" =~ $regex ]]
 }
 
