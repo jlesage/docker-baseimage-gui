@@ -80,6 +80,7 @@ Multiple docker images, based on different Linux distributions, are available:
 | [Alpine 3.19]      | alpine-3.19-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.19-v4?style=for-the-badge)](#)  |
 | [Alpine 3.20]      | alpine-3.20-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.20-v4?style=for-the-badge)](#)  |
 | [Alpine 3.21]      | alpine-3.21-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.21-v4?style=for-the-badge)](#)  |
+| [Alpine 3.22]      | alpine-3.22-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.22-v4?style=for-the-badge)](#)  |
 | [Debian 10]        | debian-10-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-10-v4?style=for-the-badge)](#)    |
 | [Debian 11]        | debian-11-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4?style=for-the-badge)](#)    |
 | [Debian 12]        | debian-12-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-12-v4?style=for-the-badge)](#)    |
@@ -102,12 +103,13 @@ Version part of the tag can be decomposed in the following way:
 
 Finally, all available Docker image tags can also be consulted on [Docker Hub].
 
-[Alpine 3.16]: https://alpinelinux.org
-[Alpine 3.17]: https://alpinelinux.org
-[Alpine 3.18]: https://alpinelinux.org
-[Alpine 3.19]: https://alpinelinux.org
-[Alpine 3.20]: https://alpinelinux.org
-[Alpine 3.21]: https://alpinelinux.org
+[Alpine 3.16]: https://alpinelinux.org/posts/Alpine-3.16.0-released.html
+[Alpine 3.17]: https://alpinelinux.org/posts/Alpine-3.17.0-released.html
+[Alpine 3.18]: https://alpinelinux.org/posts/Alpine-3.18.0-released.html
+[Alpine 3.19]: https://alpinelinux.org/posts/Alpine-3.19.0-released.html
+[Alpine 3.20]: https://alpinelinux.org/posts/Alpine-3.20.0-released.html
+[Alpine 3.21]: https://alpinelinux.org/posts/Alpine-3.21.0-released.html
+[Alpine 3.22]: https://alpinelinux.org/posts/Alpine-3.22.0-released.html
 [Debian 10]: https://www.debian.org/releases/buster/
 [Debian 11]: https://www.debian.org/releases/bullseye/
 [Debian 12]: https://www.debian.org/releases/bookworm/
