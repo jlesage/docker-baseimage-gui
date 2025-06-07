@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          packages: baseimage-build
+          packages: baseimage-gui-build
           delete-tags: common-*
           older-than: 1 day
 
@@ -28,7 +28,7 @@ jobs:
     steps:
       - uses: dataaxiom/ghcr-cleanup-action@v1
         with:
-          packages: baseimage-build
+          packages: baseimage-gui-build
           delete-tags: cache-*
           older-than: 6 months
 
