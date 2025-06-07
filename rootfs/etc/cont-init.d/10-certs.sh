@@ -77,7 +77,7 @@ fi
 
 rm -rf "$TMP_DIR"
 
-[-d /var/run/certsmonitor ] || mkdir --mode=755 /var/run/certsmonitor
+[ -d /var/run/certsmonitor ] || mkdir --mode=755 /var/run/certsmonitor
 chown "$USER_ID:$GROUP_ID" /var/run/certsmonitor
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
