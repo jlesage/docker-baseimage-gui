@@ -36,7 +36,7 @@ jobs:
 
       - name: Set image tag
         id: set-tag
-        run: echo "tag=ghcr.io/${{ github.repository_owner }}/baseimage-build:common-${{ github.run_id }}" >> $GITHUB_OUTPUT
+        run: echo "tag=ghcr.io/${{ github.repository_owner }}/baseimage-gui-build:common-${{ github.run_id }}" >> $GITHUB_OUTPUT
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -54,8 +54,8 @@ jobs:
           platforms: linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8
           file: Dockerfile.common
           tags: ${{ steps.set-tag.outputs.tag }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-build:cache-common-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }}
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-build:cache-common-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }},mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-gui-build:cache-common-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }}
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-gui-build:cache-common-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }},mode=max
 
       - name: Inspect
         id: inspect
@@ -196,8 +196,8 @@ jobs:
             BASEIMAGE_COMMON=${{ needs.build-common.outputs.base-common-image-tag }}
             BASEIMAGE=${{ fromJSON(matrix.info).baseimage }}
             IMAGE_VERSION=${{ steps.prep.outputs.label_version }}
-          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-build:cache-${{ fromJSON(matrix.info).tag_prefix }}-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }}
-          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-build:cache-${{ fromJSON(matrix.info).tag_prefix }}-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }},mode=max
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-gui-build:cache-${{ fromJSON(matrix.info).tag_prefix }}-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }}
+          cache-to: type=registry,ref=ghcr.io/${{ github.repository_owner }}/baseimage-gui-build:cache-${{ fromJSON(matrix.info).tag_prefix }}-${{ startsWith('refs/tags/v', github.ref) && 'master' || (github.head_ref || github.ref_name) }},mode=max
 
       - name: Inspect
         id: inspect
