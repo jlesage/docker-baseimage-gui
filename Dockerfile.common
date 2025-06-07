@@ -168,7 +168,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-audiorecorder/audiorecorder
 
 # Build the web authenticator.
-FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS webauth
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS webauth
 ARG TARGETPLATFORM
 ENV CGO_ENABLED=0
 COPY --from=xx / /
@@ -179,7 +179,7 @@ COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-webauth/webauth
 
 # Build the web services daemon.
-FROM --platform=$BUILDPLATFORM golang:1.21-alpine AS webservices
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS webservices
 ARG TARGETPLATFORM
 ENV CGO_ENABLED=0
 COPY --from=xx / /
