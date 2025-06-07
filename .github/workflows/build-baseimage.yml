@@ -179,15 +179,9 @@ jobs:
           bats-version: 1.11.1
 
       - name: Setup QEMU
-        #uses: docker/setup-qemu-action@v3
-        #with:
-        #  platforms: arm,arm64,ppc64le,mips64,s390x
-        shell: bash
-        run: |
-          # Temporarily use Debian qemu-user-static, until Ubuntu fixes theirs.
-          wget -q http://ftp.debian.org/debian/pool/main/q/qemu/qemu-user-static_7.2+dfsg-7+deb12u12_amd64.deb
-          echo "1a2696081c1f30d464f79fd300196822397c77f05440ea9ce6dc8e9658b595ec qemu-user-static_7.2+dfsg-7+deb12u12_amd64.deb" | sha256sum -c
-          sudo dpkg -i qemu-user-static_7.2+dfsg-7+deb12u12_amd64.deb
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm,arm64,ppc64le,mips64,s390x
 
       - name: Setup Docker Buildx
         uses: docker/setup-buildx-action@v3
