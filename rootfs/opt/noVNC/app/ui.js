@@ -1747,20 +1747,24 @@ const UI = {
  * ------v------*/
 
     closeFileManager() {
-        const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
-        fileManagerBtn.classList.remove('noVNC_selected');
-        UI.fileManager.close();
+        if (UI.fileManager) {
+            const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
+            fileManagerBtn.classList.remove('noVNC_selected');
+            UI.fileManager.close();
+        }
     },
 
     toggleFileManager() {
-        const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
-        if (fileManagerBtn.classList.contains('noVNC_selected')) {
-            fileManagerBtn.classList.remove('noVNC_selected');
-            UI.fileManager.close();
-        } else {
-            fileManagerBtn.classList.add('noVNC_selected');
-            UI.fileManager.open();
-            UI.closeControlbar();
+        if (UI.fileManager) {
+            const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
+            if (fileManagerBtn.classList.contains('noVNC_selected')) {
+                fileManagerBtn.classList.remove('noVNC_selected');
+                UI.fileManager.close();
+            } else {
+                fileManagerBtn.classList.add('noVNC_selected');
+                UI.fileManager.open();
+                UI.closeControlbar();
+            }
         }
     },
 
