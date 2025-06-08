@@ -49,6 +49,7 @@ needed on the client side) or via any VNC client.
          * [Notification Definition](#notification-definition)
          * [Notification Backend](#notification-backend)
       * [Web Audio](#web-audio)
+      * [Web File Manager](#web-file-manager)
       * [Helpers](#helpers)
          * [Adding/Removing Packages](#addingremoving-packages)
          * [Modifying Files With Sed](#modifying-files-with-sed)
@@ -300,6 +301,9 @@ The following public environment variables are provided by the baseimage:
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
 |`DARK_MODE`| When set to `1`, dark mode is enabled for the application. | `0` |
 |`WEB_AUDIO`| When set to `1`, audio support is enabled, meaning that any audio produced by the application is played through the browser. Note that audio is not supported for VNC clients. | `0` |
+|`WEB_FILE_MANAGER`| When set to `1`, web file manager is enabled. It allows interaction with files inside the container through a web browser, supporting basic operations such as renaming, deleting, uploading, and downloading. Note that this feature is not supported for VNC clients. | `0` |
+|`WEB_FILE_MANAGER_ALLOWED_PATHS`| Comma-separated list of paths within the container that are allowed to be accessed by the file manager. By default, the container's entire filesystem is not accessible, and this variable specifies which paths can be accessed. If set to `AUTO`, commonly used folders and those mapped to the container are automatically allowed. The value `ALL` can be used to allow access to all paths (no restriction). | `AUTO` |
+|`WEB_FILE_MANAGER_DENIED_PATHS`| Comma-separated list of paths within the container that are not allowed be accessed by the file manager. A denied path takes precedence over an allowed path. | (no value) |
 |`WEB_AUTHENTICATION`| When set to `1`, the application's GUI is protected via a login page when accessed via a web browser. Access is allowed only when providing valid credentials. **NOTE**: This feature requires secure connection (`SECURE_CONNECTION` environment variable) to be enabled. | `0` |
 |`WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME`| The lifetime of a token, in hours. A token is attributed to the user after a successful login. As long as the token is valid, user can access the application's GUI without having to log in again. Once the token expires, the login page is prompted again. | `24` |
 |`WEB_AUTHENTICATION_USERNAME`| Optional username to configure for the web authentication. This is a quick and easy way to configure credentials for a single user. To configure credentials in a more secure way, or to add more users, see the [Web Authentication](#web-authentication) section. | (no value) |
@@ -455,7 +459,7 @@ connection (HTTP or VNC).
 
 Secure connection can be enabled via the `SECURE_CONNECTION` environment
 variable. See the [Environment Variables](#environment-variables) section for
-more details on how to set an environment variable.
+more details on how to configure environment variables.
 
 When enabled, application's GUI is performed over an HTTPs connection when
 accessed with a browser. All HTTP accesses are automatically redirected to
@@ -555,7 +559,7 @@ Web authentication can be enabled by setting the `WEB_AUTHENTICATION`
 environment variable to `1`.
 
 See the [Environment Variables](#environment-variables) section for more details
-on how to set an environment variable.
+on how to configure environment variables.
 
 **NOTE**: Secure connection must be also enabled to use web authentication.
           See the [Security](#security) section for more details.
@@ -574,7 +578,7 @@ variables:
   - `WEB_AUTHENTICATION_PASSWORD`
 
 See the [Environment Variables](#environment-variables) section for more details
-on how to set an environment variable.
+on how to configure environment variables.
 
 The second method is more secure and allows multiple users to be configured.
 The usernames and password hashes are saved into a password database, located at
@@ -835,11 +839,32 @@ Audio is streamed with the following specification:
 Web audio support can be enabled by setting the value of the `WEB_AUDIO`
 environment variable to `1`. See the
 [Environment Variables](#environment-variables) section for more details on how
-to set an environment variable.
+to configre environment variables.
 
 Once support is enabled, PulseAudio environment is automatically configured
 for the application and additional services are started to capture and stream
 the audio.
+
+### Web File Manager
+
+The baseimage includes a simple file manager that allows interaction with files
+inside the container through the web browser. Basic operations such as renaming,
+deleting, uploading, and downloading are supported.
+
+The file manager can be enabled by setting the `WEB_FILE_MANAGER` environment
+variable to `1`. See the
+[Environment Variables](#environment-variables) section for more details on how
+to configure environment variables.
+
+By default, the container's entire filesystem is not accessible. The
+`WEB_FILE_MANAGER_ALLOWED_PATHS` environment variable is a comma-separated list
+that specifies which paths within the container are allowed to be accessed. When
+set to `AUTO` (the default), it automatically includes commonly used folders and
+any folders mapped to the container.
+
+Conversely, the `WEB_FILE_MANAGER_DENIED_PATHS` environment variable defines
+which paths are explicitly denied access by the file manager. A denied path
+always takes precedence over an allowed one.
 
 ### Helpers
 

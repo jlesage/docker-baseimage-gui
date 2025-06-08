@@ -731,6 +731,61 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_FILE_MANAGER
+      description: >-
+        When set to `1`, web file manager is enabled. It allows interaction with
+        files inside the container through a web browser, supporting basic
+        operations such as renaming, deleting, uploading, and downloading. Note
+        that this feature is not supported for VNC clients.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web File Manager
+        description: >-
+          When set to "1", web file manager is enabled. It allows interaction
+          with files inside the container through a web browser, supporting
+          basic operations such as renaming, deleting, uploading, and
+          downloading. Note that this feature is not supported for VNC clients.
+        display: advanced
+        required: false
+        mask: false
+    - name: WEB_FILE_MANAGER_ALLOWED_PATHS
+      description: >-
+        Comma-separated list of paths within the container that are allowed to
+        be accessed by the file manager. By default, the container's entire
+        filesystem is not accessible, and this variable specifies which paths
+        can be accessed. If set to `AUTO`, commonly used folders and those
+        mapped to the container are automatically allowed. The value `ALL` can
+        be used to allow access to all paths (no restriction).
+      type: public
+      default: AUTO
+      unraid_template:
+        title: Web File Manager Allowed Paths
+        description: >-
+          Comma-separated list of paths within the container that are allowed to
+          be accessed by the file manager. By default, the container's entire
+          filesystem is not accessible, and this variable specifies which paths
+          can be accessed. If set to "AUTO", commonly used folders and those
+          mapped to the container are automatically allowed. The value "ALL" can
+        display: advanced
+        required: false
+        mask: false
+    - name: WEB_FILE_MANAGER_DENIED_PATHS
+      description: >-
+        Comma-separated list of paths within the container that are not allowed
+        be accessed by the file manager. A denied path takes precedence over an
+        allowed path.
+      type: public
+      default:
+      unraid_template:
+        title: Web File Manager Denied Paths
+        description: >-
+          Comma-separated list of paths within the container that are not
+          allowed be accessed by the file manager. A denied path takes
+          precedence over an allowed path.
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_AUTHENTICATION
       description: >-
         When set to `1`, the application's GUI is protected via a login page
