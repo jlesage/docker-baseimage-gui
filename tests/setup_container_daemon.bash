@@ -8,7 +8,7 @@ exec_container_daemon() {
 
 getlog_container_daemon() {
     [ -n "$CONTAINER_DAEMON_NAME" ]
-    docker logs "$CONTAINER_DAEMON_NAME"
+    docker logs -t "$CONTAINER_DAEMON_NAME"
 }
 
 wait_for_container_daemon() {
