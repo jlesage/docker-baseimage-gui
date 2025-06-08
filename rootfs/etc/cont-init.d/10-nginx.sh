@@ -23,8 +23,8 @@ AUTH_CONF=/var/tmp/nginx/auth.conf
 FMGR_CONF=/var/tmp/nginx/fmgr.conf
 
 # Make sure required directories exist.
-for DIR in $NGINX_DIRS; do
-    [ -d "$DIR" ] || mkdir --mode=755 "$DIR"
+for dir in ${NGINX_DIRS}; do
+    [ -d "${dir}" ] || mkdir --mode=755 "${dir}"
 done
 
 # First, clear all dynamic config files.
@@ -48,54 +48,55 @@ if true; then
     fi
 
     # Add the listen directive.
-    echo "listen $LISTEN_PORT $LISTEN_SSL default_server;" >> "$LISTEN_CONF"
+    echo "listen ${LISTEN_PORT} ${LISTEN_SSL} default_server;" >> "${LISTEN_CONF}"
 
     # Add the listen directive for IPv6.
     if [ "${WEB_LISTENING_PORT:-5800}" -ne -1 ] && ifconfig -a | grep -wq inet6; then
-        echo "listen [::]:$LISTEN_PORT $LISTEN_SSL default_server;" >> "$LISTEN_CONF"
+        echo "listen [::]:${LISTEN_PORT} ${LISTEN_SSL} default_server;" >> "${LISTEN_CONF}"
     fi
 fi
 
 # Handle SSL configuration.
 if is-bool-val-true "${SECURE_CONNECTION:-0}"; then
-    cp -a /defaults/default_ssl.conf "$SSL_CONF"
+    cp -a /defaults/default_ssl.conf "${SSL_CONF}"
 fi
 
 # Handle stream configuration.
 # The stream config is needed only when secure connection is enabled, with the
 # VNC method set to SSL.
-if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ] && [ "${VNC_LISTENING_PORT:-5900}" -ne -1 ]
-then
+if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ] && [ "${VNC_LISTENING_PORT:-5900}" -ne -1 ]; then
     # Copy the default config.
-    cp -a /defaults/default_stream.conf "$STREAM_CONF"
+    cp -a /defaults/default_stream.conf "${STREAM_CONF}"
 
     # Generate the listen directive for stream config.
-    echo "listen ${VNC_LISTENING_PORT:-5900} ssl;" >> "$STREAM_LISTEN_CONF"
+    echo "listen ${VNC_LISTENING_PORT:-5900} ssl;" >> "${STREAM_LISTEN_CONF}"
 fi
 
 # Handle configuration for audio support.
 if is-bool-val-true "${WEB_AUDIO:-0}"; then
-    cp -a /defaults/default_audio.conf "$AUDIO_CONF"
+    cp -a /defaults/default_audio.conf "${AUDIO_CONF}"
 fi
 
 # Handle configuration for web authentication.
 if is-bool-val-true "${WEB_AUTHENTICATION:-0}"; then
-    cp -a /defaults/default_auth.conf "$AUTH_CONF"
+    cp -a /defaults/default_auth.conf "${AUTH_CONF}"
 else
     # Feature is disabled, so we need to prevent access to the login page.
-    printf "location /login/ {" >> "$AUTH_CONF"
-    printf "\treturn 404;" >> "$AUTH_CONF"
-    printf "}" >> "$AUTH_CONF"
+    {
+        printf "location /login/ {\n"
+        printf "\treturn 404;\n"
+        printf "}\n"
+    } >> "${AUTH_CONF}"
 fi
 
 # Handle configuration for file manager support.
 if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
-    cp -a /defaults/default_fmgr.conf "$FMGR_CONF"
+    cp -a /defaults/default_fmgr.conf "${FMGR_CONF}"
 fi
 
 # Make sure required directories are properly owned.
-for DIR in $NGINX_DIRS; do
-    chown $USER_ID:$GROUP_ID "$DIR"
+for dir in ${NGINX_DIRS}; do
+    chown "${USER_ID}:${GROUP_ID}" "${dir}"
 done
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

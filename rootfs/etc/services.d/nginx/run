@@ -7,11 +7,11 @@ if [ "${WEB_LISTENING_PORT:-5800}" -eq -1 ]; then
     echo "Not listening for web connections."
 else
     if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
-        CONN_TYPE="HTTP"
+        conn_type="HTTP"
     else
-        CONN_TYPE="HTTPs"
+        conn_type="HTTPs"
     fi
-    echo "Listening for $CONN_TYPE connections on port ${WEB_LISTENING_PORT:-5800}."
+    echo "Listening for ${conn_type} connections on port ${WEB_LISTENING_PORT:-5800}."
 fi
 
 exec /opt/base/sbin/nginx "$@"

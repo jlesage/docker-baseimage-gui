@@ -10,11 +10,9 @@ set -u # Treat unset variables as an error.
 # the host, not the container.
 # Thus, we need to select a X display that is not already used.
 
-for D in $(seq 0 16)
-do
-    if ! netstat -x | grep -q "/tmp/.X11-unix/X$D"
-    then
-        echo ":$D"
+for d in $(seq 0 16); do
+    if ! netstat -x | grep -q "/tmp/.X11-unix/X${d}"; then
+        echo ":${d}"
         exit 0
     fi
 done

@@ -62,13 +62,13 @@ echo "-rfbunixmode=0660"
 # X509Plain:
 #
 PASSWORD_FILE=
-if [ -f /config/.vncpass ] && [ -n "$( cat /config/.vncpass )" ]; then
+if [ -f /config/.vncpass ] && [ -n "$(cat /config/.vncpass)" ]; then
     PASSWORD_FILE=/config/.vncpass
-elif [ -f /tmp/.vncpass ] && [ -n "$( cat /tmp/.vncpass )" ]; then
+elif [ -f /tmp/.vncpass ] && [ -n "$(cat /tmp/.vncpass)" ]; then
     PASSWORD_FILE=/tmp/.vncpass
 fi
 
-if [ -n "$PASSWORD_FILE" ]; then
+if [ -n "${PASSWORD_FILE}" ]; then
     # With password.
     if is-bool-val-false "${SECURE_CONNECTION:-0}" || [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
         echo "-SecurityTypes=VncAuth"
@@ -80,7 +80,7 @@ if [ -n "$PASSWORD_FILE" ]; then
     else
         echo "-InternalConnectionSecurityTypes=VncAuth"
     fi
-    echo "-rfbauth=$PASSWORD_FILE"
+    echo "-rfbauth=${PASSWORD_FILE}"
 else
     # Without password.
     if is-bool-val-false "${SECURE_CONNECTION:-0}" || [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
@@ -99,7 +99,7 @@ if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METH
 fi
 
 # Desktop (app) name.
-echo "-desktop=$APP_NAME"
+echo "-desktop=${APP_NAME}"
 
 # X11 display.
-echo "$DISPLAY"
+echo "${DISPLAY}"

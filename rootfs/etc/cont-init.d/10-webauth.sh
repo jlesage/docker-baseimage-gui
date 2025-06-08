@@ -18,13 +18,13 @@ if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
 fi
 
 # Make sure the password db exists.
-[ -f "$PASSWORD_FILE" ] || touch "$PASSWORD_FILE"
+[ -f "${PASSWORD_FILE}" ] || touch "${PASSWORD_FILE}"
 
 # Set permissions of the password db.
-chmod 600 "$PASSWORD_FILE"
+chmod 600 "${PASSWORD_FILE}"
 
 if [ -z "${WEB_AUTHENTICATION_USERNAME:-}" ] && [ -z "${WEB_AUTHENTICATION_PASSWORD:-}" ]; then
-    if [ "$(stat -c "%s" "$PASSWORD_FILE")" -eq 0 ]; then
+    if [ "$(stat -c "%s" "${PASSWORD_FILE}")" -eq 0 ]; then
         echo "WARNING: no user configured for web authentication"
     fi
 elif [ -z "${WEB_AUTHENTICATION_USERNAME:-}" ] || [ -z "${WEB_AUTHENTICATION_PASSWORD:-}" ]; then
@@ -34,7 +34,7 @@ elif [ -z "${WEB_AUTHENTICATION_USERNAME:-}" ] || [ -z "${WEB_AUTHENTICATION_PAS
     exit 1
 else
     # Add password to database.
-    echo "$WEB_AUTHENTICATION_PASSWORD" | htpasswd -i "$PASSWORD_FILE" "$WEB_AUTHENTICATION_USERNAME"
+    echo "${WEB_AUTHENTICATION_PASSWORD}" | htpasswd -i "${PASSWORD_FILE}" "${WEB_AUTHENTICATION_USERNAME}"
 fi
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

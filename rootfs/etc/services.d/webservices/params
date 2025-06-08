@@ -3,7 +3,7 @@
 set -u # Treat unset variables as an error.
 
 tolower() {
-    echo "$1" | tr 'A-Z' 'a-z'
+    echo "$1" | tr '[:upper:]' '[:lower:]'
 }
 
 if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
@@ -18,29 +18,26 @@ if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
     DENIED_PATHS="$(mktemp)"
 
     # Add allowed paths.
-    echo "${WEB_FILE_MANAGER_ALLOWED_PATHS:-AUTO}" | tr ',' '\n' | while read -r ALLOWED_PATH
-    do
-        [ -n "$ALLOWED_PATH" ] || continue
+    echo "${WEB_FILE_MANAGER_ALLOWED_PATHS:-AUTO}" | tr ',' '\n' | while read -r allowed_path; do
+        [ -n "${allowed_path}" ] || continue
 
-        if [ "$(tolower "$ALLOWED_PATH")" = "all" ]; then
+        if [ "$(tolower "${allowed_path}")" = "all" ]; then
             # Clear the file of allowed path and stop.
-            echo > "$ALLOWED_PATHS"
+            echo > "${ALLOWED_PATHS}"
             break
-        elif [ "$(tolower "$ALLOWED_PATH")" = "auto" ]; then
+        elif [ "$(tolower "${allowed_path}")" = "auto" ]; then
             # Some well-known paths that are allowed.
-            for DIR in /storage /output /config /tmp;
-            do
-                echo "$DIR" >> "$ALLOWED_PATHS"
+            for dir in /storage /output /config /tmp; do
+                echo "${dir}" >> "${ALLOWED_PATHS}"
             done
 
             # Add volumes mapped to the container.
-            cat /proc/mounts | awk '{print $3 " " $2}' | while read -r MOUNT
-            do
-                filesystem="$(echo "$MOUNT" | cut -d' ' -f1)"
-                mountpoint="$(echo "$MOUNT" | cut -d' ' -f2-)"
+            awk '{print $3 " " $2}' < /proc/mounts | while read -r mount; do
+                filesystem="$(echo "${mount}" | cut -d' ' -f1)"
+                mountpoint="$(echo "${mount}" | cut -d' ' -f2-)"
 
                 # Ignore mounts associated to system related file system types.
-                case "$filesystem" in
+                case "${filesystem}" in
                     cgroup*) continue ;;
                     devpts) continue ;;
                     mqueue) continue ;;
@@ -51,53 +48,50 @@ if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
                 esac
 
                 # Ignore mounts associated to system related paths.
-                case "$mountpoint" in
+                case "${mountpoint}" in
                     /) continue ;;
-                    /dev|/dev/*) continue ;;
-                    /etc|/etc/*) continue ;;
-                    /proc|/proc/*) continue ;;
-                    /sys|/sys/*) continue ;;
+                    /dev | /dev/*) continue ;;
+                    /etc | /etc/*) continue ;;
+                    /proc | /proc/*) continue ;;
+                    /sys | /sys/*) continue ;;
                     *) ;;
                 esac
 
-                echo "$mountpoint" >> "$ALLOWED_PATHS"
+                echo "${mountpoint}" >> "${ALLOWED_PATHS}"
             done
         else
-            echo "$ALLOWED_PATH" >> "$ALLOWED_PATHS"
+            echo "${allowed_path}" >> "${ALLOWED_PATHS}"
         fi
     done
 
     # Add denied paths.
-    echo "${WEB_FILE_MANAGER_DENIED_PATHS:-}" | tr ',' '\n' | while read -r DENIED_PATH
-    do
-        [ -n "$DENIED_PATH" ] || continue
-        echo "$DENIED_PATH" >> "$DENIED_PATHS"
+    echo "${WEB_FILE_MANAGER_DENIED_PATHS:-}" | tr ',' '\n' | while read -r denied_path; do
+        [ -n "${denied_path}" ] || continue
+        echo "${denied_path}" >> "${DENIED_PATHS}"
     done
 
     # Print all arguments.
-    cat "$ALLOWED_PATHS" | sort -u | while read -r ALLOWED_PATH;
-    do
-        [ -n "$ALLOWED_PATH" ] || continue
+    sort -u < "${ALLOWED_PATHS}" | while read -r allowed_path; do
+        [ -n "${allowed_path}" ] || continue
         echo "--allowed-path"
-        echo "$ALLOWED_PATH"
+        echo "${allowed_path}"
     done
-    cat "$DENIED_PATHS" | sort -u | while read -r DENIED_PATH;
-    do
-        [ -n "$DENIED_PATH" ] || continue
+    sort -u < "${DENIED_PATHS}" | while read -r denied_path; do
+        [ -n "${denied_path}" ] || continue
         echo "--denied-path"
-        echo "$DENIED_PATH"
+        echo "${denied_path}"
     done
 
-    rm "$ALLOWED_PATHS"
-    rm "$DENIED_PATHS"
+    rm "${ALLOWED_PATHS}"
+    rm "${DENIED_PATHS}"
 
 #    if is-bool-val-true "${WEB_FILE_MANAGER_RESTRICTION:-1}"; then
 #        ALLOWED_PATHS="$(mktemp)"
 #
 #        # Some well-known paths that are allowed.
-#        for DIR in /storage /output /config /tmp;
+#        for dir in /storage /output /config /tmp;
 #        do
-#            echo "$DIR" >> "$ALLOWED_PATHS"
+#            echo "${dir}" >> "${ALLOWED_PATHS}"
 #        done
 #
 #        # Add volumes mapped to the container.
@@ -118,7 +112,7 @@ if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
 #            esac
 #
 #            # Ignore mounts associated to system related paths.
-#            case "$mountpoint" in
+#            case "${mountpoint}" in
 #                /) continue ;;
 #                /dev|/dev/*) continue ;;
 #                /etc|/etc/*) continue ;;
@@ -127,15 +121,15 @@ if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
 #                *) ;;
 #            esac
 #
-#            echo "$mountpoint" >> "$ALLOWED_PATHS"
+#            echo "${mountpoint}" >> "${ALLOWED_PATHS}"
 #        done
 #
-#        cat "$ALLOWED_PATHS" | sort -u | while read -r ALLOWED_PATH;
+#        cat "${ALLOWED_PATHS}" | sort -u | while read -r ALLOWED_PATH;
 #        do
-#            [ -n "$ALLOWED_PATH" ] || continue
+#            [ -n "${allowed_path}" ] || continue
 #            echo "--allowed-path"
-#            echo "$ALLOWED_PATH"
+#            echo "${allowed_path}"
 #        done
-#        rm "$ALLOWED_PATHS"
+#        rm "${ALLOWED_PATHS}"
 #    fi
 fi

@@ -8,9 +8,9 @@ DH_PARAMS="/config/certs/dhparam.pem"
 
 RUN_DIR=/var/run/certsmonitor
 
-WEB_CERTS_HASH_FILE="$RUN_DIR"/web_certs_hash
-VNC_CERTS_HASH_FILE="$RUN_DIR"/vnc_certs_hash
-DH_PARAMS_HASH_FILE="$RUN_DIR"/dh_params_hash
+WEB_CERTS_HASH_FILE="${RUN_DIR}"/web_certs_hash
+VNC_CERTS_HASH_FILE="${RUN_DIR}"/vnc_certs_hash
+DH_PARAMS_HASH_FILE="${RUN_DIR}"/dh_params_hash
 
 hash() {
     stat -c '%n %s %Y' "$@" | md5sum | cut -d' ' -f1
@@ -26,47 +26,47 @@ restart_xvnc() {
     killall Xvnc
 }
 
-[ -d "$RUN_DIR" ] || mkdir --mode=755 "$RUN_DIR"
+[ -d "${RUN_DIR}" ] || mkdir --mode=755 "${RUN_DIR}"
 
 # Get previous hashes.
-WEB_CERTS_HASH="$(cat "$WEB_CERTS_HASH_FILE" 2>/dev/null || true)"
-VNC_CERTS_HASH="$(cat "$VNC_CERTS_HASH_FILE" 2>/dev/null || true)"
-DH_PARAMS_HASH="$(cat "$DH_PARAMS_HASH_FILE" 2>/dev/null || true)"
+WEB_CERTS_HASH="$(cat "${WEB_CERTS_HASH_FILE}" 2> /dev/null || true)"
+VNC_CERTS_HASH="$(cat "${VNC_CERTS_HASH_FILE}" 2> /dev/null || true)"
+DH_PARAMS_HASH="$(cat "${DH_PARAMS_HASH_FILE}" 2> /dev/null || true)"
 
 # Get new hashes.
-WEB_CERTS_NEW_HASH="$(hash $WEB_CERTS)"
-VNC_CERTS_NEW_HASH="$(hash $VNC_CERTS)"
-DH_PARAMS_NEW_HASH="$(hash $DH_PARAMS)"
+WEB_CERTS_NEW_HASH="$(hash "${WEB_CERTS}")"
+VNC_CERTS_NEW_HASH="$(hash "${VNC_CERTS}")"
+DH_PARAMS_NEW_HASH="$(hash "${DH_PARAMS}")"
 
-UPDATE_HASHES=0
+update_hashes=0
 
-if [ -n "$WEB_CERTS_HASH" ] && [ -n "$VNC_CERTS_HASH" ] && [ -n "$DH_PARAMS_HASH" ]; then
+if [ -n "${WEB_CERTS_HASH}" ] && [ -n "${VNC_CERTS_HASH}" ] && [ -n "${DH_PARAMS_HASH}" ]; then
     # Restart nginx if certificates changed.
-    if [ "$WEB_CERTS_NEW_HASH" != "$WEB_CERTS_HASH" ]; then
+    if [ "${WEB_CERTS_NEW_HASH}" != "${WEB_CERTS_HASH}" ]; then
         echo "Web certificates changed."
-        UPDATE_HASHES=1
+        update_hashes=1
         restart_nginx
-    elif [ "$DH_PARAMS_NEW_HASH" != "$DH_PARAMS_HASH" ]; then
+    elif [ "${DH_PARAMS_NEW_HASH}" != "${DH_PARAMS_HASH}" ]; then
         echo "DH parameters changed."
-        UPDATE_HASHES=1
+        update_hashes=1
         restart_nginx
     fi
 
     # Restart xvnc if certificates changed.
-    if [ "$VNC_CERTS_NEW_HASH" != "$VNC_CERTS_HASH" ]; then
+    if [ "${VNC_CERTS_NEW_HASH}" != "${VNC_CERTS_HASH}" ]; then
         echo "VNC certificates changed."
-        UPDATE_HASHES=1
+        update_hashes=1
         restart_xvnc
     fi
 else
-    UPDATE_HASHES=1
+    update_hashes=1
 fi
 
 # Save new hashes.
-if [ "$UPDATE_HASHES" -eq 1 ]; then
-    echo "$WEB_CERTS_NEW_HASH" > "$WEB_CERTS_HASH_FILE"
-    echo "$VNC_CERTS_NEW_HASH" > "$VNC_CERTS_HASH_FILE"
-    echo "$DH_PARAMS_NEW_HASH" > "$DH_PARAMS_HASH_FILE"
+if [ "${update_hashes}" -eq 1 ]; then
+    echo "${WEB_CERTS_NEW_HASH}" > "${WEB_CERTS_HASH_FILE}"
+    echo "${VNC_CERTS_NEW_HASH}" > "${VNC_CERTS_HASH_FILE}"
+    echo "${DH_PARAMS_NEW_HASH}" > "${DH_PARAMS_HASH_FILE}"
 fi
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

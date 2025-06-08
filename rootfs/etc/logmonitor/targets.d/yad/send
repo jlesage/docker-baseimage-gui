@@ -5,20 +5,20 @@ set -u # Treat unset variables as an error.
 
 TITLE="$1"
 MSG="$2"
-LEVEL="$3"
+#LEVEL="$3"
 
 exec /opt/base/bin/yad \
     --on-top \
     --fixed \
     --center \
-    --title "$APP_NAME" \
+    --title "${APP_NAME}" \
     --window-icon /opt/noVNC/app/images/icons/master_icon.png \
     --borders 10 \
     --image dialog-warning \
     --image-on-top \
-    --text "<b>$TITLE</b>" \
+    --text "<b>${TITLE}</b>" \
     --form \
-    --field "$MSG:LBL" \
+    --field "${MSG}:LBL" \
     --button=gtk-ok:0 > /dev/null 2>&1
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

@@ -8,6 +8,6 @@ FONTCONFIG_CACHE_DIR=/config/xdg/cache/fontconfig
 # Make sure the fontconfig cache directory exists.  This prevent the error
 # "Fontconfig error: No writable cache directories" that programs might
 # raise (e.g openbox).
-if [ ! -d "$FONTCONFIG_CACHE_DIR" ]; then
-    mkdir -p "$FONTCONFIG_CACHE_DIR"
+if [ ! -d "${FONTCONFIG_CACHE_DIR}" ]; then
+    mkdir -p "${FONTCONFIG_CACHE_DIR}"
 fi

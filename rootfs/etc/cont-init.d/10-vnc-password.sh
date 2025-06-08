@@ -13,7 +13,7 @@ VNCPASSWD_BIN=/opt/base/bin/vncpasswd
 if [ -f /config/.vncpass_clear ]; then
     echo "obfuscating VNC password..."
     rm -f /config/.vncpass
-    cat /config/.vncpass_clear | "$VNCPASSWD_BIN" -f  > /config/.vncpass
+    "${VNCPASSWD_BIN}" -f < /config/.vncpass_clear > /config/.vncpass
     rm /config/.vncpass_clear
 fi
 
@@ -23,14 +23,14 @@ if [ -f /config/.vncpass ]; then
     echo "VNC password file found."
 elif [ -n "${VNC_PASSWORD:-}" ]; then
     echo "creating VNC password file from environment variable..."
-    echo "$VNC_PASSWORD" | "$VNCPASSWD_BIN" -f  > /tmp/.vncpass
+    echo "${VNC_PASSWORD}" | "${VNCPASSWD_BIN}" -f > /tmp/.vncpass
 fi
 
 # Adjust ownership and permissions of password files.
-for FILE in /config/.vncpass /tmp/.vncpass; do
-    if [ -f "$FILE" ]; then
-        chown $USER_ID:$GROUP_ID "$FILE"
-        chmod 400 "$FILE"
+for file in /config/.vncpass /tmp/.vncpass; do
+    if [ -f "${file}" ]; then
+        chown "${USER_ID}:${GROUP_ID}" "${file}"
+        chmod 400 "${file}"
     fi
 done
 

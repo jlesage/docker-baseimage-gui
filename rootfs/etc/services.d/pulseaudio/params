@@ -2,15 +2,15 @@
 
 set -u # Treat unset variables as an error.
 
-echo "--disallow-module-loading"
-echo "--disallow-exit"
-echo "--exit-idle-time=-1"
-echo "--realtime=false"
-echo "-n" # Don't load default script file
-echo "--load=module-null-sink"
-echo "--load=module-native-protocol-unix socket=/tmp/pulseaudio.sock auth-anonymous=1 auth-cookie=$PULSE_COOKIE"
+printf "%s\n" "--disallow-module-loading"
+printf "%s\n" "--disallow-exit"
+printf "%s\n" "--exit-idle-time=-1"
+printf "%s\n" "--realtime=false"
+printf "%s\n" "-n" # Don't load default script file
+printf "%s\n" "--load=module-null-sink"
+printf "%s\n" "--load=module-native-protocol-unix socket=/tmp/pulseaudio.sock auth-anonymous=1 auth-cookie=${PULSE_COOKIE}"
 
 if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
-    echo "--log-level=4"
-    echo "--verbose"
+    printf "%s\n" "--log-level=4"
+    printf "%s\n" "--verbose"
 fi
