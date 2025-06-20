@@ -19,10 +19,28 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.8.0
+      date: 2025-06-20
+      changes:
+        added:
+          - 'Automatic reconnect of the web interface.'
+          - 'Web file manager.'
+          - 'Support for GLX X extension, backed by the Mesa llvmpipe driver.'
+          - 'Load Xresources via xrdb during startup.'
+          - 'Image based on Alpine 3.22.'
+          - 'Added by the update of jlesage/baseimage to version 3.7.1:'
+          - '2:Generation of a container instance unique ID.'
+          - '2:Simple mechanism to send commands to the process supervisor, enabling restart of services.'
+        changed:
+          - 'Updated noVNC to version 1.5.0.'
+          - 'Updated web UI components (Bootstrap).'
+          - 'Do not ask VNC password when accessing the web interface and web authentication is enabled.'
+          - 'Changed by the update of jlesage/baseimage to version 3.7.1:'
+          - 'Folders are created with explicit permissions.'
+          - 'Ensured that no programs or shell scripts run directly from /tmp, enabling the use of no-exec mounted temporary directory.'
     - version: 4.7.1
       date: 2025-02-07
       changes:
-        added:
         changed:
           - 'Changed by the update of jlesage/baseimage to version 3.6.5:'
           - '2:Increased the default service ready timeout from 5 seconds to 10 seconds and allow runtime adjustment via environment variable.'
