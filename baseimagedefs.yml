@@ -705,7 +705,8 @@ container:
         mask: false
     - name: DARK_MODE
       description: >-
-        When set to `1`, enables dark mode for the application.
+        When set to `1`, enables dark mode for the application. See
+        Dark Mode](#dark-mode) for details.
       type: public
       default: 0
       unraid_template:
@@ -853,7 +854,7 @@ container:
       description: >-
         When set to `1`, uses an encrypted connection to access the
         application's GUI (via web browser or VNC client). See
-        Security](#security) for details.
+        [Security](#security) for details.
       type: public
       default: 0
       unraid_template:

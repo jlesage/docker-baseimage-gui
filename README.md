@@ -207,7 +207,7 @@ docker run --rm -p 5800:5800 -p 5900:5900 docker-xterm
 
 Access the GUI via a web browser at:
 
-```
+```text
 http://<HOST_IP_ADDR>:5800
 ```
 
@@ -301,7 +301,7 @@ The baseimage provides the following public environment variables:
 |`CONTAINER_DEBUG`| When set to `1`, enables debug logging. | `0` |
 |`DISPLAY_WIDTH`| Width (in pixels) of the application's window. | `1920` |
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
-|`DARK_MODE`| When set to `1`, enables dark mode for the application. | `0` |
+|`DARK_MODE`| When set to `1`, enables dark mode for the application. See Dark Mode](#dark-mode) for details. | `0` |
 |`WEB_AUDIO`| When set to `1`, enables audio support, allowing audio produced by the application to play through the browser. See [Web Audio](#web-audio) for details. | `0` |
 |`WEB_FILE_MANAGER`| When set to `1`, enables the web file manager, allowing interaction with files inside the container through the web browser, supporting operations like renaming, deleting, uploading, and downloading. See [Web File Manager](#web-file-manager) for details. | `0` |
 |`WEB_FILE_MANAGER_ALLOWED_PATHS`| Comma-separated list of paths within the container that the file manager can access. By default, the container's entire filesystem is not accessible, and this variable specifies allowed paths. If set to `AUTO`, commonly used folders and those mapped to the container are automatically allowed. The value `ALL` allows access to all paths (no restrictions). See [Web File Manager](#web-file-manager) for details. | `AUTO` |
@@ -310,7 +310,7 @@ The baseimage provides the following public environment variables:
 |`WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME`| Lifetime of a token, in hours. A token is assigned to the user after successful login. As long as the token is valid, the user can access the application's GUI without logging in again. Once the token expires, the login page is displayed again. | `24` |
 |`WEB_AUTHENTICATION_USERNAME`| Optional username for web authentication. Provides a quick and easy way to configure credentials for a single user. For more secure configuration or multiple users, see the [Web Authentication](#web-authentication) section. | (no value) |
 |`WEB_AUTHENTICATION_PASSWORD`| Optional password for web authentication. Provides a quick and easy way to configure credentials for a single user. For more secure configuration or multiple users, see the [Web Authentication](#web-authentication) section. | (no value) |
-|`SECURE_CONNECTION`| When set to `1`, uses an encrypted connection to access the application's GUI (via web browser or VNC client). See Security](#security) for details. | `0` |
+|`SECURE_CONNECTION`| When set to `1`, uses an encrypted connection to access the application's GUI (via web browser or VNC client). See [Security](#security) for details. | `0` |
 |`SECURE_CONNECTION_VNC_METHOD`| Method used for encrypted VNC connections. Possible values are `SSL` or `TLS`. See [Security](#security) for details. | `SSL` |
 |`SECURE_CONNECTION_CERTS_CHECK_INTERVAL`| Interval, in seconds, at which the system checks if web or VNC certificates have changed. When a change is detected, affected services are automatically restarted. A value of `0` disables the check. | `60` |
 |`WEB_LISTENING_PORT`| Port used by the web server to serve the application's GUI. This port is internal to the container and typically does not need to be changed. By default, a container uses the default bridge network, requiring each internal port to be mapped to an external port (using the `-p` or `--publish` argument). If another network type is used, changing this port may prevent conflicts with other services/containers. **NOTE**: A value of `-1` disables HTTP/HTTPS access to the application's GUI. | `5800` |
@@ -408,7 +408,7 @@ id <username>
 
 This produces output like:
 
-```
+```text
 uid=1000(myuser) gid=1000(myuser) groups=1000(myuser),4(adm),24(cdrom),27(sudo),46(plugdev),113(lpadmin)
 ```
 
@@ -440,13 +440,13 @@ application's GUI as follows:
 
   - Via a web browser:
 
-```
+```text
 http://<HOST_IP_ADDR>:5800
 ```
 
   - Via any VNC client:
 
-```
+```text
 <HOST_IP_ADDR>:5900
 ```
 
@@ -483,7 +483,7 @@ SSL tunnel to transport the VNC traffic.
 While the Linux version of [SSVNC] works well, the Windows version has issues.
 At the time of writing, the latest version `1.0.30` fails with the error:
 
-```
+```text
 ReadExact: Socket error while reading
 ```
 
@@ -508,7 +508,7 @@ certificates.
 |`/config/certs/web-privkey.pem`  |HTTPS connection encryption.|Web server's private key.|
 |`/config/certs/web-fullchain.pem`|HTTPS connection encryption.|Web server's certificate, bundled with any root and intermediate certificates.|
 
-> [!NOTE]
+> [!TIP]
 > To avoid certificate validity warnings or errors in browsers or VNC clients,
 > provide your own valid certificates.
 
@@ -539,6 +539,11 @@ Unauthorized users with sufficient host privileges can retrieve the password by:
   - Decrypting the `/config/.vncpass` file, which requires root or `USER_ID`
     permissions.
 
+> [!CAUTION]
+> VNC password is limited to 8 characters. This limitation comes from the Remote
+> Framebuffer Protocol [RFC](https://tools.ietf.org/html/rfc6143) (see section
+> [7.2.2](https://tools.ietf.org/html/rfc6143#section-7.2.2)).
+
 #### DH Parameters
 
 Diffie-Hellman (DH) parameters define how the [DH key-exchange] is performed.
@@ -561,9 +566,9 @@ Enable web authentication by setting the `WEB_AUTHENTICATION` environment
 variable to `1`. See the [Environment Variables](#environment-variables) section
 for details on configuring environment variables.
 
-> [!NOTE]
-> Web authentication requires a secure connection. See the [Security](#security)
-> section for details.
+> [!IMPORTANT]
+> Web authentication requires a secure connection to be enabled. See
+> [Security](#security) for details.
 
 ##### Configuring User Credentials
 
@@ -737,7 +742,7 @@ handle the log file.
 
 Example configuration at `/etc/cont-logrotate.d/myapp`:
 
-```
+```text
 /config/log/myapp.log {
     minsize 1M
 }
@@ -1096,7 +1101,7 @@ To find a window's properties:
   - Create and start an instance of the container.
   - From the host, run the `obxprop` tool:
 ```shell
-docker exec <container name or id> obxprop | grep "^_OB_APP"
+docker exec <container name> obxprop | grep "^_OB_APP"
 ```
   - Access the GUI and click the target window to display its properties.
 
