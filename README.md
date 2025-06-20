@@ -26,7 +26,26 @@ any VNC client.
          * [Docker Secrets](#docker-secrets)
       * [Ports](#ports)
       * [User/Group IDs](#usergroup-ids)
+      * [Initialization Scripts](#initialization-scripts)
+      * [Finalization Scripts](#finalization-scripts)
+      * [Services](#services)
+         * [Service Group](#service-group)
+         * [Default Service](#default-service)
+         * [Service Readiness](#service-readiness)
+      * [Helpers](#helpers)
+         * [Adding/Removing Packages](#addingremoving-packages)
+         * [Modifying Files with Sed](#modifying-files-with-sed)
+         * [Evaluating Boolean Values](#evaluating-boolean-values)
+         * [Taking Ownership of a Directory](#taking-ownership-of-a-directory)
+         * [Setting Internal Environment Variables](#setting-internal-environment-variables)
+      * [Configuration Directory](#configuration-directory)
+         * [Application's Data Directories](#applications-data-directories)
       * [Locales](#locales)
+      * [Container Log](#container-log)
+      * [Logrotate](#logrotate)
+      * [Log Monitor](#log-monitor)
+         * [Notification Definition](#notification-definition)
+         * [Notification Backend](#notification-backend)
       * [Accessing the GUI](#accessing-the-gui)
       * [Security](#security)
          * [SSVNC](#ssvnc)
@@ -38,27 +57,8 @@ any VNC client.
       * [Reverse Proxy](#reverse-proxy)
          * [Routing Based on Hostname](#routing-based-on-hostname)
          * [Routing Based on URL Path](#routing-based-on-url-path)
-      * [Initialization Scripts](#initialization-scripts)
-      * [Finalization Scripts](#finalization-scripts)
-      * [Services](#services)
-         * [Service Group](#service-group)
-         * [Default Service](#default-service)
-         * [Service Readiness](#service-readiness)
-      * [Configuration Directory](#configuration-directory)
-         * [Application's Data Directories](#applications-data-directories)
-      * [Container Log](#container-log)
-      * [Logrotate](#logrotate)
-      * [Log Monitor](#log-monitor)
-         * [Notification Definition](#notification-definition)
-         * [Notification Backend](#notification-backend)
       * [Web Audio](#web-audio)
       * [Web File Manager](#web-file-manager)
-      * [Helpers](#helpers)
-         * [Adding/Removing Packages](#addingremoving-packages)
-         * [Modifying Files with Sed](#modifying-files-with-sed)
-         * [Evaluating Boolean Values](#evaluating-boolean-values)
-         * [Taking Ownership of a Directory](#taking-ownership-of-a-directory)
-         * [Setting Internal Environment Variables](#setting-internal-environment-variables)
       * [Application Icon](#application-icon)
       * [Dark Mode](#dark-mode)
          * [GTK](#gtk)
@@ -417,6 +417,241 @@ uid=1000(myuser) gid=1000(myuser) groups=1000(myuser),4(adm),24(cdrom),27(sudo),
 
 Use the `uid` (user ID) and `gid` (group ID) values to configure the container.
 
+### Initialization Scripts
+
+During container startup, initialization scripts in `/etc/cont-init.d/` are
+executed in alphabetical order. They are executed before starting services.
+
+To ensure predictable execution, name scripts using the format `XX-name.sh`,
+where `XX` is a sequence number.
+
+The baseimage uses the ranges:
+
+  - 10-29
+  - 70-89
+
+Unless specific needs require otherwise, containers built with this baseimage
+should use the range 50-59.
+
+### Finalization Scripts
+
+Finalization scripts in `/etc/cont-finish.d/` are executed in alphabetical order
+during container shutdown, after all services have stopped.
+
+### Services
+
+Services are background programs managed by the process supervisor, which can be
+configured to restart automatically if they terminate.
+
+Services are defined under `/etc/services.d/` in the container. Each service has
+its own directory containing files that define its behavior.
+
+The content of these files provides the configuration settings. If a file is
+executable, the process supervisor runs it, using its output as the setting's
+value.
+
+| File                   | Type             | Description | Default |
+|------------------------|------------------|-------------|---------|
+| run                    | Program          | The program to run. | N/A |
+| is_ready               | Program          | Program to verify if the service is ready. It should exit with code `0` when ready. The service's PID is passed as a parameter. | N/A |
+| kill                   | Program          | Program to run when the service needs to be killed. The service's PID is passed as a parameter. The `SIGTERM` signal is sent to the service after execution. | N/A |
+| finish                 | Program          | Program invoked when the service terminates. The service's exit code is passed as a parameter. | N/A |
+| params                 | String           | Parameters for the service's program, one per line. | No parameter |
+| environment            | String           | Environment for the service, with variables in the form `var=value`, one per line. | Environment untouched |
+| environment_extra      | String           | Additional variables to add to the environment of the service, one per line, in the form `key=value`. | No extra variable |
+| respawn                | Boolean          | Whether the process should be respawned when it terminates. | `FALSE`  |
+| sync                   | Boolean          | Whether the process supervisor waits until the service ends. Mutually exclusive with `respawn`. | `FALSE` |
+| ready_timeout          | Unsigned integer | Maximum time (in milliseconds) to wait for the service to be ready. | `10000` |
+| interval               | Interval         | Interval, in seconds, at which the service should be executed. Mutually exclusive with `respawn`. | No interval |
+| uid                    | Unsigned integer | User ID under which the service runs. | `$USER_ID` |
+| gid                    | Unsigned integer | Group ID under which the service runs. | `$GROUP_ID` |
+| sgid                   | Unsigned integer | List of supplementary group IDs for the service, one per line. | Empty list |
+| umask                  | Octal integer    | Umask value (in octal notation) for the service. | `0022` |
+| priority               | Signed integer   | Priority at which the service runs. A niceness value of -20 is the highest, and 19 is the lowest. | `0` |
+| workdir                | String           | Working directory of the service. | Service's directory path  |
+| ignore_failure         | Boolean          | If set, failure to start the service does not prevent the container from starting. | `FALSE` |
+| shutdown_on_terminate  | Boolean          | Indicates the container should shut down when the service terminates. | `FALSE` |
+| min_running_time       | Unsigned integer | Minimum time (in milliseconds) the service must run before being considered ready. | `500` |
+| disabled               | Boolean          | Indicates the service is disabled and will not be loaded or started. | `FALSE` |
+| \<service\>.dep        | Boolean          | Indicates the service depends on another service. For example, `srvB.dep` means `srvB` must start first. | N/A |
+
+The following table provides details about some value types:
+
+| Type     | Description |
+|----------|-------------|
+| Program  | An executable binary, script, or symbolic link to the program to run. The file must have execute permission. |
+| Boolean  | A boolean value. A *true* value can be `1`, `true`, `on`, `yes`, `y`, `enable`, or `enabled`. A *false* value can be `0`, `false`, `off`, `no`, `n`, `disable`, or `disabled`. Values are case -insensitive. An empty file indicates a *true* value (i.e., the file can be "touched"). |
+| Interval | An unsigned integer value. Also accepted (case-insensitive): `yearly`, `monthly`, `weekly`, `daily`, `hourly`. |
+
+#### Service Group
+
+A service group is a service definition without a `run` program. The process
+supervisor loads only its dependencies.
+
+#### Default Service
+
+During startup, the process supervisor first loads the `default` service group,
+which includes dependencies for services that should be started and are not
+dependencies of the `app` service.
+
+#### Service Readiness
+
+By default, a service is considered ready once it has launched successfully and
+ran for at least 500ms.
+
+This behavior can be adjusted by one of these methods:
+  - Setting the minimum running time using the `min_running_time` file in the
+    service's directory.
+  - Adding an `is_ready` program to the service's directory, along with a
+    `ready_timeout` file to specify the maximum wait time for readiness.
+
+### Helpers
+
+The baseimage includes helpers that can be used when building a container or
+during its execution.
+
+#### Adding/Removing Packages
+
+Use the `add-pkg` and `del-pkg` helpers to add or remove packages, ensuring
+proper cleanup to minimize container size.
+
+These tools allow temporary installation of a group of packages (virtual
+package)  using the `--virtual NAME` parameter, enabling later removal with
+`del-pkg NAME`. Pre-installed packages are ignored and not removed.
+
+Example in a `Dockerfile` for compiling a project:
+
+```dockerfile
+RUN \
+    add-pkg --virtual build-dependencies build-base cmake git && \
+    git clone https://myproject.com/myproject.git && \
+    make -C myproject && \
+    make -C myproject install && \
+    del-pkg build-dependencies
+```
+
+If `git` was already installed before adding the virtual package,
+`del-pkg build-dependencies` will not remove it.
+
+#### Modifying Files with Sed
+
+The `sed` tool is useful for modifying files during container builds, but it
+does not indicate whether changes were made. The `sed-patch` helper provides
+patch-like behavior, failing if the `sed` expression does not modify the file:
+
+```shell
+sed-patch [SED_OPTIONS]... SED_EXPRESSION FILE
+```
+
+Note that the sed option `-i` (edit files in place) is already supplied by the
+helper.
+
+Example in a `Dockerfile`:
+
+```dockerfile
+RUN sed-patch 's/Replace this/By this/' /etc/myfile
+```
+
+If the expression does not change `/etc/myfile`, the command fails, halting the
+Docker build.
+
+#### Evaluating Boolean Values
+
+Environment variables are often used to store boolean values. Use
+`is-bool-value-true` and `is-bool-value-false` helpers to check these values.
+
+The following values are considered "true":
+  - `1`
+  - `true`
+  - `y`
+  - `yes`
+  - `enabled`
+  - `enable`
+  - `on`
+
+The following values are considered "false":
+  - `0`
+  - `false`
+  - `n`
+  - `no`
+  - `disabled`
+  - `disable`
+  - `off`
+
+Example to check if `CONTAINER_DEBUG` is true:
+
+```shell
+if is-bool-value-true "${CONTAINER_DEBUG:-0}"; then
+    # Debug enabled, do something...
+fi
+```
+
+#### Taking Ownership of a Directory
+
+The `take-ownership` helper recursively sets the user ID and group ID of a
+directory and all its files and subdirectories.
+
+This helper is well-suited for scenarios where the directory is mapped to the
+host. If the directory is a network share on the host, setting/changing
+ownership via `chown` can fail. The helper handles this by ignoring the failure
+if a write test is positive.
+
+For example, the following command takes ownership of `/config`, automatically
+using the user and group IDs from the `USER_ID` and `GROUP_ID` environment
+variables:
+
+```shell
+take-ownership /config
+```
+
+User and group IDs can also be specified explicitly. The command below sets
+the ownership to user ID `99` and group ID `100`:
+
+```shell
+take-ownership /config 99 100
+```
+
+#### Setting Internal Environment Variables
+
+The `set-cont-env` helper sets internal environment variables from the
+`Dockerfile`.
+
+Example to set the `APP_NAME` variable:
+
+```dockerfile
+RUN set-cont-env APP_NAME "Xterm"
+```
+
+This creates the environment variable file under `/etc/cont-env.d` within the
+container.
+
+### Configuration Directory
+
+Applications often need to write configuration, data, states, logs, etc. Inside
+the container, such data should be stored under the `/config` directory.
+
+This directory is intended to be mapped to a folder on the host to ensure data
+persistence.
+
+> [!NOTE]
+> During container startup, ownership of this folder and its contents is set to
+> ensure accessibility by the user specified via `USER_ID` and `GROUP_ID`. This
+> behavior can be modified using the `TAKE_CONFIG_OWNERSHIP` internal
+> environment variable.
+
+#### Application's Data Directories
+
+Many applications use environment variables defined by the
+[XDG Base Directory Specification] to determine where to store various data. The
+baseimage sets these variables to reside under `/config/`:
+
+  - XDG_DATA_HOME=/config/xdg/data
+  - XDG_CONFIG_HOME=/config/xdg/config
+  - XDG_CACHE_HOME=/config/xdg/cache
+  - XDG_STATE_HOME=/config/xdg/state
+
+[XDG Base Directory Specification]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
+
 ### Locales
 
 The default locale of the container is `POSIX`. If this causes issues with your
@@ -435,6 +670,108 @@ ENV LANG=en_US.UTF-8
 > Locales are not supported by the musl C standard library on Alpine Linux. See:
 >   - http://wiki.musl-libc.org/wiki/Open_Issues#C_locale_conformance
 >   - https://github.com/gliderlabs/docker-alpine/issues/144
+
+### Container Log
+
+Outputs (both standard output and standard error) of scripts and programs
+executed during the init process and by the process supervisor are available in
+the container's log. The container log can be viewed with the command
+`docker logs <name of the container>`.
+
+To facilitate log consultationg, all messages are prefixed with the name of the
+service or script.
+
+It is advisable to limit the amount of information written to this log. If a
+program's output is too verbose, redirect it to a file. For example, the
+following `run` file of a service redirects standard output and standard error
+to different files:
+
+```shell
+#!/bin/sh
+exec /usr/bin/my_service > /config/log/my_service_out.log 2> /config/log/my_service_err.log
+```
+### Logrotate
+
+The baseimage includes `logrotate`, a utility for rotating and compressing log
+files, which runs daily via a service. The service is disabled if no log files
+are configured.
+
+To enable rotation for a log file, add a configuration file to
+`/etc/cont-logrotate.d` within the container. This configuration defines how to
+handle the log file.
+
+Example configuration at `/etc/cont-logrotate.d/myapp`:
+
+```text
+/config/log/myapp.log {
+    minsize 1M
+}
+```
+
+This file can override default parameters defined at
+`/opt/base/etc/logrotate.conf` in the container. By default:
+  - Log files are rotated weekly.
+  - Four weeks of backlogs are kept.
+  - Rotated logs are compressed with gzip.
+  - Dates are used as suffixes for rotated logs.
+
+For details on `logrotate` configuration files, see
+https://linux.die.net/man/8/logrotate.
+
+### Log Monitor
+
+The baseimage includes a log monitor that sends notifications when specific
+messages are detected in log or status files.
+
+The system has two main components:
+  - **Notification definitions**: Describe notification properties (title,
+    message, severity, etc.), the triggering condition (filtering function), and
+    the monitored file(s).
+  - **Backends (targets)**: When a matching string is found, a notification is
+    sent to one or more backends, which can log to the container, a file, or an
+    external service.
+
+Two types of files can be monitored:
+  - **Log files**: Files with new content appended.
+  - **Status files**: Files whose entire content is periodically
+    refreshed/overwritten.
+
+#### Notification Definition
+
+A notification definition consists of multiple files in a directory under
+`/etc/logmonitor/notifications.d` within the container. For example, the
+definition for `MYNOTIF` is stored in
+`/etc/logmonitor/notifications.d/MYNOTIF/`.
+
+The following table describes files part of the definition:
+
+| File     | Mandatory  | Description |
+|----------|------------|-------------|
+| `filter` | Yes        | Program (script or binary with executable permission) to filter log file messages. It is invoked with a log line as an argument and should exit with `0` on a match. Other values indicate no match. |
+| `title`  | Yes        | File containing the notification title. For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched line, using its output as the title. |
+| `desc`   | Yes        | File containing the notification description or message. For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched log line, using its output as the description. |
+| `level`  | Yes        | File containing the notification's severity level (`ERROR`, `WARNING`, or `INFO`). For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched log line, using its output as the severity. |
+| `source` | Yes        | File containing the absolute path(s) to monitored file(s), one per line. Prepend `status:` for status file; `log:` or no prefix indicates a log file. |
+
+#### Notification Backend
+
+A notification backend is defined in a directory under
+`/etc/cont-logmonitor/targets.d`. For example, the `stdout` backend is in
+`/etc/cont-logmonitor/target.d/stdout/`.
+
+The following table describes the files:
+
+| File         | Mandatory  | Description |
+|--------------|------------|-------------|
+| `send`       | Yes        | Program (script or binary with executable permission) that sends the notification, invoked with the notification's title, description, and severity level as arguments. |
+| `debouncing` | No         | File containing the minimum time (in seconds) before sending the same notification again. A value of `0` means the notification is sent once. If missing, no debouncing occurs. |
+
+The baseimage includes these notification backends:
+
+| Backend  | Description | Debouncing time |
+|----------|-------------|-----------------|
+| `stdout` | Displays a message to standard output, visible in the container's log, in the format `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
+| `yad`    | Displays the notification in a window visible in the application's GUI. | Infinite |
 
 ### Accessing the GUI
 
@@ -704,224 +1041,6 @@ server {
 
 ```
 
-### Initialization Scripts
-
-During container startup, initialization scripts in `/etc/cont-init.d/` are
-executed in alphabetical order. They are executed before starting services.
-
-To ensure predictable execution, name scripts using the format `XX-name.sh`,
-where `XX` is a sequence number.
-
-The baseimage uses the ranges:
-
-  - 10-29
-  - 70-89
-
-Unless specific needs require otherwise, containers built with this baseimage
-should use the range 50-59.
-
-### Finalization Scripts
-
-Finalization scripts in `/etc/cont-finish.d/` are executed in alphabetical order
-during container shutdown, after all services have stopped.
-
-### Services
-
-Services are background programs managed by the process supervisor, which can be
-configured to restart automatically if they terminate.
-
-Services are defined under `/etc/services.d/` in the container. Each service has
-its own directory containing files that define its behavior.
-
-The content of these files provides the configuration settings. If a file is
-executable, the process supervisor runs it, using its output as the setting's
-value.
-
-| File                   | Type             | Description | Default |
-|------------------------|------------------|-------------|---------|
-| run                    | Program          | The program to run. | N/A |
-| is_ready               | Program          | Program to verify if the service is ready. It should exit with code `0` when ready. The service's PID is passed as a parameter. | N/A |
-| kill                   | Program          | Program to run when the service needs to be killed. The service's PID is passed as a parameter. The `SIGTERM` signal is sent to the service after execution. | N/A |
-| finish                 | Program          | Program invoked when the service terminates. The service's exit code is passed as a parameter. | N/A |
-| params                 | String           | Parameters for the service's program, one per line. | No parameter |
-| environment            | String           | Environment for the service, with variables in the form `var=value`, one per line. | Environment untouched |
-| environment_extra      | String           | Additional variables to add to the environment of the service, one per line, in the form `key=value`. | No extra variable |
-| respawn                | Boolean          | Whether the process should be respawned when it terminates. | `FALSE`  |
-| sync                   | Boolean          | Whether the process supervisor waits until the service ends. Mutually exclusive with `respawn`. | `FALSE` |
-| ready_timeout          | Unsigned integer | Maximum time (in milliseconds) to wait for the service to be ready. | `10000` |
-| interval               | Interval         | Interval, in seconds, at which the service should be executed. Mutually exclusive with `respawn`. | No interval |
-| uid                    | Unsigned integer | User ID under which the service runs. | `$USER_ID` |
-| gid                    | Unsigned integer | Group ID under which the service runs. | `$GROUP_ID` |
-| sgid                   | Unsigned integer | List of supplementary group IDs for the service, one per line. | Empty list |
-| umask                  | Octal integer    | Umask value (in octal notation) for the service. | `0022` |
-| priority               | Signed integer   | Priority at which the service runs. A niceness value of -20 is the highest, and 19 is the lowest. | `0` |
-| workdir                | String           | Working directory of the service. | Service's directory path  |
-| ignore_failure         | Boolean          | If set, failure to start the service does not prevent the container from starting. | `FALSE` |
-| shutdown_on_terminate  | Boolean          | Indicates the container should shut down when the service terminates. | `FALSE` |
-| min_running_time       | Unsigned integer | Minimum time (in milliseconds) the service must run before being considered ready. | `500` |
-| disabled               | Boolean          | Indicates the service is disabled and will not be loaded or started. | `FALSE` |
-| \<service\>.dep        | Boolean          | Indicates the service depends on another service. For example, `srvB.dep` means `srvB` must start first. | N/A |
-
-The following table provides details about some value types:
-
-| Type     | Description |
-|----------|-------------|
-| Program  | An executable binary, script, or symbolic link to the program to run. The file must have execute permission. |
-| Boolean  | A boolean value. A *true* value can be `1`, `true`, `on`, `yes`, `y`, `enable`, or `enabled`. A *false* value can be `0`, `false`, `off`, `no`, `n`, `disable`, or `disabled`. Values are case -insensitive. An empty file indicates a *true* value (i.e., the file can be "touched"). |
-| Interval | An unsigned integer value. Also accepted (case-insensitive): `yearly`, `monthly`, `weekly`, `daily`, `hourly`. |
-
-#### Service Group
-
-A service group is a service definition without a `run` program. The process
-supervisor loads only its dependencies.
-
-#### Default Service
-
-During startup, the process supervisor first loads the `default` service group,
-which includes dependencies for services that should be started and are not
-dependencies of the `app` service.
-
-#### Service Readiness
-
-By default, a service is considered ready once it has launched successfully and
-ran for at least 500ms.
-
-This behavior can be adjusted by one of these methods:
-  - Setting the minimum running time using the `min_running_time` file in the
-    service's directory.
-  - Adding an `is_ready` program to the service's directory, along with a
-    `ready_timeout` file to specify the maximum wait time for readiness.
-
-### Configuration Directory
-
-Applications often need to write configuration, data, states, logs, etc. Inside
-the container, such data should be stored under the `/config` directory.
-
-This directory is intended to be mapped to a folder on the host to ensure data
-persistence.
-
-> [!NOTE]
-> During container startup, ownership of this folder and its contents is set to
-> ensure accessibility by the user specified via `USER_ID` and `GROUP_ID`. This
-> behavior can be modified using the `TAKE_CONFIG_OWNERSHIP` internal
-> environment variable.
-
-#### Application's Data Directories
-
-Many applications use environment variables defined by the
-[XDG Base Directory Specification] to determine where to store various data. The
-baseimage sets these variables to reside under `/config/`:
-
-  - XDG_DATA_HOME=/config/xdg/data
-  - XDG_CONFIG_HOME=/config/xdg/config
-  - XDG_CACHE_HOME=/config/xdg/cache
-  - XDG_STATE_HOME=/config/xdg/state
-
-[XDG Base Directory Specification]: https://specifications.freedesktop.org/basedir-spec/basedir-spec-latest.html
-
-### Container Log
-
-Outputs (both standard output and standard error) of scripts and programs
-executed during the init process and by the process supervisor are available in
-the container's log. The container log can be viewed with the command
-`docker logs <name of the container>`.
-
-To facilitate log consultationg, all messages are prefixed with the name of the
-service or script.
-
-It is advisable to limit the amount of information written to this log. If a
-program's output is too verbose, redirect it to a file. For example, the
-following `run` file of a service redirects standard output and standard error
-to different files:
-
-```shell
-#!/bin/sh
-exec /usr/bin/my_service > /config/log/my_service_out.log 2> /config/log/my_service_err.log
-```
-
-### Logrotate
-
-The baseimage includes `logrotate`, a utility for rotating and compressing log
-files, which runs daily via a service. The service is disabled if no log files
-are configured.
-
-To enable rotation for a log file, add a configuration file to
-`/etc/cont-logrotate.d` within the container. This configuration defines how to
-handle the log file.
-
-Example configuration at `/etc/cont-logrotate.d/myapp`:
-
-```text
-/config/log/myapp.log {
-    minsize 1M
-}
-```
-
-This file can override default parameters defined at
-`/opt/base/etc/logrotate.conf` in the container. By default:
-  - Log files are rotated weekly.
-  - Four weeks of backlogs are kept.
-  - Rotated logs are compressed with gzip.
-  - Dates are used as suffixes for rotated logs.
-
-For details on `logrotate` configuration files, see
-https://linux.die.net/man/8/logrotate.
-
-### Log Monitor
-
-The baseimage includes a log monitor that sends notifications when specific
-messages are detected in log or status files.
-
-The system has two main components:
-  - **Notification definitions**: Describe notification properties (title,
-    message, severity, etc.), the triggering condition (filtering function), and
-    the monitored file(s).
-  - **Backends (targets)**: When a matching string is found, a notification is
-    sent to one or more backends, which can log to the container, a file, or an
-    external service.
-
-Two types of files can be monitored:
-  - **Log files**: Files with new content appended.
-  - **Status files**: Files whose entire content is periodically
-    refreshed/overwritten.
-
-#### Notification Definition
-
-A notification definition consists of multiple files in a directory under
-`/etc/logmonitor/notifications.d` within the container. For example, the
-definition for `MYNOTIF` is stored in
-`/etc/logmonitor/notifications.d/MYNOTIF/`.
-
-The following table describes files part of the definition:
-
-| File     | Mandatory  | Description |
-|----------|------------|-------------|
-| `filter` | Yes        | Program (script or binary with executable permission) to filter log file messages. It is invoked with a log line as an argument and should exit with `0` on a match. Other values indicate no match. |
-| `title`  | Yes        | File containing the notification title. For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched line, using its output as the title. |
-| `desc`   | Yes        | File containing the notification description or message. For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched log line, using its output as the description. |
-| `level`  | Yes        | File containing the notification's severity level (`ERROR`, `WARNING`, or `INFO`). For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched log line, using its output as the severity. |
-| `source` | Yes        | File containing the absolute path(s) to monitored file(s), one per line. Prepend `status:` for status file; `log:` or no prefix indicates a log file. |
-
-#### Notification Backend
-
-A notification backend is defined in a directory under
-`/etc/cont-logmonitor/targets.d`. For example, the `stdout` backend is in
-`/etc/cont-logmonitor/target.d/stdout/`.
-
-The following table describes the files:
-
-| File         | Mandatory  | Description |
-|--------------|------------|-------------|
-| `send`       | Yes        | Program (script or binary with executable permission) that sends the notification, invoked with the notification's title, description, and severity level as arguments. |
-| `debouncing` | No         | File containing the minimum time (in seconds) before sending the same notification again. A value of `0` means the notification is sent once. If missing, no debouncing occurs. |
-
-The baseimage includes these notification backends:
-
-| Backend  | Description | Debouncing time |
-|----------|-------------|-----------------|
-| `stdout` | Displays a message to standard output, visible in the container's log, in the format `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
-| `yad`    | Displays the notification in a window visible in the application's GUI. | Infinite |
-
 ### Web Audio
 
 The baseimage supports streaming audio from applications using PulseAudio,
@@ -959,126 +1078,6 @@ any folders mapped to the container.
 The `WEB_FILE_MANAGER_DENIED_PATHS` environment variable defines which paths are
 explicitly denied access by the file manager. A denied path takes precedence
 over an allowed one.
-
-### Helpers
-
-The baseimage includes helpers that can be used when building a container or
-during its execution.
-
-#### Adding/Removing Packages
-
-Use the `add-pkg` and `del-pkg` helpers to add or remove packages, ensuring
-proper cleanup to minimize container size.
-
-These tools allow temporary installation of a group of packages (virtual
-package)  using the `--virtual NAME` parameter, enabling later removal with
-`del-pkg NAME`. Pre-installed packages are ignored and not removed.
-
-Example in a `Dockerfile` for compiling a project:
-
-```dockerfile
-RUN \
-    add-pkg --virtual build-dependencies build-base cmake git && \
-    git clone https://myproject.com/myproject.git && \
-    make -C myproject && \
-    make -C myproject install && \
-    del-pkg build-dependencies
-```
-
-If `git` was already installed before adding the virtual package,
-`del-pkg build-dependencies` will not remove it.
-
-#### Modifying Files with Sed
-
-The `sed` tool is useful for modifying files during container builds, but it
-does not indicate whether changes were made. The `sed-patch` helper provides
-patch-like behavior, failing if the `sed` expression does not modify the file:
-
-```shell
-sed-patch [SED_OPTIONS]... SED_EXPRESSION FILE
-```
-
-Note that the sed option `-i` (edit files in place) is already supplied by the
-helper.
-
-Example in a `Dockerfile`:
-
-```dockerfile
-RUN sed-patch 's/Replace this/By this/' /etc/myfile
-```
-
-If the expression does not change `/etc/myfile`, the command fails, halting the
-Docker build.
-
-#### Evaluating Boolean Values
-
-Environment variables are often used to store boolean values. Use
-`is-bool-value-true` and `is-bool-value-false` helpers to check these values.
-
-The following values are considered "true":
-  - `1`
-  - `true`
-  - `y`
-  - `yes`
-  - `enabled`
-  - `enable`
-  - `on`
-
-The following values are considered "false":
-  - `0`
-  - `false`
-  - `n`
-  - `no`
-  - `disabled`
-  - `disable`
-  - `off`
-
-Example to check if `CONTAINER_DEBUG` is true:
-
-```shell
-if is-bool-value-true "${CONTAINER_DEBUG:-0}"; then
-    # Debug enabled, do something...
-fi
-```
-
-#### Taking Ownership of a Directory
-
-The `take-ownership` helper recursively sets the user ID and group ID of a
-directory and all its files and subdirectories.
-
-This helper is well-suited for scenarios where the directory is mapped to the
-host. If the directory is a network share on the host, setting/changing
-ownership via `chown` can fail. The helper handles this by ignoring the failure
-if a write test is positive.
-
-For example, the following command takes ownership of `/config`, automatically
-using the user and group IDs from the `USER_ID` and `GROUP_ID` environment
-variables:
-
-```shell
-take-ownership /config
-```
-
-User and group IDs can also be specified explicitly. The command below sets
-the ownership to user ID `99` and group ID `100`:
-
-```shell
-take-ownership /config 99 100
-```
-
-#### Setting Internal Environment Variables
-
-The `set-cont-env` helper sets internal environment variables from the
-`Dockerfile`.
-
-Example to set the `APP_NAME` variable:
-
-```dockerfile
-RUN set-cont-env APP_NAME "Xterm"
-```
-
-This creates the environment variable file under `/etc/cont-env.d` within the
-container.
 
 ### Application Icon
 
