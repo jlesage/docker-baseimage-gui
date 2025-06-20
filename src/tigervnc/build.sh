@@ -294,6 +294,7 @@ log "Configuring GNU TLS..."
         --without-p11-kit \
         --disable-tools \
         --disable-doc \
+        --with-system-priority-file= \
         --enable-static \
         --enable-shared \
 )
