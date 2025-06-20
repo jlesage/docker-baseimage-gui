@@ -34,9 +34,9 @@ VNC_CERTS_HASH="$(cat "${VNC_CERTS_HASH_FILE}" 2> /dev/null || true)"
 DH_PARAMS_HASH="$(cat "${DH_PARAMS_HASH_FILE}" 2> /dev/null || true)"
 
 # Get new hashes.
-WEB_CERTS_NEW_HASH="$(hash "${WEB_CERTS}")"
-VNC_CERTS_NEW_HASH="$(hash "${VNC_CERTS}")"
-DH_PARAMS_NEW_HASH="$(hash "${DH_PARAMS}")"
+WEB_CERTS_NEW_HASH="$(eval "set -- ${WEB_CERTS}" && hash "$@")"
+VNC_CERTS_NEW_HASH="$(eval "set -- ${VNC_CERTS}" && hash "$@")"
+DH_PARAMS_NEW_HASH="$(eval "set -- ${DH_PARAMS}" && hash "$@")"
 
 update_hashes=0
 
