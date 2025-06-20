@@ -32,7 +32,7 @@ baseimage:
           - '2:Generation of a container instance unique ID.'
           - '2:Simple mechanism to send commands to the process supervisor, enabling restart of services.'
         changed:
-          - 'Updated noVNC to version 1.5.0.'
+          - 'Updated noVNC to version 1.6.0.'
           - 'Updated web UI components (Bootstrap).'
           - 'Do not ask VNC password when accessing the web interface and web authentication is enabled.'
           - 'Changed by the update of jlesage/baseimage to version 3.7.1:'
