@@ -62,7 +62,7 @@ teardown() {
                     MIRROR="http://mirror.math.princeton.edu/pub/ubuntu/"
                     ;;
                 *)
-                    MIRROR="http://in.mirror.coganng.com/ubuntu-ports/"
+                    MIRROR="http://mirrors.ocf.berkeley.edu/ubuntu-ports/"
                     ;;
             esac
             ;;
