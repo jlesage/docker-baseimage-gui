@@ -13,10 +13,10 @@ baseimage:
     A minimal docker baseimage to ease creation of X graphical application
     containers
   description: |-
-    This is a docker baseimage that can be used to create containers able to run
-    any X application on a headless server very easily. The application's GUI
-    is accessed through a modern web browser (no installation or configuration
-    needed on the client side) or via any VNC client.
+    This Docker baseimage simplifies creating containers to run any X graphical
+    application on a headless server. The application's GUI is accessed via a modern
+    web browser (no installation or configuration needed on the client side) or via
+    any VNC client.
   gui: true
   history:
     - version: 4.7.1
@@ -705,109 +705,111 @@ container:
         mask: false
     - name: DARK_MODE
       description: >-
-        When set to `1`, dark mode is enabled for the application.
+        When set to `1`, enables dark mode for the application.
       type: public
       default: 0
       unraid_template:
         title: Dark Mode
         description: >-
-          When set to "1", dark mode is enabled for the application.
+          When set to "1", enables dark mode for the application.
         display: advanced
         required: false
         mask: false
     - name: WEB_AUDIO
       description: >-
-        When set to `1`, audio support is enabled, meaning that any audio
-        produced by the application is played through the browser. Note that
-        audio is not supported for VNC clients.
+        When set to `1`, enables audio support, allowing audio produced by
+        the application to play through the browser. See [Web Audio](#web-audio)
+        for details.
       type: public
       default: 0
       unraid_template:
         title: Web Audio
         description: >-
-          When set to "1", audio support is enabled, meaning that any audio
-          produced by the application is played through the browser. Note that
-          audio is not supported for VNC clients.
+          When set to "1", enables audio support, allowing audio produced by
+          the application to play through the browser. Note that this feature
+          is not supported for VNC clients.
         display: advanced
         required: false
         mask: false
     - name: WEB_FILE_MANAGER
       description: >-
-        When set to `1`, web file manager is enabled. It allows interaction with
-        files inside the container through a web browser, supporting basic
-        operations such as renaming, deleting, uploading, and downloading. Note
-        that this feature is not supported for VNC clients.
+        When set to `1`, enables the web file manager, allowing interaction
+        with files inside the container through the web browser, supporting
+        operations like renaming, deleting, uploading, and downloading. See
+        [Web File Manager](#web-file-manager) for details.
       type: public
       default: 0
       unraid_template:
         title: Web File Manager
         description: >-
-          When set to "1", web file manager is enabled. It allows interaction
+          When set to "1", enables the web file manager, allowing interaction
           with files inside the container through a web browser, supporting
-          basic operations such as renaming, deleting, uploading, and
-          downloading. Note that this feature is not supported for VNC clients.
+          operations like renaming, deleting, uploading, and downloading. Note
+          that this feature is not supported for VNC clients.
         display: advanced
         required: false
         mask: false
     - name: WEB_FILE_MANAGER_ALLOWED_PATHS
       description: >-
-        Comma-separated list of paths within the container that are allowed to
-        be accessed by the file manager. By default, the container's entire
-        filesystem is not accessible, and this variable specifies which paths
-        can be accessed. If set to `AUTO`, commonly used folders and those
-        mapped to the container are automatically allowed. The value `ALL` can
-        be used to allow access to all paths (no restriction).
+        Comma-separated list of paths within the container that the file
+        manager can access. By default, the container's entire filesystem is not
+        accessible, and this variable specifies allowed paths. If set to `AUTO`,
+        commonly used folders and those mapped to the container are
+        automatically allowed. The value `ALL` allows access to all paths (no
+        restrictions). See [Web File Manager](#web-file-manager) for details.
       type: public
       default: AUTO
       unraid_template:
         title: Web File Manager Allowed Paths
         description: >-
-          Comma-separated list of paths within the container that are allowed to
-          be accessed by the file manager. By default, the container's entire
-          filesystem is not accessible, and this variable specifies which paths
-          can be accessed. If set to "AUTO", commonly used folders and those
-          mapped to the container are automatically allowed. The value "ALL" can
+          Comma-separated list of paths within the container that the file
+          manager can access. By default, the container's entire filesystem is not
+          accessible, and this variable specifies allowed paths. If set to "AUTO",
+          commonly used folders and those mapped to the container are
+          automatically allowed. The value "ALL" allows access to all paths (no
+          restrictions).
         display: advanced
         required: false
         mask: false
     - name: WEB_FILE_MANAGER_DENIED_PATHS
       description: >-
-        Comma-separated list of paths within the container that are not allowed
-        be accessed by the file manager. A denied path takes precedence over an
-        allowed path.
+        Comma-separated list of paths within the container that the file manager
+        cannot access. A denied path takes precedence over an allowed path. See
+        [Web File Manager](#web-file-manager) for details.
       type: public
       default:
       unraid_template:
         title: Web File Manager Denied Paths
         description: >-
-          Comma-separated list of paths within the container that are not
-          allowed be accessed by the file manager. A denied path takes
-          precedence over an allowed path.
+          Comma-separated list of paths within the container that the file
+          manager cannot access. A denied path takes precedence over an allowed
+          path.
         display: advanced
         required: false
         mask: false
     - name: WEB_AUTHENTICATION
       description: >-
-        When set to `1`, the application's GUI is protected via a login page
-        when accessed via a web browser. Access is allowed only when providing
-        valid credentials. **NOTE**: This feature requires secure connection
-        (`SECURE_CONNECTION` environment variable) to be enabled.
+        When set to `1`, protects the application's GUI with a login page when
+        accessed via a web browser. Access is granted only with valid
+        credentials. This feature requires the secure connection to be enabled.
+        See [Web Authentication](#web-authentication) for details.
       type: public
       default: 0
       unraid_template:
         title: Web Authentication
         description: >-
-          When set to "1", the application's GUI is protected via a login page
-          when accessed via a web browser.
+          When set to "1", protects the application's GUI with a login page when
+          accessed via a web browser. Access is granted only with valid
+          credentials. Note that this feature is not supported for VNC clients.
         display: advanced
         required: false
         mask: false
     - name: WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME
       description: >-
-        The lifetime of a token, in hours. A token is attributed to the user
-        after a successful login. As long as the token is valid, user can access
-        the application's GUI without having to log in again. Once the token
-        expires, the login page is prompted again.
+        Lifetime of a token, in hours. A token is assigned to the user after
+        successful login. As long as the token is valid, the user can access the
+        application's GUI without logging in again. Once the token expires, the
+        login page is displayed again.
       type: public
       default: 24
       unraid_template:
@@ -817,85 +819,77 @@ container:
         mask: false
     - name: WEB_AUTHENTICATION_USERNAME
       description: >-
-        Optional username to configure for the web authentication. This is a
-        quick and easy way to configure credentials for a single user. To
-        configure credentials in a more secure way, or to add more users, see
-        the [Web Authentication](#web-authentication) section.
+        Optional username for web authentication. Provides a quick and easy way
+        to configure credentials for a single user. For more secure
+        configuration or multiple users, see the
+        [Web Authentication](#web-authentication) section.
       type: public
       unraid_template:
         title: Web Authentication Username
         description: >-
-          Optional username to configure for the web authentication. This is a
-          quick and easy way to configure credentials for a single user. To
-          configure credentials in a more secure way, or to add more users, see
-          the documentation.
+          Optional username for web authentication. Provides a quick and easy way
+          to configure credentials for a single user. For more secure
+          configuration or multiple users, see the documentation.
         display: advanced
         required: false
         mask: false
     - name: WEB_AUTHENTICATION_PASSWORD
       description: >-
-        Optional password to configure for the web authentication. This is a
-        quick and easy way to configure credentials for a single user. To
-        configure credentials in a more secure way, or to add more users, see
-        the [Web Authentication](#web-authentication) section.
+        Optional password for web authentication. Provides a quick and easy way
+        to configure credentials for a single user. For more secure
+        configuration or multiple users, see the
+        [Web Authentication](#web-authentication) section.
       type: public
       unraid_template:
         title: Web Authentication Password
         description: >-
-          Optional password to configure for the web authentication. This is a
-          quick and easy way to configure credentials for a single user. To
-          configure credentials in a more secure way, or to add more users, see
-          the documentation.
+          Optional password for web authentication. Provides a quick and easy way
+          to configure credentials for a single user. For more secure
+          configuration or multiple users, see the documentation.
         display: advanced
         required: false
         mask: false
     - name: SECURE_CONNECTION
       description: >-
-        When set to `1`, an encrypted connection is used to access the
-        application's GUI (either via a web browser or VNC client). See the
-        [Security](#security) section for more details.
+        When set to `1`, uses an encrypted connection to access the
+        application's GUI (via web browser or VNC client). See
+        Security](#security) for details.
       type: public
       default: 0
       unraid_template:
         title: Secure Connection
         description: >-
-          Whether or not an encrypted connection should be used to access the
-          application's GUI. Set to "1" to encrypt the connection.
-          NOTE: When enabling the secure connection, security parameters needs
-          to be generated. This one-time operation is done during container
-          startup. Depending on your system, this could take a few minutes.
-          GUI of the application won't be available until the operation
-          completes.
+          When set to "1", uses an encrypted connection to access the
+          application's GUI (via web browser or VNC client).
         display: advanced
         required: false
         mask: false
     - name: SECURE_CONNECTION_VNC_METHOD
       description: >-
-        Method used to perform the secure VNC connection. Possible values are
-        `SSL` or `TLS`. See the [Security](#security) section for more details.
+        Method used for encrypted VNC connections. Possible values are `SSL` or
+        `TLS`. See [Security](#security) for details.
       type: public
       default: SSL
       unraid_template:
         title: Secure Connection VNC Method
         description: >-
-          Method used to perform the secure VNC connection. Possible values are
-          "SSL" or "TLS".
+          Method used for encrpyted VNC connection. Possible values are "SSL" or
+          "TLS".
         display: advanced
         required: false
         mask: false
     - name: SECURE_CONNECTION_CERTS_CHECK_INTERVAL
       description: >-
-        Interval, in seconds, at which the system verifies if web or VNC
-        certificates have changed. When a change is detected, the affected
-        services are automatically restarted. A value of `0` disables the
-        check.
+        Interval, in seconds, at which the system checks if web or VNC
+        certificates have changed. When a change is detected, affected services
+        are automatically restarted. A value of `0` disables the check.
       type: public
       default: 60
       unraid_template:
         title: Secure Connection Certificate Check Interval
         description: >-
-          Interval, in seconds, at which the system verifies if web or VNC
-          certificates have changed. When a change is detected, the affected
+          Interval, in seconds, at which the system checks if web or VNC
+          certificates have changed. When a change is detected, affected
           services are automatically restarted. A value of "0" disables the
           check.
         display: advanced
@@ -903,62 +897,55 @@ container:
         mask: false
     - name: WEB_LISTENING_PORT
       description: >-
-        Port used by the web server to serve the UI of the application. This
-        port is used internally by the container and it is usually not required
-        to be changed. By default, a container is created with the default
-        bridge network, meaning that, to be accessible, each internal container
-        port must be mapped to an external port (using the `-p` or `--publish`
-        argument). However, if the container is created with another network
-        type, changing the port used by the container might be useful to prevent
-        conflict with other services/containers. **NOTE**: a value of `-1`
-        disables listening, meaning that the application's UI won't be
-        accessible over HTTP/HTTPs.
+        Port used by the web server to serve the application's GUI. This port is
+        internal to the container and typically does not need to be changed. By
+        default, a container uses the default bridge network, requiring each
+        internal port to be mapped to an external port (using the `-p` or
+        `--publish` argument). If another network type is used, changing this
+        port may prevent conflicts with other services/containers. **NOTE**: A
+        value of `-1` disables HTTP/HTTPS access to the application's GUI.
       type: public
       default: 5800
       unraid_template:
         title: Web Listening Port (Non-Bridge Network Type)
         description: >-
-          Port used by the web server to serve the UI of the application. This
-          port is used internally by the container and it is usually not
-          required to be changed. NOTE: This setting is relevant only when the
-          Network Type is set to something else than Bridge.
+          Port used by the web server to serve the application's GUI. This port
+          internal to the container and typically does not need to be changed.
+          NOTE: This setting is relevant only when the Network Type is set to
+          something else than Bridge.
         display: advanced
         required: false
         mask: false
     - name: VNC_LISTENING_PORT
       description: >-
-        Port used by the VNC server to serve the UI of the application. This
-        port is used internally by the container and it is usually not required
-        to be changed. By default, a container is created with the default
-        bridge network, meaning that, to be accessible, each internal container
-        port must be mapped to an external port (using the `-p` or `--publish`
-        argument). However, if the container is created with another network
-        type, changing the port used by the container might be useful to prevent
-        conflict with other services/containers. **NOTE**: a value of `-1`
-        disables listening, meaning that the application's UI won't be
-        accessible over VNC.
+        Port used by the VNC server to serve the application's GUI. This port is
+        internal to the container and typically does not need to be changed. By
+        default, a container uses the default bridge network, requiring each
+        internal port to be mapped to an external port (using the `-p` or
+        `--publish` argument). If another network type is used, changing this
+        port may prevent conflicts with other services/containers. **NOTE**: A
+        value of `-1` disables VNC access to the application's GUI.
       type: public
       default: 5900
       unraid_template:
         title: VNC Listening Port (Non-Bridge Network Type)
         description: >-
-          Port used by the VNC server to serve the UI of the application. This
-          port is used internally by the container and it is usually not
-          required to be changed. NOTE: This setting is relevant only when the
-          Network Type is set to something else than Bridge.
+          Port used by the VNC server to serve the application's GUI. This port
+          is internal to the container and typically does not need to be
+          changed. NOTE: This setting is relevant only when the Network Type is
+          set to something else than Bridge.
         display: advanced
         required: false
         mask: false
     - name: VNC_PASSWORD
       description: >-
-        Password needed to connect to the application's GUI. See the
-        [VNC Password](#vnc-password) section for more details.
+        Password required to connect to the application's GUI. See the
+        [VNC Password](#vnc-password) section for details.
       type: public
     - name: ENABLE_CJK_FONT
       description: >-
-        When set to `1`, open-source computer font `WenQuanYi Zen Hei` is
-        installed. This font contains a large range of
-        Chinese/Japanese/Korean characters.
+        When set to `1`, installs the open-source font `WenQuanYi Zen Hei`,
+        supporting a wide range of Chinese/Japanese/Korean characters.
       type: public
       default: 0
 
@@ -971,9 +958,9 @@ container:
       protocol: tcp
       description: >-
         Port to access the application's GUI via the web interface. Mapping
-        to the host is optional if access through the web interface is not
-        wanted. For a container not using the default bridge network, the port
-        can be changed with the `WEB_LISTENING_PORT` environment variable.
+        to the host is optional if web access is not needed. For non-default
+        bridge networks, the port can be changed with the `WEB_LISTENING_PORT`
+        environment variable.
       mandatory: false
       include_in_quick_start: true
       unraid_template:
@@ -988,9 +975,9 @@ container:
       protocol: tcp
       description: >-
         Port to access the application's GUI via the VNC protocol. Mapping
-        to the host is optional if access through the VNC protocol is not
-        wanted. For a container not using the default bridge network, the port
-        can be changed with the `VNC_LISTENING_PORT` environment variable.
+        to the host is optional if VNC access is not needed. For non-default
+        bridge networks, the port can be changed with the `VNC_LISTENING_PORT`
+        environment variable.
       mandatory: false
       unraid_template:
         title: VNC Port for GUI (Bridge Network Type)
