@@ -19,6 +19,11 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.8.1
+      date: 2025-06-25
+      changes:
+        fixed:
+          - 'Crash with some binaries on systems using old kernel.'
     - version: 4.8.0
       date: 2025-06-20
       changes:
