@@ -31,7 +31,7 @@ if [ "${VNC_LISTENING_PORT:-5900}" -eq -1 ]; then
     # VNC port is disabled.
     echo "-rfbport=-1"
 elif is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ]; then
-    # SSL secure connection enabled: disable TCP listening.  Nginx is handling
+    # SSL secure connection enabled: disable TCP listening. Nginx is handling
     # the SSL connection and forward VNC to Xvnc via Unix socket.
     echo "-rfbport=-1"
 else
