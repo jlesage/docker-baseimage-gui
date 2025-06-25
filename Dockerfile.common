@@ -9,8 +9,10 @@
 FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 
 # Get UPX (statically linked).
+# NOTE: UPX 5.x is not compatible with old kernels, e.g. 3.10 used by some
+#       Synology NASes. See https://github.com/upx/upx/issues/902
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS upx
-ARG UPX_VERSION=5.0.0
+ARG UPX_VERSION=4.2.4
 RUN \
     if echo "${UPX_VERSION}" | grep -q '^[0-9]\+\.[0-9]\+\.[0-9]\+$'; then \
         apk --no-cache add curl && \

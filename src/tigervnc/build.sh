@@ -124,6 +124,7 @@ HOST_PKGS="\
     bash \
     curl \
     build-base \
+    patchelf \
     abuild \
     file \
     clang \
@@ -205,25 +206,6 @@ cpu_family = '$(to_cmake_cpu_family "$(xx-info arch)")'
 cpu = '$(to_cmake_cpu_family "$(xx-info arch)")'
 endian = 'little'
 " > /tmp/meson-cross.txt
-
-# Manually compile patchelf until a version with fix for issue #492 (ELF load
-# command address/offset not properly aligned) is released. See:
-#   - https://github.com/NixOS/patchelf/issues/492
-#   - https://github.com/upx/upx/issues/876#issuecomment-2637826156
-log "Building patchelf..."
-(
-    apk --no-cache add git
-    git clone https://github.com/NixOS/patchelf.git /tmp/patchelf
-    git -C /tmp/patchelf reset --hard b2190560718e951962d129e35928bf8687afa10b
-    (
-        cd /tmp/patchelf
-        ./bootstrap.sh
-        CC=clang CXX=clang++ ./configure \
-            --prefix=/usr
-    )
-    make -C /tmp/patchelf -j$(nproc)
-    make -C /tmp/patchelf install
-)
 
 #
 # Build GMP.
@@ -749,6 +731,7 @@ log "Relinking Xvnc binary with static libraries..."
 (
     cd /tmp/tigervnc/unix/xserver/hw/vnc
     xx-clang++ $CXXFLAGS $LDFLAGS \
+        '-Wl,-rpath,$ORIGIN/../lib' \
         -o Xvnc \
         Xvnc-xvnc.o \
         Xvnc-stubs.o \
@@ -921,7 +904,13 @@ fi
 
 log "Patching ELF of binaries..."
 find "$TIGERVNC_ROOTFS_BASE_DIR"/bin -type f -executable -exec echo "  -> Setting interpreter of {}..." ';' -exec patchelf --set-interpreter "$TIGERVNC_BASE_DIR/lib/$INTERPRETER_FNAME" {} ';'
-find "$TIGERVNC_ROOTFS_BASE_DIR"/bin -type f -executable -exec echo "  -> Setting rpath of {}..." ';' -exec patchelf --set-rpath '$ORIGIN/../lib' {} ';'
+# NOTE: Avoid setting the rpath with patchelf: this causes UPX 4.x to fail
+#       compress the binary: `CantPackException: bad DT_STRSZ 0x15b8`. This has
+#       been fixed in UPX 5.x, which can't be used due to its incompatibility
+#       with old kernels.
+# NOTE: The only dynamically-linked binary is Xvnc, for which rpath is set at
+#       time as workaround.
+#find "$TIGERVNC_ROOTFS_BASE_DIR"/bin -type f -executable ! -name Xvnc -exec echo "  -> Setting rpath of {}..." ';' -exec patchelf --set-rpath '$ORIGIN/../lib' {} ';'
 
 log "Patching ELF of libraries..."
 find "$TIGERVNC_ROOTFS_BASE_DIR"/lib -maxdepth 1 -type f -name "lib*" -exec echo "  -> Setting rpath of {}..." ';' -exec patchelf --set-rpath '$ORIGIN' {} ';'
