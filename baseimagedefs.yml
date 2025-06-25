@@ -929,9 +929,9 @@ container:
         title: Web Listening Port (Non-Bridge Network Type)
         description: >-
           Port used by the web server to serve the application's GUI. This port
-          internal to the container and typically does not need to be changed.
-          NOTE: This setting is relevant only when the Network Type is set to
-          something else than Bridge.
+          is internal to the container and typically does not need to be
+          changed. NOTE: This setting is relevant only when the Network Type is
+          set to something else than Bridge.
         display: advanced
         required: false
         mask: false
