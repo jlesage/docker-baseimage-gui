@@ -6,7 +6,7 @@ set -u # Treat unset variables as an error.
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 BASE_DIR="$(realpath "${SCRIPT_DIR}"/../)"
 
-IMAGE=jlesage/baseimagei-gui:dev
+IMAGE=jlesage/baseimage-gui:dev
 BASEIMAGE=jlesage/baseimage:alpine-3.21-v3.7.1
 PLATFORM=linux/amd64
 RUN_UNIT_TESTS=false
