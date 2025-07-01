@@ -101,5 +101,11 @@ fi
 # Desktop (app) name.
 echo "-desktop=${APP_NAME}"
 
+# Add custom parameters if defined.
+for param in "${XVNC_SERVER_CUSTOM_PARAMS:-}"; do
+    [ -n "$param" ] || continue
+    echo "$param"
+done
+
 # X11 display.
 echo "${DISPLAY}"
