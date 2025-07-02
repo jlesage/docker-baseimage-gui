@@ -9,7 +9,7 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-XCOMPMGR_VERSION=1.1.9
+XCOMPMGR_VERSION=1.1.10
 
 # Use the same versions has Alpine 3.20.
 LIBXDAMAGE_VERSION=1.1.6
