@@ -1065,7 +1065,25 @@ const UI = {
     reconnect() {
         UI.reconnectAttempts++;
         UI.reconnectCallback = null;
-        UI.connect(null, UI.reconnectPassword);
+        if (UI.webData.webAuthSupport) {
+            // When web authentication is enabled, reload the page when
+            // connectivity is re-established. This allows to return to the
+            // login page, instead of being stuck with the "reconnecting"
+            // message because the WebSocket connection is denied.
+            fetch('./webdata.json', { method: 'HEAD' })
+                .then(response => {
+                    Log.Debug(`Connectivity test result: HTTP status ${response.status}`)
+                    window.location.reload();
+                    return;
+                })
+                .catch(error => {
+                    Log.Debug("Connectivity test failed: " + error)
+                    const delay = parseInt(UI.getSetting('reconnect_delay'));
+                    UI.reconnectCallback = setTimeout(UI.reconnect, delay);
+                });
+        } else {
+            UI.connect(null, UI.reconnectPassword);
+        }
     },
 
     connectFinished(e) {
