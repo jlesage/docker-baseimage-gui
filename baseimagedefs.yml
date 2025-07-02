@@ -19,6 +19,15 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.8.2
+      date: 2025-07-02
+      changes:
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.7.2:'
+          - '2:Allow the `take-ownership` helper to set ownership only if the user does not already have write permission on the folder.'
+        fixed:
+          - 'Automatic reconnect of the web interface when web authentication is enabled.'
+          - 'Some resources could not be accessed behind a reverse proxy based on URL path.'
     - version: 4.8.1
       date: 2025-06-25
       changes:
