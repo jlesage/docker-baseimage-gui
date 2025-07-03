@@ -1036,6 +1036,14 @@ server {
                         proxy_set_header Connection $connection_upgrade;
                         proxy_read_timeout 86400;
                 }
+		# Needed when audio support is enabled.
+		location /myapp/websockify-audio {
+			proxy_pass http://docker-myapp/websockify-audio;
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection $connection_upgrade;
+			proxy_read_timeout 86400;
+		}
         }
 }
 
