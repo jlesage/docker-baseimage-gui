@@ -98,6 +98,11 @@ if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METH
     echo "/config/certs/vnc-fullchain.pem"
 fi
 
+if is-bool-val-true "${DISABLE_GLX:-0}"; then
+    echo "+extension"
+    echo "-GLX"
+fi
+
 # Desktop (app) name.
 echo "-desktop=${APP_NAME}"
 

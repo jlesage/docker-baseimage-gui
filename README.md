@@ -339,6 +339,7 @@ The baseimage provides the following internal environment variables:
 |`INSTALL_PACKAGES_INTERNAL`| Space-separated list of packages to install during container startup. Packages are installed from the repository of the Linux distribution the container is based on. | (no value) |
 |`SUP_GROUP_IDS_INTERNAL`| Comma-separated list of supplementary group IDs for the application, merged with those supplied by `SUP_GROUP_IDS`. | (no value) |
 |`SERVICES_GRACETIME`| During container shutdown, defines the time (in milliseconds) allowed for services to gracefully terminate before sending the SIGKILL signal to all. | `5000` |
+|`DISABLE_GLX`| When set to `1`, disables the OpenGL Extension of the X Window System. | `0` |
 
 #### Adding/Removing Internal Environment Variables
 

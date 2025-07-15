@@ -717,6 +717,11 @@ baseimage:
 container:
   # Environment variables.
   environment_variables:
+    - name: DISABLE_GLX
+      description: >-
+       When set to `1`, disables the OpenGL Extension of the X Window System.
+      type: internal
+      default: 0
     - name: DISPLAY_WIDTH
       description: Width (in pixels) of the application's window.
       type: public
