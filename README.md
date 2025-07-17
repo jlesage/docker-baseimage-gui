@@ -26,6 +26,7 @@ any VNC client.
          * [Docker Secrets](#docker-secrets)
       * [Ports](#ports)
       * [User/Group IDs](#usergroup-ids)
+         * [System Files](#system-files)
       * [Initialization Scripts](#initialization-scripts)
       * [Finalization Scripts](#finalization-scripts)
       * [Services](#services)
@@ -415,6 +416,47 @@ uid=1000(myuser) gid=1000(myuser) groups=1000(myuser),4(adm),24(cdrom),27(sudo),
 ```
 
 Use the `uid` (user ID) and `gid` (group ID) values to configure the container.
+
+#### System Files
+
+Some applications might expect certain Linux users or groups to be present in
+system files `/etc/passwd` and `/etc/group`, which stores information about user
+accounts and groups respectively.
+
+These users or groups can be defined so that they are created automatically
+in the system during container initialization.
+
+Users are defined under `/etc/cont-users.d/` in the container, while groups are
+defined under `/etc/cont-groups.d/`. Each entry has its own directory named
+after the user or group, containing files that define its attributes.
+
+The content of each file provides the value of the corresponding attribute. If a
+file is executable, it is executed, and its output is used as the attribute
+value.
+
+The following files can be defined for a group:
+
+| File                   | Type             | Description | Default |
+|------------------------|------------------|-------------|---------|
+| disabled               | Boolean          | Indicates the group is disabled and will not be created. | `FALSE` |
+| id                     | Unsigned integer | The numeric ID of the group. | None |
+
+The following files can be defined for a user:
+
+
+| File                   | Type             | Description | Default |
+|------------------------|------------------|-------------|---------|
+| disabled               | Boolean          | Indicates the user is disabled and will not be created. | `FALSE` |
+| id                     | Unsigned integer | The numeric ID of the user. | None |
+| gid                    | Unsigned integer | The group ID of the user. | None |
+| home                   | String           | The home directory of the user. | `/dev/null` |
+| grps                   | String           | A list of group names the user belongs to, one per line. | None |
+
+The following table provides details about some value types:
+
+| Type     | Description |
+|----------|-------------|
+| Boolean  | A boolean value. A *true* value can be `1`, `true`, `on`, `yes`, `y`, `enable`, or `enabled`. A *false* value can be `0`, `false`, `off`, `no`, `n`, `disable`, or `disabled`. Values are case -insensitive. An empty file indicates a *true* value (i.e., the file can be "touched"). |
 
 ### Initialization Scripts
 
