@@ -19,6 +19,15 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.9.0
+      date: 2025-07-17
+      changes:
+        added:
+          - 'Internal environment variable to disable the OpenGL Extension of the X Window System.'
+          - 'Added by the update of jlesage/baseimage to version 3.8.0:'
+          - '2:Ability to define users and groups to be added to Linux system files (`/etc/passwd`, `/etc/group` and `/etc/shadow`).'
+        removed:
+          - 'Image based on Debian 10 (reached end of support on 2024-06-30).'
     - version: 4.8.2
       date: 2025-07-02
       changes:
