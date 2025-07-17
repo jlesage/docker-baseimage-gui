@@ -559,7 +559,7 @@ Docker build.
 #### Evaluating Boolean Values
 
 Environment variables are often used to store boolean values. Use
-`is-bool-value-true` and `is-bool-value-false` helpers to check these values.
+`is-bool-val-true` and `is-bool-val-false` helpers to check these values.
 
 The following values are considered "true":
   - `1`
@@ -582,7 +582,7 @@ The following values are considered "false":
 Example to check if `CONTAINER_DEBUG` is true:
 
 ```shell
-if is-bool-value-true "${CONTAINER_DEBUG:-0}"; then
+if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
     # Debug enabled, do something...
 fi
 ```
