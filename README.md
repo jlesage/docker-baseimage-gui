@@ -64,6 +64,7 @@ any VNC client.
       * [Dark Mode](#dark-mode)
          * [GTK](#gtk)
          * [Qt](#qt)
+         * [GPU Acceleration Support](#gpu-acceleration-support)
       * [Tips and Best Practices](#tips-and-best-practices)
          * [Do Not Modify Baseimage Content](#do-not-modify-baseimage-content)
          * [Default Configuration Files](#default-configuration-files)
@@ -1182,6 +1183,27 @@ Linux software repositories.
 
 > [!NOTE]
 > Dark mode is supported for Qt5 and Qt6.
+
+#### GPU Acceleration Support
+
+This Docker base image supports GPU acceleration, enabling hardware-accelerated
+OpenGL rendering for applications using the GLX extension and improving the X
+server’s overall rendering performance within the container.
+
+This feature requires open-source kernel drivers on the host system, such as
+`amdgpu` for AMD GPUs, `i915` for Intel GPUs, or `nouveau` for NVIDIA GPUs, to
+support the Direct Rendering Infrastructure (DRI3) and Generic Buffer Management
+(GBM). Proprietary drivers, such as NVIDIA’s, are not supported.
+
+To enable GPU acceleration, the host must have compatible open-source kernel
+drivers installed, and the GPU device `/dev/dri` must be exposed to the
+container. For example, this is done by adding the `--device /dev/dri`
+argument to the `docker run` command.
+
+> [!NOTE]
+> To enable your application to use hardware acceleration, additional software,
+> such as Mesa or libva drivers, may need to be installed within the container
+> alongside your application.
 
 ### Tips and Best Practices
 

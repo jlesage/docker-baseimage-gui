@@ -16,51 +16,53 @@ set -u # Treat unset variables as an error.
 
 # Define software versions.
 TIGERVNC_VERSION=1.14.1
-XSERVER_VERSION=1.20.14
+XSERVER_VERSION=21.1.18
 
-# Use the same versions has Alpine 3.20.
+# Use the same versions has Alpine 3.21.
 GMP_VERSION=6.3.0
+NETTLE_VERSION=3.10
 GNUTLS_VERSION=3.8.5
-LIBXFONT2_VERSION=2.0.6
+LIBXFONT2_VERSION=2.0.7
 LIBFONTENC_VERSION=1.1.8
-LIBTASN1_VERSION=4.19.0
+LIBTASN1_VERSION=4.20.0
 LIBXSHMFENCE_VERSION=1.3.2
 LIBXXF86VM_VERSION=1.1.5
-LIBDRM_VERSION=2.4.121
+LIBDRM_VERSION=2.4.123
 # If the XKeyboardConfig version is too recent compared to xorgproto/libX11,
 # xkbcomp will complain with warnings like "Could not resolve keysym ...".
-XKEYBOARDCONFIG_VERSION=2.41
+XKEYBOARDCONFIG_VERSION=2.43
 XKBCOMP_VERSION=1.4.7
 PIXMAN_VERSION=0.43.4
 BROTLI_VERSION=1.1.0
 MESA_VERSION=24.2.8
-LLVM_VERSION=18.1.8
+LLVM_VERSION=19.1.4
 
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
 XSERVER_URL=https://www.x.org/releases/individual/xserver/xorg-server-${XSERVER_VERSION}.tar.gz
 
 GMP_URL=https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz
+NETTLE_URL=https://ftp.gnu.org/gnu/nettle/nettle-${NETTLE_VERSION}.tar.gz
 GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-${GNUTLS_VERSION}.tar.xz
 LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.gz
 LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.gz
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
 LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.gz
 LIBXXF86VM_URL=https://www.x.org/releases/individual/lib/libXxf86vm-${LIBXXF86VM_VERSION}.tar.xz
-LIBDRM_URL=https://gitlab.freedesktop.org/mesa/drm/-/archive/libdrm-${LIBDRM_VERSION}/drm-libdrm-${LIBDRM_VERSION}.tar.gz
+LIBDRM_URL=https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz
 PIXMAN_URL=https://www.x.org/releases/individual/lib/pixman-${PIXMAN_VERSION}.tar.xz
 BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
-MESA_URL=https://mesa.freedesktop.org/archive/mesa-${MESA_VERSION}.tar.xz
+MESA_URL=https://archive.mesa3d.org/mesa-${MESA_VERSION}.tar.xz
 LLVM_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz
 
 XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.xz
 XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.xz
 
 # Set same default compilation flags as abuild.
-export CFLAGS="-Os -fomit-frame-pointer"
+export CFLAGS="-Os -fomit-frame-pointer -fno-plt"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common -Wl,--strip-all"
+export LDFLAGS="-fuse-ld=mold -Wl,--as-needed,-O1,--sort-common -Wl,--strip-all"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -114,7 +116,8 @@ to_llvm_target() {
             exit 1
             ;;
     esac
-    echo "$_arch"
+    # AMDGPU is needed for the Mesa AMD drivers.
+    echo "$_arch;AMDGPU"
 }
 
 #
@@ -128,7 +131,7 @@ HOST_PKGS="\
     abuild \
     file \
     clang \
-    lld \
+    mold \
     llvm \
     cmake \
     autoconf \
@@ -137,6 +140,7 @@ HOST_PKGS="\
     pkgconf \
     bison \
     flex \
+    py3-cparser \
     py3-mako \
     py3-yaml \
     py3-setuptools \
@@ -152,6 +156,15 @@ HOST_PKGS="$HOST_PKGS \
     llvm${LLVM_VERSION%%\.*} \
 "
 
+# For the Intel CLC compiler.
+case "$(xx-info march)" in
+    amd64|x86_64|386|i386)
+        HOST_PKGS="$HOST_PKGS \
+            spirv-llvm-translator \
+        "
+        ;;
+esac
+
 TARGET_PKGS="\
     g++ \
     xcb-util-dev \
@@ -161,7 +174,6 @@ TARGET_PKGS="\
     libgpg-error-static \
     libxkbfile-dev \
     libjpeg-turbo-dev \
-    nettle-dev \
     libunistring-dev \
     fltk-dev \
     libxrandr-dev \
@@ -177,9 +189,9 @@ TARGET_PKGS="\
     libpng-static \
     bzip2-static \
     libunistring-static \
-    nettle-static \
     gettext-static \
     libunistring-dev \
+    elfutils-dev \
     libbsd-dev \
     libbsd-static \
     libidn2-static \
@@ -189,6 +201,7 @@ TARGET_PKGS="\
 
 log "Installing required Alpine packages..."
 apk --no-cache add $HOST_PKGS
+apk --no-cache --repository http://dl-cdn.alpinelinux.org/alpine/v3.22/community add mold
 xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 echo "[binaries]
@@ -222,6 +235,7 @@ log "Configuring GMP..."
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
         --with-pic \
+        --disable-cxx \
         --enable-static \
         --enable-shared \
 )
@@ -252,6 +266,33 @@ log "Compiling libtasn1..."
 make -C /tmp/libtasn1 -j$(nproc)
 log "Installing libtasn1..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libtasn1 install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
+
+#
+# Build Nettle.
+# Build the library ourself to avoid the link error with arm64 and mold:
+# mold: error: /aarch64-alpine-linux-musl/usr/lib/libnettle.a(fat-arm64.o):(.text): relocation R_AARCH64_LD64_GOTPAGE_LO15 against stderr out of range: 35928 is not in [0, 32768)
+#
+mkdir /tmp/nettle
+log "Downloading Nettle..."
+curl -# -L -f ${NETTLE_URL} | tar -xz --strip 1 -C /tmp/nettle
+log "Configuring Nettle..."
+(
+    cd /tmp/nettle && ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --enable-fat \
+        --disable-documentation \
+        --disable-openssl \
+        --enable-static \
+        --enable-shared \
+)
+log "Compiling Nettle..."
+make -C /tmp/nettle -j$(nproc)
+find /tmp/nettle -type f -name "*.pc" -exec sed -i -e 's/ \#.*//' {} ';'
+log "Installing Nettle..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/nettle install
 find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
@@ -392,7 +433,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libdrm
 log "Downloading libdrm..."
-curl -# -L -f ${LIBDRM_URL} | tar -xz --strip 1 -C /tmp/libdrm
+curl -# -L -f ${LIBDRM_URL} | tar -xJ --strip 1 -C /tmp/libdrm
 log "Configuring libdrm..."
 (
     cd /tmp/libdrm && \
@@ -502,7 +543,7 @@ log "Configuring LLVM..."
         -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
         -DCMAKE_INSTALL_PREFIX=/usr \
         -DLLVM_ENABLE_PROJECTS="llvm" \
-        -DLLVM_TABLEGEN=/usr/lib/llvm18/bin/llvm-tblgen \
+        -DLLVM_TABLEGEN=/usr/lib/llvm${LLVM_VERSION%%\.*}/bin/llvm-tblgen \
         -DLLVM_DEFAULT_TARGET_TRIPLE="$(xx-info)" \
         -DLLVM_TARGETS_TO_BUILD="$(to_llvm_target $(xx-info march))" \
         -DLLVM_ENABLE_DUMP=OFF \
@@ -554,8 +595,26 @@ patch -p1 -d /tmp/mesa < "$SCRIPT_DIR"/mesa-add-llvm-module-selectiondag.patch
 
 log "Configuring mesa..."
 (
-    # Avoid pulling too much dependencies by including a single driver.
-    _gallium_drivers="llvmpipe"
+    _gallium_drivers="r300,r600,radeonsi,nouveau,llvmpipe,virgl"
+    case "$(xx-info alpine-arch)" in
+        armhf|armv7)
+            _gallium_drivers="$_gallium_drivers,vc4,v3d,freedreno,lima,panfrost,etnaviv,tegra"
+            _gallium_drivers="${_gallium_drivers//r300,}"
+            ;;
+        aarch64)
+            _gallium_drivers="$_gallium_drivers,vc4,v3d,freedreno,lima,panfrost,etnaviv,tegra"
+            _gallium_drivers="${_gallium_drivers//r300,}"
+            ;;
+        x86|x86_64)
+            _gallium_drivers="$_gallium_drivers,svga,i915,iris,crocus"
+            ;;
+        x86_64)
+            ;;
+        *)
+            echo "ERROR: Unknown alpine architecture: $(xx-info alpine-arch)"
+            exit 1
+            ;;
+    esac
     _cross_file=
     xx-info is-cross && _cross_file="--cross-file /tmp/meson-cross.txt"
     cd /tmp/mesa && \
@@ -581,6 +640,7 @@ log "Configuring mesa..."
         -Dvulkan-drivers= \
         -Dplatforms=x11 \
         -Dllvm=enabled \
+        -Dintel-clc=system \
         -Dshared-llvm=disabled \
         -Dshared-glapi=enabled \
         -Dgbm=enabled \
@@ -594,6 +654,8 @@ log "Configuring mesa..."
         -Dgallium-extra-hud=true \
         -Dgallium-nine=false \
         -Dgallium-rusticl=false \
+        -Dgallium-opencl=disabled \
+        -Dopencl-spirv=false \
         -Dgallium-va=disabled \
         -Dgallium-vdpau=disabled \
         -Dgallium-xa=disabled \
@@ -625,7 +687,7 @@ curl -# -L -f ${XSERVER_URL} | tar -xz --strip 1 -C /tmp/tigervnc/unix/xserver
 
 log "Patching TigerVNC..."
 # Apply the TigerVNC patch against the X server.
-patch -p1 -d /tmp/tigervnc/unix/xserver < /tmp/tigervnc/unix/xserver120.patch
+patch -p1 -d /tmp/tigervnc/unix/xserver < /tmp/tigervnc/unix/xserver21.patch
 # Disable functions from the X server that conflict with libx11 when linking statically.
 patch -p1 -d /tmp/tigervnc/unix/xserver < "$SCRIPT_DIR"/xserver-disable-unused-functions.patch
 # Set the default DRI drivers directory.
@@ -663,6 +725,7 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
 (
     cd /tmp/tigervnc/unix/xserver && \
         CFLAGS="$CFLAGS -Wno-implicit-function-declaration" \
+        LDFLAGS="$LDFLAGS -Wl,--allow-shlib-undefined" \
         ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
@@ -692,10 +755,10 @@ autoreconf -fiv /tmp/tigervnc/unix/xserver
         --disable-config-udev \
         --disable-xorg \
         --disable-dmx \
-        --disable-libdrm \
+        --enable-libdrm \
         --disable-dri \
-        --disable-dri2 \
-        --disable-dri3 \
+        --enable-dri2 \
+        --enable-dri3 \
         --enable-present \
         --disable-xvfb \
         --enable-glx \
@@ -737,6 +800,8 @@ log "Relinking Xvnc binary with static libraries..."
         Xvnc-stubs.o \
         Xvnc-miinitext.o \
         Xvnc-buildtime.o \
+        Xvnc-vncDRI3.o \
+        Xvnc-vncDRI3Draw.o \
         ../../fb/.libs/libfb.a \
         ../../xfixes/.libs/libxfixes.a \
         ../../Xext/.libs/libXext.a \
@@ -758,6 +823,7 @@ log "Relinking Xvnc binary with static libraries..."
         ../../dix/.libs/libdix.a \
         ../../mi/.libs/libmi.a \
         ../../os/.libs/libos.a \
+        ../../dri3/.libs/libdri3.a \
         ./.libs/libvnccommon.a \
         ../../../../common/network/libnetwork.a \
         ../../../../common/rfb/librfb.a \
@@ -777,6 +843,7 @@ log "Relinking Xvnc binary with static libraries..."
         $(xx-info sysroot)usr/lib/libbz2.a \
         $(xx-info sysroot)usr/lib/libgnutls.a \
         $(xx-info sysroot)usr/lib/libhogweed.a \
+        $(xx-info sysroot)usr/lib/libgbm.a \
         $(xx-info sysroot)usr/lib/libgmp.a \
         $(xx-info sysroot)usr/lib/libnettle.a \
         $(xx-info sysroot)usr/lib/libunistring.a \
@@ -909,7 +976,7 @@ find "$TIGERVNC_ROOTFS_BASE_DIR"/bin -type f -executable -exec echo "  -> Settin
 #       been fixed in UPX 5.x, which can't be used due to its incompatibility
 #       with old kernels.
 # NOTE: The only dynamically-linked binary is Xvnc, for which rpath is set at
-#       time as workaround.
+#       compile time as workaround.
 #find "$TIGERVNC_ROOTFS_BASE_DIR"/bin -type f -executable ! -name Xvnc -exec echo "  -> Setting rpath of {}..." ';' -exec patchelf --set-rpath '$ORIGIN/../lib' {} ';'
 
 log "Patching ELF of libraries..."
@@ -923,4 +990,18 @@ log "Performing cleanup..."
 apk --no-cache del $HOST_PKGS
 xx-apk --no-cache --no-scripts del $TARGET_PKGS
 apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
-rm -rf /tmp/tigervnc
+rm -rf \
+    /tmp/gmp \
+    /tmp/libtasn1 \
+    /tmp/gnutls \
+    /tmp/libfontenc \
+    /tmp/libxfont2 \
+    /tmp/libxshmfence \
+    /tmp/libxxf86vm \
+    /tmp/libdrm \
+    /tmp/pixman \
+    /tmp/brotli \
+    /tmp/llvm \
+    /tmp/mesa \
+    /tmp/tigervnc \
+

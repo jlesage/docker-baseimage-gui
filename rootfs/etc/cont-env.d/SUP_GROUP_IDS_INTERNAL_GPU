@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# Get supplementary group(s) associated to hardware acceleration.
+#
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+[ -d /dev/dri ] || exit 0
+
+grps=$(mktemp)
+
+# Get group of devices under /dev/dri/.
+find /dev/dri/ -type c | while read -r dri_dev; do
+    grp_id="$(stat -c "%g" "${dri_dev}")"
+    if [ "${grp_id}" -ne 0 ]; then
+        echo "${grp_id}" >> "${grps}"
+    fi
+done
+
+# Print supplementary group IDs.
+cat "${grps}" \
+    | grep -v '^$' \
+    | grep -v '^0$' \
+    | grep -vw "${GROUP_ID}" \
+    | sort -nub \
+    | tr '\n' ','
+
+rm -f "${grps}"
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
