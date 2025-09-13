@@ -337,7 +337,7 @@ The baseimage provides the following internal environment variables:
 |`XDG_CACHE_HOME`| Defines the base directory for user-specific non-essential data files. | `/config/xdg/cache` |
 |`TAKE_CONFIG_OWNERSHIP`| When set to `0`, ownership of the `/config` directory's contents is not taken during container startup. | `1` |
 |`INSTALL_PACKAGES_INTERNAL`| Space-separated list of packages to install during container startup. Packages are installed from the repository of the Linux distribution the container is based on. | (no value) |
-|`SUP_GROUP_IDS_INTERNAL`| Comma-separated list of supplementary group IDs for the application, merged with those supplied by `SUP_GROUP_IDS`. | (no value) |
+|`SUP_GROUP_IDS_INTERNAL`| Comma-separated list of supplementary group IDs. Values are merged with those supplied by `SUP_GROUP_IDS` and any `SUP_GROUP_IDS_INTERNAL_*` variables. | (no value) |
 |`SERVICES_GRACETIME`| During container shutdown, defines the time (in milliseconds) allowed for services to gracefully terminate before sending the SIGKILL signal to all. | `5000` |
 |`DISABLE_GLX`| When set to `1`, disables the OpenGL Extension of the X Window System. | `0` |
 
