@@ -85,3 +85,7 @@ if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
     rm "${ALLOWED_PATHS}"
     rm "${DENIED_PATHS}"
 fi
+
+if is-bool-val-true "${WEB_NOTIFICATION:-0}"; then
+    echo "--enable-notification"
+fi

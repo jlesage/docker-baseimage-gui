@@ -21,6 +21,7 @@ STREAM_LISTEN_CONF=/var/tmp/nginx/stream_listen.conf
 AUDIO_CONF=/var/tmp/nginx/audio.conf
 AUTH_CONF=/var/tmp/nginx/auth.conf
 FMGR_CONF=/var/tmp/nginx/fmgr.conf
+NOTIF_CONF=/var/tmp/nginx/notif.conf
 
 # Make sure required directories exist.
 for dir in ${NGINX_DIRS}; do
@@ -92,6 +93,11 @@ fi
 # Handle configuration for file manager support.
 if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
     cp -a /defaults/default_fmgr.conf "${FMGR_CONF}"
+fi
+
+# Handle configuration for web notification support.
+if is-bool-val-true "${WEB_NOTIFICATION:-0}"; then
+    cp -a /defaults/default_notif.conf "${NOTIF_CONF}"
 fi
 
 # Make sure required directories are properly owned.

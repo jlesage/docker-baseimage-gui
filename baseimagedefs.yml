@@ -834,6 +834,23 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_NOTIFICATION
+      description: >-
+        When set to `1`, enables the web notification service, allowing the
+        browser to display desktop notifications from the application. Requires
+        the container to be configured with secure web access (HTTPS). See
+        [Web Notifications](#web-notifications) for details.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Desktop Notifications
+        description: >-
+          When set to '1', enables the web notification service, allowing the
+          browser to display desktop notifications from the application. Note
+          that this feature is not supported for VNC clients.
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_AUTHENTICATION
       description: >-
         When set to `1`, protects the application's GUI with a login page when

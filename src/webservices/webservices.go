@@ -25,6 +25,7 @@ func main() {
 	enableFileManager := flag.Bool("enable-file-manager", false, "enable file manager service")
 	flag.Func("allowed-path", "path allowed to be accessed by the file manager (can be used multiple times)", addAllowedPath)
 	flag.Func("denied-path", "path not allowed to be accessed by the file manager (can be used multiple times)", addDeniedPath)
+	enableNotification := flag.Bool("enable-notification", false, "enable desktop notification service")
 	flag.Parse()
 
 	// Handle log level.
@@ -37,6 +38,12 @@ func main() {
 	if *enableFileManager {
 		router.GET("/ws-filemanager", fileManagerWebsocketHandler)
 		router.GET("/download/:uuid", downloadHandler)
+	}
+	if *enableNotification {
+		if err := notificationServiceInit(); err != nil {
+			log.Fatal("could not initialize notification service: ", err)
+		}
+		router.GET("/ws-notification", notificationWebsocketHandler)
 	}
 	//router.NotFound = notFoundHandler()
 	//router.MethodNotAllowed = methodNotAllowedHandler()

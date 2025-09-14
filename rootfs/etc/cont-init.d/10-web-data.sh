@@ -72,6 +72,13 @@ else
     printf ',\n    "fileManager": false' >> "${WEB_DATA_FILE}"
 fi
 
+# Web notification support.
+if is-bool-val-true "${WEB_NOTIFICATION:-0}"; then
+    printf ',\n    "notificationSupport": true' >> "${WEB_DATA_FILE}"
+else
+    printf ',\n    "notificationSupport": false' >> "${WEB_DATA_FILE}"
+fi
+
 # End of the JSON file.
 printf '\n}\n' >> "${WEB_DATA_FILE}"
 

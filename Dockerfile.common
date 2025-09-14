@@ -132,6 +132,16 @@ RUN xx-verify --static /tmp/xdpyprobe/xdpyprobe
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xdpyprobe/xdpyprobe
 
+# Build dbus-daemon.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS dbus
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/dbus-daemon /build
+RUN /build/build.sh
+RUN xx-verify --static /tmp/dbus-install/usr/bin/dbus-daemon
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/dbus-install/usr/bin/dbus-daemon
+
 # Build yad.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS yad
 ARG TARGETPLATFORM
@@ -219,6 +229,7 @@ ARG FONTAWESOME_URL=https://github.com/FortAwesome/Font-Awesome/releases/downloa
 WORKDIR /tmp
 COPY helpers/* /usr/bin/
 COPY rootfs/opt/noVNC/index.html /opt/noVNC/index.html
+COPY rootfs/opt/noVNC/app/notificationService.js /opt/noVNC/app/notificationService.js
 COPY rootfs/opt/noVNC/app/pcm-player.js /tmp/pcm-player.js
 COPY rootfs/opt/noVNC/app/unmute.js /tmp/unmute.js
 COPY rootfs/opt/noVNC/login/index.html /opt/noVNC/login/index.html
@@ -262,6 +273,7 @@ RUN \
 RUN \
     # Set version of CSS and JavaScript file URLs.
     date | md5sum | cut -c1-10 > /tmp/unique_version && \
+    sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/app/notificationService.js && \
     sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/index.html && \
     sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/login/index.html
 RUN \
@@ -298,6 +310,7 @@ COPY --link --from=xcompmgr /tmp/xcompmgr-install/usr/bin/xcompmgr /opt/base/bin
 COPY --link --from=hsetroot /tmp/hsetroot-install/usr/bin/hsetroot /opt/base/bin/
 COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
+COPY --link --from=dbus /tmp/dbus-install/usr/bin/dbus-daemon /opt/base/bin/
 COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
 COPY --link --from=pulseaudio /tmp/pulseaudio-install/usr/bin/pulseaudio /opt/base/bin/pulseaudio

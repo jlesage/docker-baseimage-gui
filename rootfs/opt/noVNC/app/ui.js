@@ -18,6 +18,7 @@ import RFB from "../core/rfb.js";
 import * as WebUtil from "./webutil.js";
 import { PCMPlayer } from "./pcm-player.min.js";
 import FileManager from "./fileManager.js";
+import NotificationService from "./notificationService.js";
 
 const UI = {
 
@@ -47,6 +48,8 @@ const UI = {
     audioContext: null,
 
     fileManager: null,
+
+    notificationService: null,
 
     async start() {
 
@@ -151,6 +154,24 @@ const UI = {
             UI.fileManager.addEventListener('close', function() {
                 UI.closeFileManager();
             });
+        }
+
+        // Enable notifications.
+        if (UI.webData.notificationSupport) {
+            const host = UI.getSetting('host');
+            const port = UI.getSetting('port');
+            const path = UI.getSetting('notification_path');
+
+            let url;
+            url = UI.getSetting('encrypt') ? 'wss' : 'ws';
+            url += '://' + host;
+            if (port) {
+                url += ':' + port;
+            }
+            url += '/' + window.location.pathname.substr(1) + path;
+
+            UI.notificationService = NotificationService;
+            UI.notificationService.init(url);
         }
 
         // Adapt the interface for touch screen devices
@@ -298,6 +319,7 @@ const UI = {
         UI.initSetting('path', 'websockify');
         UI.initSetting('audio_path', 'websockify-audio');
         UI.initSetting('filemanager_path', 'ws-filemanager');
+        UI.initSetting('notification_path', 'ws-notification');
         UI.initSetting('repeaterID', '');
         UI.initSetting('reconnect', true);
         UI.initSetting('reconnect_delay', 5000);
@@ -1106,6 +1128,11 @@ const UI = {
         UI.showStatus(msg, 'normal', 2500, true);
         UI.updateVisualState('connected');
 
+        // Start desktop notification.
+        if (UI.notificationService) {
+            UI.notificationService.start();
+        }
+
         // Do this last because it can only be used on rendered elements
         UI.rfb.focus();
     },
@@ -1142,6 +1169,11 @@ const UI = {
         if (UI.audioContext) {
             UI.audioContext.audioEnabled = false;
             UI.updateAudio();
+        }
+
+        // Make sure to stop desktop notification.
+        if (UI.notificationService) {
+            UI.notificationService.stop();
         }
     },
 
@@ -1611,6 +1643,9 @@ const UI = {
         }
         if (UI.fileManager) {
             UI.fileManager.initLogging(level);
+        }
+        if (UI.notificationService) {
+            UI.notificationService.initLogging(level);
         }
     },
 
