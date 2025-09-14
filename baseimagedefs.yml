@@ -855,8 +855,9 @@ container:
       description: >-
         When set to `1`, protects the application's GUI with a login page when
         accessed via a web browser. Access is granted only with valid
-        credentials. This feature requires the secure connection to be enabled.
-        See [Web Authentication](#web-authentication) for details.
+        credentials. Requires the container to be configured with secure web
+        access (HTTPS). See [Web Authentication](#web-authentication) for
+        details.
       type: public
       default: 0
       unraid_template:

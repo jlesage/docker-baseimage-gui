@@ -311,7 +311,7 @@ The baseimage provides the following public environment variables:
 |`WEB_FILE_MANAGER_ALLOWED_PATHS`| Comma-separated list of paths within the container that the file manager can access. By default, the container's entire filesystem is not accessible, and this variable specifies allowed paths. If set to `AUTO`, commonly used folders and those mapped to the container are automatically allowed. The value `ALL` allows access to all paths (no restrictions). See [Web File Manager](#web-file-manager) for details. | `AUTO` |
 |`WEB_FILE_MANAGER_DENIED_PATHS`| Comma-separated list of paths within the container that the file manager cannot access. A denied path takes precedence over an allowed path. See [Web File Manager](#web-file-manager) for details. | (no value) |
 |`WEB_NOTIFICATION`| When set to `1`, enables the web notification service, allowing the browser to display desktop notifications from the application. Requires the container to be configured with secure web access (HTTPS). See [Web Notifications](#web-notifications) for details. | `0` |
-|`WEB_AUTHENTICATION`| When set to `1`, protects the application's GUI with a login page when accessed via a web browser. Access is granted only with valid credentials. This feature requires the secure connection to be enabled. See [Web Authentication](#web-authentication) for details. | `0` |
+|`WEB_AUTHENTICATION`| When set to `1`, protects the application's GUI with a login page when accessed via a web browser. Access is granted only with valid credentials. Requires the container to be configured with secure web access (HTTPS). See [Web Authentication](#web-authentication) for details. | `0` |
 |`WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME`| Lifetime of a token, in hours. A token is assigned to the user after successful login. As long as the token is valid, the user can access the application's GUI without logging in again. Once the token expires, the login page is displayed again. | `24` |
 |`WEB_AUTHENTICATION_USERNAME`| Optional username for web authentication. Provides a quick and easy way to configure credentials for a single user. For more secure configuration or multiple users, see the [Web Authentication](#web-authentication) section. | (no value) |
 |`WEB_AUTHENTICATION_PASSWORD`| Optional password for web authentication. Provides a quick and easy way to configure credentials for a single user. For more secure configuration or multiple users, see the [Web Authentication](#web-authentication) section. | (no value) |
@@ -560,7 +560,7 @@ Use the `add-pkg` and `del-pkg` helpers to add or remove packages, ensuring
 proper cleanup to minimize container size.
 
 These tools allow temporary installation of a group of packages (virtual
-package)  using the `--virtual NAME` parameter, enabling later removal with
+package) using the `--virtual NAME` parameter, enabling later removal with
 `del-pkg NAME`. Pre-installed packages are ignored and not removed.
 
 Example in a `Dockerfile` for compiling a project:
@@ -912,8 +912,9 @@ The security of the VNC password depends on:
   - The communication channel (encrypted or unencrypted).
   - The security of host access.
 
-When using a VNC password, enable a secure connection to prevent sending the
-password in clear text over an unencrypted channel.
+When using a VNC password, configure the container with secure web access
+(HTTPS) to prevent sending the password in clear text over an unencrypted
+channel.
 
 Unauthorized users with sufficient host privileges can retrieve the password by:
 
@@ -951,8 +952,8 @@ variable to `1`. See the [Environment Variables](#environment-variables) section
 for details on configuring environment variables.
 
 > [!IMPORTANT]
-> Web authentication requires a secure connection to be enabled. See
-> [Security](#security) for details.
+> Web authentication requires the container to be configured with secure web
+> access (HTTPS). See [Security](#security) for details.
 
 ##### Configuring User Credentials
 

@@ -12,7 +12,7 @@ fi
 
 # Verify that secure connection is enabled.
 if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
-    echo "ERROR: web authentication requires secure connection to be enabled."
+    echo "ERROR: web authentication requires secure web access to be enabled."
     echo "       make sure to set SECURE_CONNECTION=1 environment variable."
     exit 1
 fi
@@ -28,7 +28,7 @@ if [ -z "${WEB_AUTHENTICATION_USERNAME:-}" ] && [ -z "${WEB_AUTHENTICATION_PASSW
         echo "WARNING: no user configured for web authentication"
     fi
 elif [ -z "${WEB_AUTHENTICATION_USERNAME:-}" ] || [ -z "${WEB_AUTHENTICATION_PASSWORD:-}" ]; then
-    echo "ERROR: missing username/password for configured web authentication user"
+    echo "ERROR: missing username or password for web authentication user"
     echo "       make sure that both WEB_AUTHENTICATION_USERNAME and WEB_AUTHENTICATION_PASSWORD"
     echo "       environment variables are set."
     exit 1
