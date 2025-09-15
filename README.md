@@ -812,10 +812,11 @@ The following table describes the files:
 
 The baseimage includes these notification backends:
 
-| Backend  | Description | Debouncing time |
-|----------|-------------|-----------------|
-| `stdout` | Displays a message to standard output, visible in the container's log, in the format `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
-| `yad`    | Displays the notification in a window visible in the application's GUI. | Infinite |
+| Backend     | Description | Debouncing time |
+|-------------|-------------|-----------------|
+| `stdout`    | Displays a message to standard output, visible in the container's log, in the format `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
+| `yad`       | Displays the notification in a window visible in the application's GUI. | Infinite |
+| `web-notif` | When web notifications are enabled, the notification is displayed by the user's browser. | None |
 
 ### Accessing the GUI
 

@@ -142,6 +142,17 @@ RUN xx-verify --static /tmp/dbus-install/usr/bin/dbus-daemon
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/dbus-install/usr/bin/dbus-daemon
 
+# Build notify-send.
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine AS notify-send
+ARG TARGETPLATFORM
+ENV CGO_ENABLED=0
+COPY --from=xx / /
+COPY src/notify-send /tmp/build-notify-send
+RUN cd /tmp/build-notify-send && xx-go build -ldflags "-s -w"
+RUN xx-verify --static /tmp/build-notify-send/notify-send
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/build-notify-send/notify-send
+
 # Build yad.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS yad
 ARG TARGETPLATFORM
@@ -311,6 +322,7 @@ COPY --link --from=hsetroot /tmp/hsetroot-install/usr/bin/hsetroot /opt/base/bin
 COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
 COPY --link --from=dbus /tmp/dbus-install/usr/bin/dbus-daemon /opt/base/bin/
+COPY --link --from=notify-send /tmp/build-notify-send/notify-send /opt/base/bin/
 COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
 COPY --link --from=pulseaudio /tmp/pulseaudio-install/usr/bin/pulseaudio /opt/base/bin/pulseaudio
