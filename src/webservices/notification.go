@@ -161,7 +161,7 @@ func (n *Notifications) CloseNotification(id uint32) *dbus.Error {
 // GetCapabilities handles the org.freedesktop.Notifications.GetCapabilities method.
 func (n *Notifications) GetCapabilities() ([]string, *dbus.Error) {
 	// Return supported capabilities.
-	return []string{"body", "summary"}, nil
+	return []string{"summary", "body", "actions"}, nil
 }
 
 // GetServerInformation handles the org.freedesktop.Notifications.GetServerInformation method.
