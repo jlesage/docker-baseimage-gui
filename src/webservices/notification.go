@@ -13,7 +13,7 @@ import (
 )
 
 // Notifications implements the org.freedesktop.Notifications D-Bus interface.
-// https://specifications.freedesktop.org/notification-spec/1.3/protocol.html
+// https://specifications.freedesktop.org/notification-spec/1.2/protocol.html
 type Notifications struct {
 	broadcast chan NotificationMessage
 	nextID    uint32
@@ -167,5 +167,5 @@ func (n *Notifications) GetCapabilities() ([]string, *dbus.Error) {
 // GetServerInformation handles the org.freedesktop.Notifications.GetServerInformation method.
 func (n *Notifications) GetServerInformation() (name, vendor, version, specVersion string, err *dbus.Error) {
 	// Return server metadata.
-	return "WebServices", "jlesage", "1.0", "1.3", nil
+	return "WebServices", "jlesage", "1.0", "1.2", nil
 }
