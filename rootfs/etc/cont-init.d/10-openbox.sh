@@ -12,10 +12,12 @@ chown "${USER_ID}:${GROUP_ID}" /var/run/openbox
 mkdir -p "${XDG_DATA_HOME}"/themes
 rm -rf "${XDG_DATA_HOME}"/themes/OpenboxTheme
 if is-bool-val-true "${DARK_MODE:-0}"; then
-    cp -a /opt/base/share/themes/Dark "${XDG_DATA_HOME}"/themes/OpenboxTheme
+    cp -r /opt/base/share/themes/Dark "${XDG_DATA_HOME}"/themes/OpenboxTheme
 else
-    cp -a /opt/base/share/themes/Light "${XDG_DATA_HOME}"/themes/OpenboxTheme
+    cp -r /opt/base/share/themes/Light "${XDG_DATA_HOME}"/themes/OpenboxTheme
 fi
+find "${XDG_DATA_HOME}"/themes/OpenboxTheme -type d -exec chmod 755 {} ';'
+find "${XDG_DATA_HOME}"/themes/OpenboxTheme -type f -exec chmod 644 {} ';'
 
 #
 # Setup selection criterias of the main window.
