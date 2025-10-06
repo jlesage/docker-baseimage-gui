@@ -238,6 +238,7 @@ ARG NOVNC_URL=https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=https://github.com/FortAwesome/Font-Awesome/releases/download/${FONTAWESOME_VERSION}/fontawesome-free-${FONTAWESOME_VERSION}-web.zip
 WORKDIR /tmp
+COPY src/novnc /build
 COPY helpers/* /usr/bin/
 COPY rootfs/opt/noVNC/index.html /opt/noVNC/index.html
 COPY rootfs/opt/noVNC/app/notificationService.js /opt/noVNC/app/notificationService.js
@@ -248,6 +249,7 @@ RUN \
     # Install required tools.
     apk --no-cache add \
         curl \
+        patch \
         libarchive-tools \
         sed \
         jq \
@@ -265,6 +267,7 @@ RUN \
     # Install noVNC.
     mkdir /tmp/noVNC && \
     curl -# -L ${NOVNC_URL} | tar -xz --strip 1 -C /tmp/noVNC && \
+    patch -p1 -d /tmp/noVNC < /build/auto-clipboard-sync.patch && \
     cp -vr /tmp/noVNC/core /opt/noVNC/ && \
     cp -vr /tmp/noVNC/vendor /opt/noVNC/
 RUN \

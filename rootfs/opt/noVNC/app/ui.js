@@ -446,6 +446,13 @@ const UI = {
             .addEventListener('click', UI.clipboardClear);
     },
 
+    removeClipboardHandlers() {
+        document.getElementById("noVNC_clipboard_text")
+            .removeEventListener('change', UI.clipboardSend);
+        document.getElementById("noVNC_clipboard_clear_button")
+            .removeEventListener('click', UI.clipboardClear);
+    },
+
     // Add a call to save settings when the element changes,
     // unless the optional parameter changeFunc is used instead.
     addSettingChangeHandler(name, changeFunc) {
@@ -1065,6 +1072,7 @@ const UI = {
         UI.rfb.addEventListener("securityfailure", UI.securityFailed);
         UI.rfb.addEventListener("clipboard", UI.clipboardReceive);
         UI.rfb.addEventListener("desktopname", UI.updateDesktopName);
+        UI.rfb.addEventListener("clipboardautosync", UI.updateClipboard);
         UI.rfb.clipViewport = UI.getSetting('view_clip');
         UI.rfb.scaleViewport = UI.getSetting('resize') === 'scale';
         UI.rfb.resizeSession = UI.getSetting('resize') === 'remote';
@@ -1081,6 +1089,7 @@ const UI = {
         });
 
         UI.updateViewOnly(); // requires UI.rfb
+        UI.updateClipboard();
     },
 
     // Called from timer.
@@ -1631,6 +1640,21 @@ const UI = {
                 .classList.add('noVNC_hidden');
         } else {
             document.getElementById('noVNC_keyboard_button')
+                .classList.remove('noVNC_hidden');
+        }
+    },
+
+    updateClipboard() {
+        if (!UI.rfb) return;
+        if (UI.rfb.clipboardAutoSync === "granted") {
+            UI.removeClipboardHandlers();
+            UI.rfb.removeEventListener('clipboard', UI.clipboardReceive);
+            document.getElementById('noVNC_clipboard_section')
+                .classList.add('noVNC_hidden');
+        } else {
+            UI.addClipboardHandlers();
+            UI.rfb.addEventListener("clipboard", UI.clipboardReceive);
+            document.getElementById('noVNC_clipboard_section')
                 .classList.remove('noVNC_hidden');
         }
     },

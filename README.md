@@ -58,6 +58,7 @@ any VNC client.
       * [Reverse Proxy](#reverse-proxy)
          * [Routing Based on Hostname](#routing-based-on-hostname)
          * [Routing Based on URL Path](#routing-based-on-url-path)
+      * [Automatic Clipboard Sync](#automatic-clipboard-sync)
       * [Web Audio](#web-audio)
       * [Web File Manager](#web-file-manager)
       * [Web Notifications](#web-notifications)
@@ -1094,6 +1095,32 @@ server {
 }
 
 ```
+
+### Automatic Clipboard Sync
+
+When the container is accessed through a web browser, automatic clipboard
+synchronization enables seamless sharing of clipboard contents between the host
+system and the application running inside the container. This makes it possible
+to copy and paste text or data directly between the two environments without
+manual transfer steps.
+
+This functionality is not available when using VNC clients and is supported only
+in browsers based on the Chromium engine, such as Google Chrome and Microsoft
+Edge.
+
+Clipboard synchronization operates transparently once permission has been
+granted by the browser. Depending on browser implementation, a prompt may appear
+the first time clipboard access is requested.
+
+> [!IMPORTANT]
+> Web browsers only allow access to the clipboard in secure contexts (HTTPS).
+> This means the container must be configured with secure web access. See
+> [Security](#security) for details.
+
+> [!TIP]
+> If automatic clipboard synchronization is not available, text can still be
+> copied and pasted using the side panel clipboard, which provides manual
+> clipboard access between the host and the container.
 
 ### Web Audio
 
