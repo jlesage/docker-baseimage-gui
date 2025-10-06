@@ -1175,6 +1175,10 @@ configuring environment variables.
 > the container must be configured with secure web access. See
 > [Security](#security) for details.
 
+> [!TIP]
+> Make sure `libnotify` is installed along with your application. This is
+> usually the library used to send desktop notifications.
+
 ### Application Icon
 
 An icon for your application can be added to the image. It is used by different
