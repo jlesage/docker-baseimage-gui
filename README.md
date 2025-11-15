@@ -52,7 +52,6 @@ any VNC client.
          * [SSVNC](#ssvnc)
          * [Certificates](#certificates)
          * [VNC Password](#vnc-password)
-         * [DH Parameters](#dh-parameters)
          * [Web Authentication](#web-authentication)
             * [Configuring User Credentials](#configuring-user-credentials)
       * [Reverse Proxy](#reverse-proxy)
@@ -930,19 +929,6 @@ Unauthorized users with sufficient host privileges can retrieve the password by:
 > VNC password is limited to 8 characters. This limitation comes from the Remote
 > Framebuffer Protocol [RFC](https://tools.ietf.org/html/rfc6143) (see section
 > [7.2.2](https://tools.ietf.org/html/rfc6143#section-7.2.2)).
-
-#### DH Parameters
-
-Diffie-Hellman (DH) parameters define how the [DH key-exchange] is performed.
-More details are available on the [OpenSSL Wiki].
-
-DH parameters are stored in the PEM-encoded file at `/config/certs/dhparam.pem`
-within the container. If missing, 2048-bit DH parameters are generated
-automatically, which is a one-time operation that may significantly increase
-container startup time.
-
-[DH key-exchange]: https://en.wikipedia.org/wiki/Diffie%E2%80%93Hellman_key_exchange
-[OpenSSL Wiki]: https://wiki.openssl.org/index.php/Diffie_Hellman
 
 #### Web Authentication
 

@@ -14,15 +14,6 @@ TMP_DIR="$(mktemp -d)"
 
 mkdir -p "${CERT_DIR}"
 
-# Generate DH parameters.
-if [ ! -f "${CERT_DIR}"/dhparam.pem ]; then
-    echo "generating DH parameters (2048 bits), this is going to take a long time..."
-    env HOME="${TMP_DIR}" openssl dhparam \
-        -out "${CERT_DIR}"/dhparam.pem \
-        2048 \
-        > /dev/null 2>&1
-fi
-
 # Generate certificate used by the WEB server (nginx).
 if [ ! -f "${CERT_DIR}"/web-privkey.pem ] && [ ! -f "${CERT_DIR}"/web-fullchain.pem ]; then
     echo "generating self-signed certificate for WEB server..."

@@ -5,11 +5,7 @@ BATS_NO_PARALLELIZE_WITHIN_FILE=true
 setup() {
     load setup_common
 
-    if [ ! -f "$TESTS_WORKDIR"/dhparam.pem ]; then
-        openssl dhparam -dsaparam -out "$TESTS_WORKDIR"/dhparam.pem 2048 > /dev/null 2>&1
-    fi
-
-    DOCKER_EXTRA_OPTS=("-p" "5902:5900" "-p" "5802:5800" "-e" "SECURE_CONNECTION=1" "-e" "USE_DEFAULT_DH_PARAMS=1" "-v" "$TESTS_WORKDIR/dhparam.pem:/config/certs/dhparam.pem:rw")
+    DOCKER_EXTRA_OPTS=("-p" "5902:5900" "-p" "5802:5800" "-e" "SECURE_CONNECTION=1" "-e" "USE_DEFAULT_DH_PARAMS=1")
     load setup_container_daemon
 }
 
