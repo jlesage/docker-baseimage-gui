@@ -46,7 +46,7 @@ any VNC client.
       * [Logrotate](#logrotate)
       * [Log Monitor](#log-monitor)
          * [Notification Definition](#notification-definition)
-         * [Notification Backend](#notification-backend)
+         * [Notification Target](#notification-target)
       * [Accessing the GUI](#accessing-the-gui)
       * [Security](#security)
          * [SSVNC](#ssvnc)
@@ -768,12 +768,11 @@ The baseimage includes a log monitor that sends notifications when specific
 messages are detected in log or status files.
 
 The system has two main components:
-  - **Notification definitions**: Describe notification properties (title,
-    message, severity, etc.), the triggering condition (filtering function), and
-    the monitored file(s).
-  - **Backends (targets)**: When a matching string is found, a notification is
-    sent to one or more backends, which can log to the container, a file, or an
-    external service.
+  - **Notification definitions**: Define how notifications are generated: their
+    title, message, severity, triggering condition (filter function), and the
+    files being monitored.
+  - **Notification targets**: Define where notifications are sent once triggered
+    (for example, to stdout, a file, or an external service).
 
 Two types of files can be monitored:
   - **Log files**: Files with new content appended.
@@ -782,33 +781,35 @@ Two types of files can be monitored:
 
 #### Notification Definition
 
-A notification definition consists of multiple files in a directory under
-`/etc/logmonitor/notifications.d` within the container. For example, the
+A notification definition is represented by a directory under
+`/etc/logmonitor/notifications.d` inside the container. For example, the
 definition for `MYNOTIF` is stored in
 `/etc/logmonitor/notifications.d/MYNOTIF/`.
 
-The following table describes files part of the definition:
+Each definition may include the following files:
 
 | File     | Mandatory  | Description |
 |----------|------------|-------------|
-| `filter` | Yes        | Program (script or binary with executable permission) to filter log file messages. It is invoked with a log line as an argument and should exit with `0` on a match. Other values indicate no match. |
-| `title`  | Yes        | File containing the notification title. For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched line, using its output as the title. |
-| `desc`   | Yes        | File containing the notification description or message. For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched log line, using its output as the description. |
-| `level`  | Yes        | File containing the notification's severity level (`ERROR`, `WARNING`, or `INFO`). For dynamic content, it can be a program (script or binary with executable permission) invoked with the matched log line, using its output as the severity. |
-| `source` | Yes        | File containing the absolute path(s) to monitored file(s), one per line. Prepend `status:` for status file; `log:` or no prefix indicates a log file. |
+| `filter` | Yes        | Executable program (script or binary) that determines whether a log line matches. It is invoked with the log line as its argument and must exit with code 0 to indicate a match. Any other exit code means no match. |
+| `title`  | Yes        | File containing the notification title. If executable, it is invoked with the matched log line as its argument, and its standard output is used as the notification title. |
+| `desc`   | Yes        | File containing the notification description or message. If executable, it is invoked with the matched log line as its argument, and its standard output is used as the notification description. |
+| `level`  | Yes        | File containing the severity level (`ERROR`, `WARNING`, or `INFO`). If executable, it is invoked with the matched log line as its argument, and its standard output is used as the notification severity. |
+| `source` | Yes        | File listing the absolute path(s) to the monitored file(s), one per line. Prefix paths with `status:` for status files. Use `log:` or no prefix for log files. |
+| `target` | No         | File listing the notification targets to use, one per line. If omitted, the notification is sent to all available targets. |
 
-#### Notification Backend
+#### Notification Target
 
-A notification backend is defined in a directory under
+A notification target defines where and how a notification is delivered once
+triggered. Each target is represented by a directory under
 `/etc/cont-logmonitor/targets.d`. For example, the `stdout` backend is in
 `/etc/cont-logmonitor/target.d/stdout/`.
 
-The following table describes the files:
+Each target may contain the following files:
 
 | File         | Mandatory  | Description |
 |--------------|------------|-------------|
-| `send`       | Yes        | Program (script or binary with executable permission) that sends the notification, invoked with the notification's title, description, and severity level as arguments. |
-| `debouncing` | No         | File containing the minimum time (in seconds) before sending the same notification again. A value of `0` means the notification is sent once. If missing, no debouncing occurs. |
+| `send`       | Yes        | Executable program (script or binary) responsible for delivering the notification. It is invoked with the notification’s title, description, and severity as arguments. |
+| `debouncing` | No         | File specifying the minimum interval (in seconds) before the same notification can be sent again. A value of `0` means it is sent only once. If missing, no debouncing is applied. |
 
 The baseimage includes these notification backends:
 
