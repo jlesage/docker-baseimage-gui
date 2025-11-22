@@ -1,0 +1,16 @@
+#
+# Force optimization of file descriptors closing when compiled with musl.
+# Otherwise it can take a very long time to close all of them, especially on
+# systems with 1M limit (`ulimit -n`).
+#
+--- a/dbus/dbus-sysdeps-unix.c	2025-11-22 09:17:18.539623642 -0500
++++ b/dbus/dbus-sysdeps-unix.c	2025-11-22 09:17:29.817640575 -0500
+@@ -4728,7 +4728,7 @@
+ {
+   int maxfds, i;
+ 
+-#if defined(__linux__) && defined(__GLIBC__)
++#if defined(__linux__)
+   DIR *d;
+ 
+   /* On Linux we can optimize this a bit if /proc is available. If it

@@ -36,6 +36,7 @@ function log {
 HOST_PKGS="\
     curl \
     build-base \
+    patch \
     clang \
     lld \
     pkgconfig \
@@ -58,6 +59,9 @@ mkdir /tmp/dbus
 log "Downloading dbus-daemon..."
 curl -# -L -f ${DBUS_URL} | tar xJ --strip 1 -C /tmp/dbus
 
+log "Patching dbus-daemon..."
+patch -p1 -d /tmp/dbus < "$SCRIPT_DIR"/close-all-fds.patch
+
 log "Configuring dbus-daemon..."
 (
     cd /tmp/dbus && \
@@ -68,6 +72,8 @@ log "Configuring dbus-daemon..."
         --datarootdir=/opt/base/share \
         --with-system-pid-file=/tmp/dbus-base.pid \
         --enable-debug=no \
+        --enable-embedded-tests=no \
+        --enable-tests=no \
         --disable-shared \
         --enable-static \
         --without-x \
