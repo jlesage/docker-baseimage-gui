@@ -19,6 +19,25 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.10.0
+      date: 2025-11-22
+      changes:
+        added:
+          - 'Hardware acceleration support for the GLX extension using open-source drivers.'
+          - 'DRI3 X extension for improved hardware acceleration in client applications.'
+          - 'Seamless clipboard synchronization for Chromium-based browsers.'
+          - 'Web notification service to forward desktop notifications to browser.'
+          - 'Desktop notifications as a logmonitor target.'
+          - 'D-Bus daemon for desktop notification integration and broader desktop environment support.'
+          - 'Ability to allow web and VNC connections from localhost only.'
+          - 'Added by the update of jlesage/baseimage to version 3.10.0:'
+          - '2:Support for SUP_GROUP_IDS_INTERNAL_* internal variables.'
+          - '2:Ability to restrict a logmonitor notification to specific target(s).'
+        changed:
+          - 'Updated Xorg server to version 21.1.18.'
+          - 'NGINX configuration now enables TLS 1.3.'
+        removed:
+          - 'Static Diffie-Hellman parameters file (no longer needed in modern TLS configurations and ECDHE).'
     - version: 4.9.0
       date: 2025-07-17
       changes:
