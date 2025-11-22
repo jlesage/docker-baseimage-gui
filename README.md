@@ -65,7 +65,7 @@ any VNC client.
       * [Dark Mode](#dark-mode)
          * [GTK](#gtk)
          * [Qt](#qt)
-         * [GPU Acceleration Support](#gpu-acceleration-support)
+      * [GPU Acceleration Support](#gpu-acceleration-support)
       * [Tips and Best Practices](#tips-and-best-practices)
          * [Do Not Modify Baseimage Content](#do-not-modify-baseimage-content)
          * [Default Configuration Files](#default-configuration-files)
@@ -1223,7 +1223,7 @@ Linux software repositories.
 > [!NOTE]
 > Dark mode is supported for Qt5 and Qt6.
 
-#### GPU Acceleration Support
+### GPU Acceleration Support
 
 This Docker base image supports GPU acceleration, enabling hardware-accelerated
 OpenGL rendering for applications using the GLX extension and improving the X
