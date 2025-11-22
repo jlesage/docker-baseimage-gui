@@ -960,6 +960,18 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_LOCALHOST_ONLY
+      description: >-
+        When set to `1`, allows web connections only from localhost (127.0.0.1
+        and ::1).
+      type: public
+      default: 0
+    - name: VNC_LOCALHOST_ONLY
+      description: >-
+        When set to `1`, allows VNC connections only from localhost (127.0.0.1
+        and ::1).
+      type: public
+      default: 0
     - name: WEB_LISTENING_PORT
       description: >-
         Port used by the web server to serve the application's GUI. This port is

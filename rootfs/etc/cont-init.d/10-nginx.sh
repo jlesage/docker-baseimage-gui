@@ -48,12 +48,21 @@ if true; then
         LISTEN_SSL=
     fi
 
+    # Determine the listen address.
+    if is-bool-val-true "${WEB_LOCALHOST_ONLY:-0}"; then
+        LISTEN_ADDR4="127.0.0.1"
+        LISTEN_ADDR6="[::1]"
+    else
+        LISTEN_ADDR4="0.0.0.0"
+        LISTEN_ADDR6="[::]"
+    fi
+
     # Add the listen directive.
-    echo "listen ${LISTEN_PORT} ${LISTEN_SSL} default_server;" >> "${LISTEN_CONF}"
+    echo "listen ${LISTEN_ADDR4}:${LISTEN_PORT} ${LISTEN_SSL} default_server;" >> "${LISTEN_CONF}"
 
     # Add the listen directive for IPv6.
     if [ "${WEB_LISTENING_PORT:-5800}" -ne -1 ] && ifconfig -a | grep -wq inet6; then
-        echo "listen [::]:${LISTEN_PORT} ${LISTEN_SSL} default_server;" >> "${LISTEN_CONF}"
+        echo "listen ${LISTEN_ADDR6}:${LISTEN_PORT} ${LISTEN_SSL} default_server;" >> "${LISTEN_CONF}"
     fi
 fi
 

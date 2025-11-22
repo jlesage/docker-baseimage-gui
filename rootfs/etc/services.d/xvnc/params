@@ -45,6 +45,11 @@ else
     fi
 fi
 
+# Allow connections from localhost only.
+if is-bool-val-true "${VNC_LOCALHOST_ONLY:-0}"; then
+    echo "-localhost"
+fi
+
 # VNC Unix socket.
 echo "-rfbunixpath=/tmp/vnc.sock"
 echo "-rfbunixmode=0660"
