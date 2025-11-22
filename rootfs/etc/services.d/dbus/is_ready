@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -u # Treat unset variables as an error.
+
+[ -e /tmp/dbus.base ] && nc -z -U /tmp/dbus.base </dev/null
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
