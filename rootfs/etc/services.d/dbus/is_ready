@@ -2,6 +2,10 @@
 
 set -u # Treat unset variables as an error.
 
-[ -e /tmp/dbus.base ] && nc -z -U /tmp/dbus.base </dev/null
+inode="$(grep "/tmp/dbus.base" /proc/net/unix 2>/dev/null | awk '{print $7}')"
+[ -n "$inode" ] || exit 1
+
+ls -l /proc/$1/fd | grep -q "socket:\[$inode\]"
+exit $?
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
