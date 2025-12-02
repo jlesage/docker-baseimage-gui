@@ -1232,7 +1232,7 @@ server’s overall rendering performance within the container.
 This feature requires open-source kernel drivers on the host system, such as
 `amdgpu` for AMD GPUs, `i915` for Intel GPUs, or `nouveau` for NVIDIA GPUs, to
 support the Direct Rendering Infrastructure (DRI3) and Generic Buffer Management
-(GBM). Proprietary drivers, such as NVIDIA’s, are not supported.
+(GBM). Proprietary drivers, such as NVIDIA's, are not supported.
 
 To enable GPU acceleration, the host must have compatible open-source kernel
 drivers installed, and the GPU device `/dev/dri` must be exposed to the
