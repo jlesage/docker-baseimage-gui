@@ -19,6 +19,11 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.10.1
+      date: 2025-12-02
+      changes:
+        fixed:
+          - 'Due to the inclusion of D-Bus, the application may report missing accessibility support.'
     - version: 4.10.0
       date: 2025-11-22
       changes:
