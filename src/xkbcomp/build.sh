@@ -28,7 +28,7 @@ export CXX=xx-clang++
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
-function log {
+log() {
     echo ">>> $*"
 }
 

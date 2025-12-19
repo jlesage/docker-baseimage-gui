@@ -25,7 +25,7 @@ export LDFLAGS="-Wl,--as-needed,-O1,--sort-common --static -static -Wl,--strip-a
 export CC=xx-clang
 export CXX=xx-clang++
 
-function log {
+log() {
     echo ">>> $*"
 }
 

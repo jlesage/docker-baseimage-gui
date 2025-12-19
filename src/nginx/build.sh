@@ -16,7 +16,7 @@ NGINXWEBSOCKIFYMOD_VERSION=0.0.3
 NGINX_URL=http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 NGINXWEBSOCKIFYMOD_URL=https://github.com/tg123/websockify-nginx-module/archive/v${NGINXWEBSOCKIFYMOD_VERSION}.tar.gz
 
-function log {
+log() {
     echo ">>> $*"
 }
 
