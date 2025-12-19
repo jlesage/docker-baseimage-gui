@@ -63,8 +63,9 @@ fi
 gpu_node_found=false
 render_node_found=false
 
-#find "$DRI_DIR" -type c |
 while read -r f; do
+    [ -n "$f" ] || continue
+    [ -c "$f" ] || continue
     if permissions_ok "${f}"; then
         echo "  [ OK ]   the device ${f} has proper permissions."
         is-bool-val-false "${CONTAINER_DEBUG:-0}" || echo "           permissions: $(ls -l "${f}" | awk '{print $1,$3,$4}')"
@@ -83,7 +84,7 @@ while read -r f; do
         /dev/dri/renderD*) render_node_found=true ;;
     esac
 done <<EOF
-$(find "$DRI_DIR" -type c)
+$(find "$DRI_DIR" -mindepth 1 -maxdepth 1)
 EOF
 
 if $gpu_node_found; then

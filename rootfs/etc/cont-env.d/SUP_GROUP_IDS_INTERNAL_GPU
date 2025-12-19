@@ -11,7 +11,9 @@ set -u # Treat unset variables as an error.
 grps=$(mktemp)
 
 # Get group of devices under /dev/dri/.
-find /dev/dri/ -type c | while read -r dri_dev; do
+find /dev/dri/ -mindepth 1 -maxdepth 1 | while read -r dri_dev; do
+    [ -n "$dri_dev" ] || continue
+    [ -c "$dri_dev" ] || continue
     grp_id="$(stat -c "%g" "${dri_dev}")"
     if [ "${grp_id}" -ne 0 ]; then
         echo "${grp_id}" >> "${grps}"
