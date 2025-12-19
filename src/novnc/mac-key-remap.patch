@@ -1,0 +1,28 @@
+#
+# On Mac devices, noVNC remaps the Command keys to Alt keys. It also remaps Alt
+# keys to AltGraph keys. Since we are controlling Linux applications, it makes
+# more sense to remap Command keys to Control keys (for copy/paste shortcuts).
+# Remapping of Alt keys is also no needed.
+#
+--- a/core/input/keyboard.js
++++ b/core/input/keyboard.js
+@@ -142,17 +142,11 @@
+         if (browser.isMac() || browser.isIOS()) {
+             switch (keysym) {
+                 case KeyTable.XK_Super_L:
+-                    keysym = KeyTable.XK_Alt_L;
++                    keysym = KeyTable.XK_Control_L;
+                     break;
+                 case KeyTable.XK_Super_R:
+-                    keysym = KeyTable.XK_Super_L;
++                    keysym = KeyTable.XK_Control_R;
+                     break;
+-                case KeyTable.XK_Alt_L:
+-                    keysym = KeyTable.XK_Mode_switch;
+-                    break;
+-                case KeyTable.XK_Alt_R:
+-                    keysym = KeyTable.XK_ISO_Level3_Shift;
+-                    break;
+             }
+         }
+         // Is this key already pressed? If so, then we must use the
