@@ -111,6 +111,7 @@ const UI = {
         } else if (UI.webData.audioSupport) {
             UI.audioContext = {
                 audioEnabled: false,
+                firstInteractionHandled: false,
                 player: new PCMPlayer({
                     encoding: '16bitIntLE',
                     channels: 2,
@@ -121,6 +122,17 @@ const UI = {
             UI.updateLogging();
             document.getElementById('noVNC_audio_section')
                 .classList.remove("noVNC_hidden");
+
+            // Restore the audio volume from saved value.
+            let audio_enabled = parseInt(WebUtil.readSetting('audio_enabled', '0'));
+            let volume = 0;
+            if (audio_enabled) {
+                volume = parseInt(WebUtil.readSetting('audio_volume', '90'));
+                if (volume < 0) volume = 0;
+                if (volume > 100) volume = 100;
+                if (volume > 0) volume = Math.max(15, volume)
+            }
+            document.getElementById("noVNC_setting_audio_volume").value = volume.toString();
         }
 
         // Web authentication support.
@@ -1137,6 +1149,17 @@ const UI = {
         UI.showStatus(msg, 'normal', 2500, true);
         UI.updateVisualState('connected');
 
+        // Use the first user interaction to automatically enable audio if needed.
+        if (UI.audioContext && !UI.audioContext.firstInteractionHandled) {
+            ['pointerdown', 'touchstart'].forEach(eventType => {
+                document.addEventListener(eventType, () => {
+                    if (UI.audioContext.firstInteractionHandled) return;
+                    UI.audioContext.firstInteractionHandled = true;
+                    UI.updateAudioVolume();
+                }, { once: true });
+            });
+        }
+
         // Start desktop notification.
         if (UI.notificationService) {
             UI.notificationService.start();
@@ -1689,6 +1712,9 @@ const UI = {
         if (!UI.audioContext) return;
         UI.audioContext.audioEnabled = !UI.audioContext.audioEnabled;
 
+        // Save the audio enabled state.
+        WebUtil.writeSetting('audio_enabled', UI.audioContext.audioEnabled ? '1' : '0');
+
         if (UI.audioContext.audioEnabled) {
             // Get previous volume value.
             let volume = parseInt(WebUtil.readSetting('audio_volume', '90'));
@@ -1780,15 +1806,15 @@ const UI = {
             // Audio should be enabled.
 
             // Get the current volume value.
-            let volume = parseInt(document.getElementById("noVNC_setting_audio_volume").value);
+            let volume = parseInt(audioVolumeSlider.value);
             if (volume <= 0) volume = 1;  // We should not be muted.
             if (volume > 100) volume = 100;
 
-            // Set the volume value.
-            UI.audioContext.player.volume(volume / 100);
-
             // Make sure the PCM player is started.
             UI.audioContext.player.start();
+
+            // Set the volume value.
+            UI.audioContext.player.volume(volume / 100);
 
             // Make sure the WebSocket connection is established.
             if (!UI.audioContext.webSocket) {
