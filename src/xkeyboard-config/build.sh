@@ -41,6 +41,7 @@ log() {
 HOST_PKGS="\
     curl \
     build-base \
+    patch \
     abuild \
     meson \
     perl \
@@ -56,6 +57,8 @@ apk --no-cache add $HOST_PKGS
 mkdir /tmp/xkb
 log "Downloading XKeyboardConfig..."
 curl -# -L -f ${XKEYBOARDCONFIG_URL} | tar -xJ --strip 1 -C /tmp/xkb
+log "Patching XKeyboardConfig..."
+patch -p1 -d /tmp/xkb < "$SCRIPT_DIR"/command-key-mapping.patch
 log "Configuring XKeyboardConfig..."
 (
     cd /tmp/xkb && abuild-meson . build

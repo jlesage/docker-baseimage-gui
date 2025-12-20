@@ -1,0 +1,28 @@
+#
+# Remap the Command keys of Mac devices to Control.
+#
+--- a/symbols/pc	2025-12-19 19:11:45.564987730 -0500
++++ b/symbols/pc	2025-12-19 19:13:02.384359214 -0500
+@@ -17,12 +17,10 @@
+ 
+     key <LFSH> {[  Shift_L    ]};
+     key <RTSH> {[  Shift_R    ]};
+-    key <LCTL> {[  Control_L  ]};
+-    key <RCTL> {[  Control_R  ]};
++    key <LCTL> {[  Control_L, Super_L  ]};
++    key <RCTL> {[  Control_R, Super_R  ]};
+     key <LALT> {[  Alt_L,  Meta_L  ]};
+     key <RALT> {[  Alt_R,  Meta_R  ]};
+-    key <LWIN> {[  Super_L    ]};
+-    key <RWIN> {[  Super_R    ]};
+ 
+     key <MENU> {[  Menu  ]};
+ 
+@@ -31,7 +29,6 @@
+     modifier_map Control { Control_L, Control_R };
+     modifier_map Mod1    { Alt_L, Alt_R, Meta_L, Meta_R };
+     modifier_map Mod2    { Num_Lock };
+-    modifier_map Mod4    { Super_L, Super_R };
+ 
+     // Six fake keys for virtual<->real modifiers mapping:
+     key <LVL3> {[  ISO_Level3_Shift  ]};
