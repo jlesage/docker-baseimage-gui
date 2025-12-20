@@ -19,6 +19,13 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.10.4
+      date: 2025-12-19
+      changes:
+        changed:
+          - 'Web audio is now automatically re-enabled upon first user interaction.'
+          - 'Improved robustness of GPU devices detection.'
+          - 'Command key on Mac devices has been remapped to better match Linux application interactions.'
     - version: 4.10.3
       date: 2025-12-06
       changes:
