@@ -994,43 +994,34 @@ Here are the relevant configuration elements to add to the NGINX configuration:
 
 ```nginx
 map $http_upgrade $connection_upgrade {
-        default upgrade;
-        ''      close;
+	default upgrade;
+	''      close;
 }
 
 upstream docker-myapp {
-        # If the reverse proxy server is not running on the same machine as the
-        # Docker container, use the IP of the Docker host here.
-        # Make sure to adjust the port according to how port 5800 of the
-        # container has been mapped on the host.
-        server 127.0.0.1:5800;
+	# If the reverse proxy server is not running on the same machine as the
+	# Docker container, use the IP of the Docker host here.
+	# Make sure to adjust the port according to how port 5800 of the
+	# container has been mapped on the host.
+	server 127.0.0.1:5800;
 }
 
 server {
-        [...]
+	[...]
 
-        server_name myapp.domain.tld;
+	server_name myapp.domain.tld;
 
-        location / {
-                proxy_pass http://docker-myapp;
-        }
+	location / {
+		proxy_pass http://docker-myapp;
+	}
 
-        location /websockify {
-                proxy_pass http://docker-myapp;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection $connection_upgrade;
-                proxy_read_timeout 86400;
-        }
-
-        # Needed when audio support is enabled.
-        location /websockify-audio {
-                proxy_pass http://docker-myapp;
-                proxy_http_version 1.1;
-                proxy_set_header Upgrade $http_upgrade;
-                proxy_set_header Connection $connection_upgrade;
-                proxy_read_timeout 86400;
-        }
+	location /websockify {
+		proxy_pass http://docker-myapp;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection $connection_upgrade;
+		proxy_read_timeout 86400;
+	}
 }
 
 ```
@@ -1046,43 +1037,35 @@ Here are the relevant configuration elements to add to the NGINX configuration:
 
 ```nginx
 map $http_upgrade $connection_upgrade {
-        default upgrade;
-        ''      close;
+	default upgrade;
+	''      close;
 }
 
 upstream docker-myapp {
-        # If the reverse proxy server is not running on the same machine as the
-        # Docker container, use the IP of the Docker host here.
-        # Make sure to adjust the port according to how port 5800 of the
-        # container has been mapped on the host.
-        server 127.0.0.1:5800;
+	# If the reverse proxy server is not running on the same machine as the
+	# Docker container, use the IP of the Docker host here.
+	# Make sure to adjust the port according to how port 5800 of the
+	# container has been mapped on the host.
+	server 127.0.0.1:5800;
 }
 
 server {
-        [...]
+	[...]
 
-        location = /myapp {return 301 $scheme://$http_host/myapp/;}
-        location /myapp/ {
-                proxy_pass http://docker-myapp/;
-                # Uncomment the following line if your Nginx server runs on a port that
-                # differs from the one seen by external clients.
-                #port_in_redirect off;
-                location /myapp/websockify {
-                        proxy_pass http://docker-myapp/websockify;
-                        proxy_http_version 1.1;
-                        proxy_set_header Upgrade $http_upgrade;
-                        proxy_set_header Connection $connection_upgrade;
-                        proxy_read_timeout 86400;
-                }
-		# Needed when audio support is enabled.
-		location /myapp/websockify-audio {
-			proxy_pass http://docker-myapp/websockify-audio;
+	location = /myapp {return 301 $scheme://$http_host/myapp/;}
+	location /myapp/ {
+		proxy_pass http://docker-myapp/;
+		# Uncomment the following line if your Nginx server runs on a port that
+		# differs from the one seen by external clients.
+		#port_in_redirect off;
+		location ~ ^/myapp/(websockify(-.*)?) {
+			proxy_pass http://docker-myapp/$1;
 			proxy_http_version 1.1;
 			proxy_set_header Upgrade $http_upgrade;
 			proxy_set_header Connection $connection_upgrade;
 			proxy_read_timeout 86400;
 		}
-        }
+	}
 }
 
 ```
