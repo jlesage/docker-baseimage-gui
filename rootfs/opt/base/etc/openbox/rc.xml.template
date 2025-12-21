@@ -186,6 +186,27 @@
   <!-- 'Left', 'Middle', 'Right' -->
 </dock>
 
+<keyboard>
+  <!-- Bind Command/Windows/Super+c to ctrl+c for copy operation. -->
+  <keybind key="W-c">
+    <action name="Execute">
+      <command>/opt/base/bin/xdotool key -clearmodifiers ctrl+c</command>
+    </action>
+  </keybind>
+  <!-- Bind Command/Windows/Super+v to ctrl+v for paste operation. -->
+  <keybind key="W-v">
+    <action name="Execute">
+      <command>/opt/base/bin/xdotool key -clearmodifiers ctrl+v</command>
+    </action>
+  </keybind>
+  <!-- Bind Command/Windows/Super+v to ctrl+v for cut operation. -->
+  <keybind key="W-x">
+    <action name="Execute">
+      <command>/opt/base/bin/xdotool key -clearmodifiers ctrl+x</command>
+    </action>
+  </keybind>
+</keyboard>
+
 <mouse>
   <dragThreshold>1</dragThreshold>
   <!-- number of pixels the mouse must move before a drag begins -->
