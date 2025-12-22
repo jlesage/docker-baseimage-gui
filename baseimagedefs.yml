@@ -19,6 +19,11 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.10.5
+      date: 2025-12-21
+      changes:
+        fixed:
+          - 'Key combinations in some Linux applications broken by the Command key remapping.'
     - version: 4.10.4
       date: 2025-12-19
       changes:
