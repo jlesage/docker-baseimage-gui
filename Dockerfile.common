@@ -277,8 +277,8 @@ RUN \
     # Install noVNC.
     mkdir /tmp/noVNC && \
     curl -# -L ${NOVNC_URL} | tar -xz --strip 1 -C /tmp/noVNC && \
-    patch -p1 -d /tmp/noVNC < /build/auto-clipboard-sync.patch && \
-    patch -p1 -d /tmp/noVNC < /build/mac-key-remap.patch && \
+    patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/auto-clipboard-sync.patch && \
+    patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/mac-key-remap.patch && \
     cp -vr /tmp/noVNC/core /opt/noVNC/ && \
     cp -vr /tmp/noVNC/vendor /opt/noVNC/
 RUN \
