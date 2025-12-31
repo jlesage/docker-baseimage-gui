@@ -19,6 +19,11 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.10.6
+      date: 2025-12-31
+      changes:
+        fixed:
+            'Conversion of Command+<Key> shortcuts to the proper Alt+<Key> shortcuts for Linux applications.'
     - version: 4.10.5
       date: 2025-12-21
       changes:
