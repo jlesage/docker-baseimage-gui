@@ -1,18 +1,89 @@
 #
-# On Mac devices, noVNC remaps the Command keys to Alt keys. It also remaps Alt
-# keys to AltGraph keys. Disable these remappings since they don't make sense
-# when controlling Linux applications. Instead, let the X/VNC server handle
-# needed remappings. For example, it can remap Command keys to Control keys (for
-# copy/paste shortcuts).
+# On Mac devices, intercept copy/paste keyboard shortcuts and convert them as
+# Linux keyboard shortcuts.
 #
---- a/core/input/keyboard.js
-+++ b/core/input/keyboard.js
-@@ -142,7 +142,7 @@
-         // keys around a bit to make things more sane for the remote
-         // server. This method is used by RealVNC and TigerVNC (and
-         // possibly others).
--        if (browser.isMac() || browser.isIOS()) {
-+        if (false) {
-             switch (keysym) {
-                 case KeyTable.XK_Super_L:
-                    keysym = KeyTable.XK_Alt_L;
+--- a/core/input/keyboard.js	2025-12-25 14:45:53.869447507 -0500
++++ b/core/input/keyboard.js	2025-12-25 18:18:48.476766105 -0500
+@@ -21,6 +21,7 @@
+         this._keyDownList = {};         // List of depressed keys
+                                         // (even if they are happy)
+         this._altGrArmed = false;       // Windows AltGr detection
++        this._metaArmed = false;        // Mac copy/paste shortcuts detection
+ 
+         // keep these here so we can refer to them later
+         this._eventHandlers = {
+@@ -120,6 +121,23 @@
+             }
+         }
+ 
++        if (this._metaArmed) {
++            const codes = [ 'KeyC', 'KeyV', 'KeyX' ];
++            if (codes.includes(code)) {
++                this._metaArmed = false;
++
++                this._sendKeyEvent(KeyTable.XK_Control_L, "ControlLeft", true);
++                this._sendKeyEvent(keysym, code, true);
++                this._sendKeyEvent(keysym, code, false);
++                this._sendKeyEvent(KeyTable.XK_Control_L, "ControlLeft", false);
++
++                stopEvent(e);
++                return;
++            } else {
++                this._interruptMetaSequence();
++            }
++        }
++
+         // We cannot handle keys we cannot track, but we also need
+         // to deal with virtual keyboards which omit key info
+         if (code === 'Unidentified') {
+@@ -208,6 +226,16 @@
+             return;
+         }
+ 
++        // Possible start of copy/paste sequence ?
++        if ((code === "MetaLeft") && (browser.isMac() || browser.isIOS()) &&
++            !("MetaLeft" in this._keyDownList)) {
++            this._metaArmed = true;
++            this._metaSendKeyEvent = function() {
++                this._sendKeyEvent(keysym, code, true, numlock, capslock);
++            }
++            return;
++        }
++
+         this._sendKeyEvent(keysym, code, true, numlock, capslock);
+     }
+ 
+@@ -220,6 +248,10 @@
+         // abort that detection
+         this._interruptAltGrSequence();
+ 
++        // We can't get a release in the middle of a meta sequence, so
++        // abort that detection
++        this._interruptMetaSequence();
++
+         // See comment in _handleKeyDown()
+         if ((browser.isMac() || browser.isIOS()) && (code === 'CapsLock')) {
+             this._sendKeyEvent(KeyTable.XK_Caps_Lock, 'CapsLock', true);
+@@ -253,12 +285,22 @@
+         }
+     }
+ 
++    _interruptMetaSequence() {
++        if (this._metaArmed) {
++            this._metaArmed = false;
++            this._metaSendKeyEvent();
++        }
++    }
++
+     _allKeysUp() {
+         Log.Debug(">> Keyboard.allKeysUp");
+ 
+         // Prevent control key being processed after losing focus.
+         this._interruptAltGrSequence();
+ 
++        // Prevent meta key being processed after losing focus.
++        this._interruptMetaSequence();
++
+         for (let code in this._keyDownList) {
+             this._sendKeyEvent(this._keyDownList[code], code, false);
+         }

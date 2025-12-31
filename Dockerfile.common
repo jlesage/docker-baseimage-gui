@@ -108,16 +108,6 @@ RUN xx-verify --static /tmp/xcompmgr-install/usr/bin/xcompmgr
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/xcompmgr-install/usr/bin/xcompmgr
 
-# Build xdotool.
-FROM --platform=$BUILDPLATFORM alpine:3.20 AS xdotool
-ARG TARGETPLATFORM
-COPY --from=xx / /
-COPY src/xdotool /build
-RUN /build/build.sh
-RUN xx-verify --static /tmp/xdotool-install/usr/bin/xdotool
-COPY --from=upx /usr/bin/upx /usr/bin/upx
-RUN upx /tmp/xdotool-install/usr/bin/xdotool
-
 # Build hsetroot.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS hsetroot
 ARG TARGETPLATFORM
@@ -332,7 +322,6 @@ COPY --link --from=xkbcomp /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/openbox /opt/base/bin/
 COPY --link --from=openbox /tmp/openbox-install/usr/bin/obxprop /opt/base/bin/
 COPY --link --from=xcompmgr /tmp/xcompmgr-install/usr/bin/xcompmgr /opt/base/bin/
-COPY --link --from=xdotool /tmp/xdotool-install/usr/bin/xdotool /opt/base/bin/
 COPY --link --from=hsetroot /tmp/hsetroot-install/usr/bin/hsetroot /opt/base/bin/
 COPY --link --from=fontconfig /tmp/fontconfig-install/opt /opt
 COPY --link --from=xdpyprobe /tmp/xdpyprobe/xdpyprobe /opt/base/bin/
