@@ -35,7 +35,6 @@
  * @returns An object containing a dispose function which can be used to dispose of the unmute controller.
  */
 export function unmute(context, allowBackgroundPlayback, forceIOSBehavior) {
-    if (allowBackgroundPlayback === void 0) { allowBackgroundPlayback = false; }
     if (forceIOSBehavior === void 0) { forceIOSBehavior = false; }
     //#region Helpers
     // Determine the page visibility api
@@ -67,6 +66,7 @@ export function unmute(context, allowBackgroundPlayback, forceIOSBehavior) {
         (ua.indexOf("mac os x") >= 0 && navigator.maxTouchPoints > 0) // New ipads show up as macs in user agent, but they have a touch screen
     );
     //#endregion
+    if (allowBackgroundPlayback === void 0) { allowBackgroundPlayback = !isIOS; }
     //#region Playback Allowed State
     /** Indicates if audio should be allowed to play. */
     var allowPlayback = true; // Assume page is visible and focused by default
