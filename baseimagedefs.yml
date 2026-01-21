@@ -23,7 +23,7 @@ baseimage:
       date: 2025-12-31
       changes:
         fixed:
-            'Conversion of Command+<Key> shortcuts to the proper Alt+<Key> shortcuts for Linux applications.'
+            'On Mac devices, conversion of Command+<Key> shortcuts to the proper Alt+<Key> shortcuts for Linux applications.'
     - version: 4.10.5
       date: 2025-12-21
       changes:
