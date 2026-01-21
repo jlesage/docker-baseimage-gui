@@ -19,6 +19,15 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.10.7
+      date: 2026-01-20
+      changes:
+        added:
+          - 'Image based on Debian 13.'
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.8.3:'
+          - '2:Internal environment variables being appended to the persistent file on each container start instead of overwriting it.'
+          - 'Audio being paused when changing to another tab in the host browser.'
     - version: 4.10.6
       date: 2025-12-31
       changes:
