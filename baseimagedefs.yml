@@ -820,7 +820,7 @@ container:
       unraid_template:
         title: Dark Mode
         description: >-
-          When set to "1", enables dark mode for the application.
+          When set to `1`, enables dark mode for the application.
         display: advanced
         required: false
         mask: false
@@ -834,7 +834,7 @@ container:
       unraid_template:
         title: Web Audio
         description: >-
-          When set to "1", enables audio support, allowing audio produced by
+          When set to `1`, enables audio support, allowing audio produced by
           the application to play through the browser. Note that this feature
           is not supported for VNC clients.
         display: advanced
@@ -851,7 +851,7 @@ container:
       unraid_template:
         title: Web File Manager
         description: >-
-          When set to "1", enables the web file manager, allowing interaction
+          When set to `1`, enables the web file manager, allowing interaction
           with files inside the container through a web browser, supporting
           operations like renaming, deleting, uploading, and downloading. Note
           that this feature is not supported for VNC clients.
@@ -873,9 +873,9 @@ container:
         description: >-
           Comma-separated list of paths within the container that the file
           manager can access. By default, the container's entire filesystem is not
-          accessible, and this variable specifies allowed paths. If set to "AUTO",
+          accessible, and this variable specifies allowed paths. If set to `AUTO`,
           commonly used folders and those mapped to the container are
-          automatically allowed. The value "ALL" allows access to all paths (no
+          automatically allowed. The value `ALL` allows access to all paths (no
           restrictions).
         display: advanced
         required: false
@@ -907,7 +907,7 @@ container:
       unraid_template:
         title: Web Desktop Notifications
         description: >-
-          When set to '1', enables the web notification service, allowing the
+          When set to `1`, enables the web notification service, allowing the
           browser to display desktop notifications from the application. Note
           that this feature is not supported for VNC clients.
         display: advanced
@@ -925,7 +925,7 @@ container:
       unraid_template:
         title: Web Authentication
         description: >-
-          When set to "1", protects the application's GUI with a login page when
+          When set to `1`, protects the application's GUI with a login page when
           accessed via a web browser. Access is granted only with valid
           credentials. Note that this feature is not supported for VNC clients.
         display: advanced
@@ -986,7 +986,7 @@ container:
       unraid_template:
         title: Secure Connection
         description: >-
-          When set to "1", uses an encrypted connection to access the
+          When set to `1`, uses an encrypted connection to access the
           application's GUI (via web browser or VNC client).
         display: advanced
         required: false
@@ -1000,8 +1000,8 @@ container:
       unraid_template:
         title: Secure Connection VNC Method
         description: >-
-          Method used for encrpyted VNC connection. Possible values are "SSL" or
-          "TLS".
+          Method used for encrpyted VNC connection. Possible values are `SSL` or
+          `TLS`.
         display: advanced
         required: false
         mask: false
@@ -1014,11 +1014,6 @@ container:
       default: 60
       unraid_template:
         title: Secure Connection Certificate Check Interval
-        description: >-
-          Interval, in seconds, at which the system checks if web or VNC
-          certificates have changed. When a change is detected, affected
-          services are automatically restarted. A value of "0" disables the
-          check.
         display: advanced
         required: false
         mask: false
