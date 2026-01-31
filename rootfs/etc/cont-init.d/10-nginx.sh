@@ -68,7 +68,7 @@ fi
 
 # Handle SSL configuration.
 if is-bool-val-true "${SECURE_CONNECTION:-0}"; then
-    cp -a /defaults/default_ssl.conf "${SSL_CONF}"
+    cp -a /opt/base/etc/nginx/include/ssl.conf "${SSL_CONF}"
 fi
 
 # Handle stream configuration.
@@ -76,7 +76,7 @@ fi
 # VNC method set to SSL.
 if is-bool-val-true "${SECURE_CONNECTION:-0}" && [ "${SECURE_CONNECTION_VNC_METHOD:-SSL}" = "SSL" ] && [ "${VNC_LISTENING_PORT:-5900}" -ne -1 ]; then
     # Copy the default config.
-    cp -a /defaults/default_stream.conf "${STREAM_CONF}"
+    cp -a /opt/base/etc/nginx/include/stream.conf "${STREAM_CONF}"
 
     # Generate the listen directive for stream config.
     echo "listen ${VNC_LISTENING_PORT:-5900} ssl;" >> "${STREAM_LISTEN_CONF}"
@@ -84,12 +84,12 @@ fi
 
 # Handle configuration for audio support.
 if is-bool-val-true "${WEB_AUDIO:-0}"; then
-    cp -a /defaults/default_audio.conf "${AUDIO_CONF}"
+    cp -a /opt/base/etc/nginx/include/audio.conf "${AUDIO_CONF}"
 fi
 
 # Handle configuration for web authentication.
 if is-bool-val-true "${WEB_AUTHENTICATION:-0}"; then
-    cp -a /defaults/default_auth.conf "${AUTH_CONF}"
+    cp -a /opt/base/etc/nginx/include/auth.conf "${AUTH_CONF}"
 else
     # Feature is disabled, so we need to prevent access to the login page.
     {
@@ -101,12 +101,12 @@ fi
 
 # Handle configuration for file manager support.
 if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
-    cp -a /defaults/default_fmgr.conf "${FMGR_CONF}"
+    cp -a /opt/base/etc/nginx/include/fmgr.conf "${FMGR_CONF}"
 fi
 
 # Handle configuration for web notification support.
 if is-bool-val-true "${WEB_NOTIFICATION:-0}"; then
-    cp -a /defaults/default_notif.conf "${NOTIF_CONF}"
+    cp -a /opt/base/etc/nginx/include/notif.conf "${NOTIF_CONF}"
 fi
 
 # Make sure required directories are properly owned.
