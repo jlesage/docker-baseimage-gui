@@ -300,15 +300,6 @@ RUN \
     APP_ICON_URL=https://github.com/jlesage/docker-templates/raw/master/jlesage/images/generic-app-icon.png && \
     install_app_icon.sh --no-tools-install "$APP_ICON_URL"
 
-# Generate default DH params.
-FROM --platform=$BUILDPLATFORM alpine:3.20 AS dhparam
-RUN apk --no-cache add openssl
-RUN echo "Generating default DH parameters (2048 bits)..."
-RUN openssl dhparam \
-        -out "/tmp/dhparam.pem" \
-        2048 \
-        > /dev/null 2>&1
-
 # Pull the scratch image.
 FROM scratch
 
@@ -334,5 +325,4 @@ COPY --link --from=audiorecorder /tmp/build-audiorecorder/audiorecorder /opt/bas
 COPY --link --from=webauth /tmp/build-webauth/webauth /opt/base/bin/webauth
 COPY --link --from=webservices /tmp/build-webservices/webservices /opt/base/bin/webservices
 COPY --link --from=htpasswd /tmp/httpd-install/usr/bin/htpasswd /opt/base/bin/htpasswd
-COPY --link --from=dhparam /tmp/dhparam.pem /defaults/
 COPY --link --from=noVNC /opt/noVNC /opt/noVNC
