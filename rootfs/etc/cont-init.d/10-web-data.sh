@@ -79,6 +79,13 @@ else
     printf ',\n    "notificationSupport": false' >> "${WEB_DATA_FILE}"
 fi
 
+# Add terminal support.
+if is-bool-val-true "${WEB_TERMINAL:-0}"; then
+    printf ',\n    "terminal": true' >> "${WEB_DATA_FILE}"
+else
+    printf ',\n    "terminal": false' >> "${WEB_DATA_FILE}"
+fi
+
 # End of the JSON file.
 printf '\n}\n' >> "${WEB_DATA_FILE}"
 

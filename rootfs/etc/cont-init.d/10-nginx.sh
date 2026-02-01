@@ -22,6 +22,7 @@ AUDIO_CONF=/var/tmp/nginx/audio.conf
 AUTH_CONF=/var/tmp/nginx/auth.conf
 FMGR_CONF=/var/tmp/nginx/fmgr.conf
 NOTIF_CONF=/var/tmp/nginx/notif.conf
+TERM_CONF=/var/tmp/nginx/term.conf
 
 # Make sure required directories exist.
 for dir in ${NGINX_DIRS}; do
@@ -107,6 +108,11 @@ fi
 # Handle configuration for web notification support.
 if is-bool-val-true "${WEB_NOTIFICATION:-0}"; then
     cp -a /opt/base/etc/nginx/include/notif.conf "${NOTIF_CONF}"
+fi
+
+# Handle configuration for web terminal support.
+if is-bool-val-true "${WEB_TERMINAL:-0}"; then
+    cp -a /opt/base/etc/nginx/include/terminal.conf "${TERM_CONF}"
 fi
 
 # Make sure required directories are properly owned.

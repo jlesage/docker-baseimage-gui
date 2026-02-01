@@ -7,6 +7,8 @@ if is-bool-val-true "${WEB_FILE_MANAGER:-0}"; then
     echo "false"
 elif is-bool-val-true "${WEB_NOTIFICATION:-0}"; then
     echo "false"
+elif is-bool-val-true "${WEB_TERMINAL:-0}"; then
+    echo "false"
 else
     echo "true"
 fi

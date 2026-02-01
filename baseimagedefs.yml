@@ -913,6 +913,22 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_TERMINAL
+      description: >-
+        When set to `1`, enables access to a terminal from the web interface. It
+        is strongly recommended to configure the container with secure web
+        access (HTTPS). See [Web Terminal](#web-terminal) for details.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Terminal
+        description: >-
+          When set to `1`, enables access to a terminal from the web interface.
+          It is strongly recommended to configure the container with secure web
+          access (HTTPS).
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_AUTHENTICATION
       description: >-
         When set to `1`, protects the application's GUI with a login page when

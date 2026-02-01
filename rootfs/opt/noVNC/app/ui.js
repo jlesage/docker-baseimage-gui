@@ -19,9 +19,9 @@ import * as WebUtil from "./webutil.js";
 import { PCMPlayer } from "./pcm-player.min.js";
 import FileManager from "./fileManager.js";
 import NotificationService from "./notificationService.js";
+import Terminal from "./terminal.js";
 
 const UI = {
-
     webData: null,
 
     connected: false,
@@ -51,8 +51,9 @@ const UI = {
 
     notificationService: null,
 
-    async start() {
+    terminal: null,
 
+    async start() {
         // Initialize setting storage
         await WebUtil.initSettings();
 
@@ -117,7 +118,7 @@ const UI = {
                     channels: 2,
                     sampleRate: 44100,
                 }),
-            },
+            }
             UI.addAudioHandlers();
             UI.updateLogging();
             document.getElementById('noVNC_audio_section')
@@ -130,7 +131,7 @@ const UI = {
                 volume = parseInt(WebUtil.readSetting('audio_volume', '90'));
                 if (volume < 0) volume = 0;
                 if (volume > 100) volume = 100;
-                if (volume > 0) volume = Math.max(15, volume)
+                if (volume > 0) volume = Math.max(15, volume);
             }
             document.getElementById("noVNC_setting_audio_volume").value = volume.toString();
         }
@@ -186,6 +187,38 @@ const UI = {
             UI.notificationService.init(url);
         }
 
+        // Enable terminal.
+        if (UI.webData.terminal) {
+            // Activate terminal button in control bar.
+            UI.addTerminalHandlers();
+            document.getElementById("noVNC_terminal_button")
+                .classList.remove('noVNC_hidden');
+
+            const host = UI.getSetting('host');
+            const port = UI.getSetting('port');
+            const path = UI.getSetting('terminal_path');
+
+            let url;
+            url = UI.getSetting('encrypt') ? 'wss' : 'ws';
+            url += '://' + host;
+            if (port) {
+                url += ':' + port;
+            }
+            url += '/' + window.location.pathname.substr(1) + path;
+
+            UI.terminal = Terminal;
+            UI.terminal.init(url, "terminal_container");
+            UI.terminal.addEventListener('close', function () {
+                UI.closeTerminal();
+            });
+            UI.terminal.addEventListener('enabled', function () {
+                UI.enableTerminal();
+            });
+            UI.terminal.addEventListener('disabled', function () {
+                UI.disableTerminal();
+            });
+        }
+
         // Adapt the interface for touch screen devices
         if (isTouchDevice) {
             document.documentElement.classList.add("noVNC_touch");
@@ -234,7 +267,7 @@ const UI = {
                 else {
                     return true;
                 }
-            })
+            });
         });
         // Observe all actions buttons.  Note that the keyboard button is hidden
         // in CSS via the 'noVNC_touch' class.  Thus, this button doesn't have
@@ -243,6 +276,7 @@ const UI = {
         mutationObserver.observe(document.getElementById('noVNC_fullscreen_button'), { attributes: true });
         mutationObserver.observe(document.getElementById('noVNC_view_drag_button'), { attributes: true });
         mutationObserver.observe(document.getElementById('noVNC_file_manager_button'), { attributes: true });
+        mutationObserver.observe(document.getElementById('noVNC_terminal_button'), { attributes: true });
 
         UI.updateActionIconsSection();
 
@@ -332,6 +366,7 @@ const UI = {
         UI.initSetting('audio_path', 'websockify-audio');
         UI.initSetting('filemanager_path', 'ws-filemanager');
         UI.initSetting('notification_path', 'ws-notification');
+        UI.initSetting('terminal_path', 'ws-terminal');
         UI.initSetting('repeaterID', '');
         UI.initSetting('reconnect', true);
         UI.initSetting('reconnect_delay', 5000);
@@ -511,6 +546,28 @@ const UI = {
             .addEventListener('click', UI.toggleFileManager);
     },
 
+    addTerminalHandlers() {
+        const terminalModal = document.getElementById('terminal_modal');
+
+        // Open the terminal when the terminal modal is shown.
+        terminalModal.addEventListener('shown.bs.modal', () => {
+            if (!UI.terminal) return;
+            UI.openTerminal();
+        });
+
+        // Close the terminal when the terminal modal is closed.
+        terminalModal.addEventListener('hidden.bs.modal', () => {
+            if (!UI.terminal) return;
+            UI.closeTerminal();
+        });
+
+        // Resize the terminal when the window is resized.
+        window.addEventListener("resize", () => {
+            if (!UI.terminal) return;
+            UI.terminal.resize();
+        });
+    },
+
 /* ------^-------
  * /EVENT HANDLERS
  * ==============
@@ -519,7 +576,6 @@ const UI = {
 
     // Disable/enable controls depending on connection state
     updateVisualState(state) {
-
         // While reconnecting, inhibit some visual state changes.
         if (UI.ongoingReconnect) {
             switch (state) {
@@ -895,7 +951,8 @@ const UI = {
         if (!document.documentElement.classList.contains('noVNC_touch') &&
             document.getElementById('noVNC_fullscreen_button').classList.contains('noVNC_hidden') &&
             document.getElementById('noVNC_view_drag_button').classList.contains('noVNC_hidden') &&
-            document.getElementById('noVNC_file_manager_button').classList.contains('noVNC_hidden')) {
+            document.getElementById('noVNC_file_manager_button').classList.contains('noVNC_hidden') &&
+            document.getElementById('noVNC_terminal_button').classList.contains('noVNC_hidden')) {
             // All icons hidden: also hide the section.
             document.getElementById('noVNC_action_icons_section').classList.add('noVNC_hidden');
         }
@@ -941,7 +998,6 @@ const UI = {
         const ctrl = document.getElementById('noVNC_setting_' + name);
         if (ctrl.type === 'checkbox') {
             ctrl.checked = value;
-
         } else if (typeof ctrl.options !== 'undefined') {
             for (let i = 0; i < ctrl.options.length; i += 1) {
                 if (ctrl.options[i].value === value) {
@@ -1194,8 +1250,9 @@ const UI = {
             UI.updateVisualState('disconnected');
         }
 
-        UI.closeControlbar()
-        UI.closeFileManager()
+        UI.closeControlbar();
+        UI.closeFileManager();
+        UI.closeTerminal();
 
         // Make sure audio is also stopped.
         if (UI.audioContext) {
@@ -1873,6 +1930,46 @@ const UI = {
 
 /* ------^-------
  * /FILE MANAGER
+ * ==============
+ * TERMINAL
+ * ------v------*/
+
+    closeTerminal() {
+        if (!UI.terminal) return;
+
+        // Close the terminal.
+        UI.terminal.close();
+
+        // Make sure the terminal modal is closed.
+        let terminalModalEl = document.getElementById("terminal_modal");
+        let terminalModal = bootstrap.Modal.getInstance(terminalModalEl);
+        if (terminalModal) terminalModal.hide();
+    },
+
+    openTerminal() {
+        if (!UI.terminal) return;
+
+        // Open the terminal.
+        UI.closeControlbar();
+        UI.terminal.open();
+    },
+
+    enableTerminal() {
+        if (!UI.terminal) return;
+        const spinner = document.getElementById("terminal_spinner");
+        spinner.classList.remove("d-flex");
+        spinner.classList.add("d-none");
+    },
+
+    disableTerminal() {
+        if (!UI.terminal) return;
+        const spinner = document.getElementById("terminal_spinner");
+        spinner.classList.remove("d-none");
+        spinner.classList.add("d-flex");
+    },
+
+/* ------^-------
+ * /TERMINAL
  * ==============
  */
 

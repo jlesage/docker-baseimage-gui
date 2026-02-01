@@ -23,6 +23,7 @@ func main() {
 	flag.Func("allowed-path", "path allowed to be accessed by the file manager (can be used multiple times)", addAllowedPath)
 	flag.Func("denied-path", "path not allowed to be accessed by the file manager (can be used multiple times)", addDeniedPath)
 	enableNotification := flag.Bool("enable-notification", false, "enable desktop notification service")
+	enableTerminal := flag.Bool("enable-terminal", false, "enable terminal service")
 	flag.Parse()
 
 	// Handle log level.
@@ -50,6 +51,9 @@ func main() {
 			log.Fatal("could not initialize notification service: ", err)
 		}
 		router.GET("/ws-notification", getNotificationWebsocketHandler(appCtx))
+	}
+	if *enableTerminal {
+		router.GET("/ws-terminal", getTerminalWebSocketHandler(appCtx))
 	}
 	//router.NotFound = notFoundHandler()
 	//router.MethodNotAllowed = methodNotAllowedHandler()

@@ -21,6 +21,7 @@
     <link rel="stylesheet" href="app/styles/fontawesome.min.css?v=UNIQUE_VERSION">
     <link rel="stylesheet" href="app/styles/solid.min.css?v=UNIQUE_VERSION">
     <link rel="stylesheet" href="app/styles/bootstrap.min.css?v=UNIQUE_VERSION">
+    <link rel="stylesheet" href="app/styles/xterm.css?v=UNIQUE_VERSION">
     <link rel="stylesheet" href="app/styles/base.css?v=UNIQUE_VERSION">
 
     <!-- Images that will later appear via CSS -->
@@ -72,6 +73,7 @@
                             <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Fullscreen" id="noVNC_fullscreen_button"><i class="fas fa-expand fa-fw fa-lg"></i></a>
                             <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Move/Drag Viewport" id="noVNC_view_drag_button"><i class="fas fa-hand-rock fa-fw fa-lg"></i></a>
                             <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Open File Manager" id="noVNC_file_manager_button"><i class="fas fa-folder fa-fw fa-lg"></i></a>
+                            <a class="btn shadow-none p-0 px-2 noVNC_hidden" href="#" title="Open Terminal" id="noVNC_terminal_button" data-bs-toggle="modal" data-bs-target="#terminal_modal"><i class="fas fa-terminal fa-fw fa-lg"></i></a>
                         </div>
                     </li>
                     <!-- Clipboard -->
@@ -182,7 +184,7 @@
                     File Manager
                     <button type="button" class="fmgr-dialog-close-btn btn-close" aria-label="Close"></button>
                 </div>
-                <div class="card-body d-flex flex-column row-gap-2" style="height: 60vh">
+                <div class="card-body d-flex flex-column row-gap-2" style="height: 60vh;">
                     <!-- Error message. -->
                     <div class="fmgr-alert"></div>
                     <!-- Toolbar buttons. -->
@@ -206,6 +208,35 @@
                     </div>
                     <!-- File list. -->
                     <div class="fmgr-file-list d-flex flex-column align-items-stretch overflow-y-auto border-top"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Terminal Modal -->
+    <div class="modal fade" id="terminal_modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="terminal_modal_label" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="terminal_modal_label">Terminal</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-1" style="height: 60vh">
+                    <!-- Spinner -->
+                    <div id="terminal_spinner" style="background-clip: content-box;"
+                        class="position-absolute top-0 start-0 w-100 h-100
+                               bg-dark bg-opacity-50
+                               d-flex
+                               align-items-center justify-content-center
+                               p-1 z-3">
+                        <div class="spinner-border text-light" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                    <!-- Terminal container-->
+                    <div class="w-100 h-100 p-1" style="background: #000000">
+                        <div id="terminal_container" class="w-100 h-100"></div>
+                    </div>
                 </div>
             </div>
         </div>

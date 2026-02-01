@@ -234,9 +234,17 @@ FROM --platform=$BUILDPLATFORM alpine:3.20 AS noVNC
 ARG NOVNC_VERSION=1.6.0
 ARG BOOTSTRAP_VERSION=5.3.3
 ARG FONTAWESOME_VERSION=5.15.4
+ARG XTERM_VERSION=6.0.0
+ARG XTERM_ADDON_FIT_VERSION=0.11.0
 ARG NOVNC_URL=https://github.com/novnc/noVNC/archive/refs/tags/v${NOVNC_VERSION}.tar.gz
 ARG BOOTSTRAP_URL=https://github.com/twbs/bootstrap/releases/download/v${BOOTSTRAP_VERSION}/bootstrap-${BOOTSTRAP_VERSION}-dist.zip
 ARG FONTAWESOME_URL=https://github.com/FortAwesome/Font-Awesome/releases/download/${FONTAWESOME_VERSION}/fontawesome-free-${FONTAWESOME_VERSION}-web.zip
+ARG XTERM_JS_URL=https://cdn.jsdelivr.net/npm/@xterm/xterm@${XTERM_VERSION}/lib/xterm.js
+ARG XTERM_JS_MAP_URL=https://cdn.jsdelivr.net/npm/@xterm/xterm@${XTERM_VERSION}/lib/xterm.js.map
+ARG XTERM_CSS_URL=https://cdn.jsdelivr.net/npm/@xterm/xterm@${XTERM_VERSION}/css/xterm.css
+ARG XTERM_ADDON_FIT_URL=https://cdn.jsdelivr.net/npm/@xterm/addon-fit@${XTERM_ADDON_FIT_VERSION}/lib/addon-fit.min.js
+ARG XTERM_ADDON_FIT_MAP_URL=https://cdn.jsdelivr.net/npm/@xterm/addon-fit@${XTERM_ADDON_FIT_VERSION}/lib/addon-fit.min.js.map
+
 WORKDIR /tmp
 COPY src/novnc /build
 COPY helpers/* /usr/bin/
@@ -285,6 +293,13 @@ RUN \
     cp -v /tmp/fontawesome/css/solid.min.css /opt/noVNC/app/styles/ && \
     cp -v /tmp/fontawesome/css/fontawesome.min.css /opt/noVNC/app/styles/ && \
     sed -i 's/webfonts/fonts/g' /opt/noVNC/app/styles/solid.min.css
+RUN \
+    # Install xterm.js.
+    curl -# -L -o /opt/noVNC/app/xterm.js ${XTERM_JS_URL} && \
+    curl -# -L -o /opt/noVNC/app/xterm.js.map ${XTERM_JS_MAP_URL} && \
+    curl -# -L -o /opt/noVNC/app/styles/xterm.css ${XTERM_CSS_URL} && \
+    curl -# -L -o /opt/noVNC/app/xterm-addon-fit.js ${XTERM_ADDON_FIT_URL} && \
+    curl -# -L -o /opt/noVNC/app/xterm-addon-fit.js.map ${XTERM_ADDON_FIT_MAP_URL}
 RUN \
     # Set version of CSS and JavaScript file URLs.
     date | md5sum | cut -c1-10 > /tmp/unique_version && \
