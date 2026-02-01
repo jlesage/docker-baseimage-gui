@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"mime"
 	"net/http"
 	"os"
@@ -62,6 +64,7 @@ type FileInfo struct {
 }
 
 type UploadFileContext struct {
+	ConnId        uint64
 	Path          string
 	FileSize      uint64
 	Fd            *os.File
@@ -78,6 +81,14 @@ func (m *UploadFileContext) Cleanup(removeFile bool) {
 		if removeFile {
 			os.Remove(m.Path)
 		}
+	}
+}
+
+func getFileManagerLogPrefix(connId uint64) string {
+	if connId == 0 {
+		return "file manager: "
+	} else {
+		return fmt.Sprintf("file manager[conn id %d]:", connId)
 	}
 }
 
@@ -132,22 +143,45 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	http.ServeContent(w, r, fileName, fileStat.ModTime(), file)
 }
 
-func fileManagerWebsocketHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	conn, err := upgrader.Upgrade(w, r, nil)
+func getFileManagerWebsocketHandler(appCtx context.Context) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		fileManagerWebsocketHandler(appCtx, w, r, ps)
+	}
+}
+
+func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Register the WebSocket connection.
+	conn, connId, err := webSocketConnectionManager.SetupConnection(w, r, ps)
 	if err != nil {
-		log.Error("WebSocket upgrade failed:", err)
+		log.Errorf("%s WebSocket connection setup failed: %v", getFileManagerLogPrefix(0), err)
 		return
 	}
-	defer conn.Close()
 
-	log.Debug("new WebSocket connection established")
+	// Setup termination function for the WebSocket connection.
+	var closeConnOnce sync.Once
+	closeConn := func() {
+		closeConnOnce.Do(func() {
+			log.Debugf("%s closing WebSocket connection", getFileManagerLogPrefix(uint64(connId)))
+			webSocketConnectionManager.TeardownConnection(conn)
+		})
+	}
+	defer closeConn()
+
+	log.Debugf("%s new WebSocket connection established", getFileManagerLogPrefix(uint64(connId)))
+
+	// Handle server shutdown.
+	go func() {
+		<-appCtx.Done()
+		log.Debugf("%s web services server shutting down, terminating file manager", getFileManagerLogPrefix(uint64(connId)))
+		closeConn()
+	}()
 
 	for {
 		var msg Message
 		err := readMessagePack(conn, &msg)
 		if err != nil {
-			if !websocket.IsCloseError(err, websocket.CloseGoingAway) {
-				log.Error("WebSocket read error:", err)
+			if !isNormalWebSocketCloseError(err) {
+				log.Errorf("%s failed to read from WebSocket: %v", getFileManagerLogPrefix(uint64(connId)), err)
 			}
 			break
 		}
@@ -347,6 +381,7 @@ func fileManagerWebsocketHandler(w http.ResponseWriter, r *http.Request, _ httpr
 
 			// Create the upload context.
 			uploadFileContext := &UploadFileContext{
+				ConnId:        connId,
 				Path:          msg.Path,
 				FileSize:      msg.Size,
 				Fd:            file,
@@ -474,10 +509,16 @@ func fileManagerWebsocketHandler(w http.ResponseWriter, r *http.Request, _ httpr
 		}
 	}
 
-	log.Debug("WebSocket connection closed")
-
-	// Clear all pending uploads.
-	pendingUploads.Purge()
+	// Clear all pending uploads of this client.
+	defer func() {
+		keys := pendingUploads.Keys()
+		for _, key := range keys {
+			uploadFileContext, ok := pendingUploads.Peek(key)
+			if ok && uploadFileContext.ConnId == connId {
+				pendingUploads.Remove(key)
+			}
+		}
+	}()
 }
 
 func addAllowedPath(path string) error {

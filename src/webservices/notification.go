@@ -1,10 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"github.com/godbus/dbus/v5"
@@ -13,17 +13,6 @@ import (
 	"github.com/julienschmidt/httprouter"
 
 	"webservices/log"
-)
-
-const (
-	// Time allowed to write a message to the peer.
-	writeWait = 10 * time.Second
-
-	// Time allowed to read the next pong message from the peer.
-	pongWait = 60 * time.Second
-
-	// Send pings to peer with this period. Must be less than pongWait.
-	pingPeriod = (pongWait * 9) / 10
 )
 
 // Notifications implements the org.freedesktop.Notifications D-Bus interface.
@@ -39,15 +28,22 @@ type NotificationMessage struct {
 }
 
 // WebSocket clients
-var nextClientId uint64 = 0
 var clients = make(map[*websocket.Conn]chan NotificationMessage)
 var clientsMutex sync.Mutex
 
-func notificationServiceInit() error {
+func getNotificationLogPrefix(connId uint64) string {
+	if connId == 0 {
+		return "notification: "
+	} else {
+		return fmt.Sprintf("notification[conn id %d]:", connId)
+	}
+}
+
+func notificationServiceInit(appCtx context.Context) error {
 	// Connect to D-Bus.
 	conn, err := dbus.SessionBus()
 	if err != nil {
-		return fmt.Errorf("failed to connect to D-Bus: %w", err)
+		return fmt.Errorf("%s: failed to connect to D-Bus: %w", getNotificationLogPrefix(0), err)
 	}
 
 	// Register org.freedesktop.Notifications.
@@ -55,7 +51,7 @@ func notificationServiceInit() error {
 	err = conn.Export(n, "/org/freedesktop/Notifications", "org.freedesktop.Notifications")
 	if err != nil {
 		conn.Close()
-		return fmt.Errorf("failed to export Notifications interface: %w", err)
+		return fmt.Errorf("%s failed to export Notifications interface: %w", getNotificationLogPrefix(0), err)
 	}
 
 	// Export introspection data.
@@ -101,34 +97,44 @@ func notificationServiceInit() error {
 	reply, err := conn.RequestName("org.freedesktop.Notifications", dbus.NameFlagReplaceExisting|dbus.NameFlagDoNotQueue)
 	if err != nil {
 		conn.Close()
-		return fmt.Errorf("failed to request bus name: %w", err)
+		return fmt.Errorf("%s failed to request bus name: %w", getNotificationLogPrefix(0), err)
 	}
 	if reply != dbus.RequestNameReplyPrimaryOwner {
 		conn.Close()
-		return fmt.Errorf("could not become primary owner of org.freedesktop.Notifications")
+		return fmt.Errorf("%s could not become primary owner of org.freedesktop.Notifications", getNotificationLogPrefix(0))
 	}
 
 	// Serve the D-Bus requests.
-	go serveNotifications(conn)
+	go serveNotifications(conn, appCtx)
 
 	return nil
 }
 
-func serveNotifications(conn *dbus.Conn) {
+func serveNotifications(conn *dbus.Conn, appCtx context.Context) {
 	defer conn.Close()
-	select {}
-}
-
-func notificationWebsocketHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	clientId := atomic.AddUint64(&nextClientId, 1)
-
-	conn, err := upgrader.Upgrade(w, r, nil)
-	if err != nil {
-		log.Error("WebSocket upgrade failed: ", err)
+	select {
+	case <-appCtx.Done():
+		log.Debugf("%s web services server shutting down, terminating D-Bus connection", getNotificationLogPrefix(0))
 		return
 	}
+}
 
-	log.Debug("new WebSocket connection for desktop notifications established from client id", clientId)
+func getNotificationWebsocketHandler(appCtx context.Context) httprouter.Handle {
+	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+		notificationWebsocketHandler(appCtx, w, r, ps)
+	}
+}
+
+func notificationWebsocketHandler(appCtx context.Context, w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	// Register the WebSocket connection.
+	conn, connId, err := webSocketConnectionManager.SetupConnection(w, r, nil)
+	if err != nil {
+		log.Errorf("%s WebSocket connection setup failed: %v", getNotificationLogPrefix(0), err)
+		return
+	}
+	defer webSocketConnectionManager.TeardownConnection(conn)
+
+	log.Debugf("%s new WebSocket connection established", getNotificationLogPrefix(uint64(connId)))
 
 	// Setup ping mechanism to check connection with client.
 	ticker := time.NewTicker(pingPeriod)
@@ -150,7 +156,7 @@ func notificationWebsocketHandler(w http.ResponseWriter, r *http.Request, _ http
 	clientsMutex.Unlock()
 
 	defer func() {
-		log.Debug("WebSocket connection for desktop notifications terminated for client id", clientId)
+		log.Debugf("%s closing WebSocket connection", getNotificationLogPrefix(uint64(connId)))
 		clientsMutex.Lock()
 		delete(clients, conn)
 		clientsMutex.Unlock()
@@ -174,18 +180,18 @@ func notificationWebsocketHandler(w http.ResponseWriter, r *http.Request, _ http
 		// Handle notification messages.
 		case message := <-ch:
 			// Send notification message to this client.
-			log.Debug("forwarding desktop notification to client id", clientId)
+			log.Debugf("%s forwarding desktop notification to client", getNotificationLogPrefix(uint64(connId)))
 			conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := writeMessagePack(conn, message); err != nil {
-				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					log.Error("WebSocket for desktop notifications write error:", err)
+				if !isNormalWebSocketCloseError(err) {
+					log.Errorf("%s failed to write to WebSocket: %v", getNotificationLogPrefix(uint64(connId)), err)
 				}
 				return
 			}
 		// Handle WebSocket read errors.
 		case err := <-readCh:
-			if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-				log.Error("WebSocket for desktop notifications read error:", err)
+			if !isNormalWebSocketCloseError(err) {
+				log.Errorf("%s failed to read from WebSocket: %v", getNotificationLogPrefix(uint64(connId)), err)
 			}
 			return
 		// Handle ping timer.
@@ -193,11 +199,15 @@ func notificationWebsocketHandler(w http.ResponseWriter, r *http.Request, _ http
 			// Send ping.
 			conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				if !websocket.IsCloseError(err, websocket.CloseNormalClosure, websocket.CloseGoingAway) {
-					log.Error("WebSocket for desktop notifications ping write error:", err)
+				if !isNormalWebSocketCloseError(err) {
+					log.Errorf("%s failed to write ping to WebSocket: %v", getNotificationLogPrefix(uint64(connId)), err)
 				}
 				return
 			}
+		// Handle server shutdown.
+		case <-appCtx.Done():
+			log.Debugf("%s web services server shutting down, terminating desktop notifications", getNotificationLogPrefix(uint64(connId)))
+			return
 		}
 	}
 }
@@ -221,7 +231,7 @@ func (n *Notifications) Notify(appName string, replacesID uint32, appIcon, summa
 	defer clientsMutex.Unlock()
 
 	// Send to WebSocket clients.
-	log.Debugf("new desktop notification received, forwarding to %d client(s)", len(clients))
+	log.Debugf("%s new desktop notification received, forwarding to %d client(s)", getNotificationLogPrefix(0), len(clients))
 	for _, ch := range clients {
 		// Send without blocking.
 		select {
