@@ -31,6 +31,7 @@ const fileReaderModule = (function() {
             let blob = null;
             let eventCallbacks = {
                 'block': [],
+                'error': [],
             };
 
             // Private methods.
@@ -54,8 +55,13 @@ const fileReaderModule = (function() {
                 };
 
                 reader.onerror = function(e) {
-                    showError("Upload operation failed: file read error.");
-                    terminateUpload(true);
+                    // Delegate error handling to registered callbacks so the
+                    // module using this FileReader can decide how to react.
+
+                    // Invoke defined callbacks.
+                    eventCallbacks['error'].forEach(function (func) {
+                        func(e);
+                    });
                 };
             }
 
@@ -669,6 +675,12 @@ const FileManager = (function() {
                 }
 
                 this.fileReader = new fileReaderModule(this.files[this.filesProcessed]);
+
+                // Function to call when a file read error occurs.
+                this.fileReader.addEventListener('error', (e) => {
+                    showError("Upload operation failed: file read error.");
+                    terminateUpload(true);
+                });
 
                 // Function to call when a file block is read from the disk. The
                 // block has now to be sent to the server.
