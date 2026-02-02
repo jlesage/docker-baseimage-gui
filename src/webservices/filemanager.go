@@ -197,8 +197,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			}
 
 			files, err := listDir(msg.Path)
-			if err, ok := err.(*os.PathError); ok {
-				sendError(conn, err.Err.Error(), msg)
+			if pathErr, ok := err.(*os.PathError); ok {
+				sendError(conn, pathErr.Err.Error(), msg)
 				continue
 			} else if err != nil {
 				sendError(conn, err.Error(), msg)
@@ -272,8 +272,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			}
 
 			err := os.Rename(msg.Path, filepath.Dir(msg.Path)+"/"+msg.NewName)
-			if err, ok := err.(*os.PathError); ok {
-				sendError(conn, err.Err.Error(), msg)
+			if linkErr, ok := err.(*os.LinkError); ok {
+				sendError(conn, linkErr.Err.Error(), msg)
 				continue
 			} else if err != nil {
 				sendError(conn, err.Error(), msg)
@@ -294,8 +294,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			}
 
 			info, err := os.Stat(msg.Path)
-			if err, ok := err.(*os.PathError); ok {
-				sendError(conn, err.Err.Error(), msg)
+			if pathErr, ok := err.(*os.PathError); ok {
+				sendError(conn, pathErr.Err.Error(), msg)
 				continue
 			} else if err != nil {
 				sendError(conn, err.Error(), msg)
@@ -306,8 +306,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			} else {
 				err = os.Remove(msg.Path)
 			}
-			if err, ok := err.(*os.PathError); ok {
-				sendError(conn, err.Err.Error(), msg)
+			if pathErr, ok := err.(*os.PathError); ok {
+				sendError(conn, pathErr.Err.Error(), msg)
 				continue
 			} else if err != nil {
 				sendError(conn, err.Error(), msg)
@@ -332,8 +332,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			}
 
 			err := os.Mkdir(msg.Path, 0755)
-			if err, ok := err.(*os.PathError); ok {
-				sendError(conn, err.Err.Error(), msg)
+			if pathErr, ok := err.(*os.PathError); ok {
+				sendError(conn, pathErr.Err.Error(), msg)
 				continue
 			} else if err != nil {
 				sendError(conn, err.Error(), msg)
@@ -468,8 +468,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 
 			// Get file information.
 			info, err := os.Stat(msg.Path)
-			if err, ok := err.(*os.PathError); ok {
-				sendError(conn, err.Err.Error(), msg)
+			if pathErr, ok := err.(*os.PathError); ok {
+				sendError(conn, pathErr.Err.Error(), msg)
 				continue
 			} else if err != nil {
 				sendError(conn, err.Error(), msg)
