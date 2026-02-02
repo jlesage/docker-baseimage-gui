@@ -725,7 +725,7 @@ const FileManager = (function() {
 
             terminate: function(sendCancel) {
                 // Destroy the file reader.
-                if (this.fileRead) {
+                if (this.fileReader) {
                     this.fileReader.stop();
                     this.fileReader = null;
                 }
