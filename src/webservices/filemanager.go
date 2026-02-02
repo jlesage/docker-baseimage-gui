@@ -47,14 +47,14 @@ var pendingUploads *expirable.LRU[string, *UploadFileContext] = expirable.NewLRU
 
 // Message represents the structure of WebSocket messages received from clients.
 type Message struct {
-	Type       string `msgpack:"type"`
-	Path       string `msgpack:"path,omitempty"`
-	OldPath    string `msgpack:"oldPath,omitempty"`
-	NewPath    string `msgpack:"newPath,omitempty"`
-	NewName    string `msgpack:"newName,omitempty"`
-	Size       uint64 `msgpack:"size,omitempty"`
-	ChunkIndex uint   `msgpack:"chunkIndex,omitempty"`
-	Content    []byte `msgpack:"content,omitempty"`
+	Type       string  `msgpack:"type"`
+	Path       string  `msgpack:"path,omitempty"`
+	OldPath    string  `msgpack:"oldPath,omitempty"`
+	NewPath    string  `msgpack:"newPath,omitempty"`
+	NewName    string  `msgpack:"newName,omitempty"`
+	Size       *uint64 `msgpack:"size,omitempty"`
+	ChunkIndex uint    `msgpack:"chunkIndex,omitempty"`
+	Content    []byte  `msgpack:"content,omitempty"`
 }
 
 type FileInfo struct {
@@ -348,10 +348,10 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
-			} else if msg.Size == 0 {
+			} else if msg.Size == nil {
 				sendError(conn, "size missing", msg)
 				continue
-			} else if msg.Size > MAX_FILE_UPLOAD_SIZE {
+			} else if *msg.Size > MAX_FILE_UPLOAD_SIZE {
 				sendError(conn, "size too big", msg)
 				continue
 			} else if !isPathAllowed(msg.Path) {
@@ -379,11 +379,18 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 				continue
 			}
 
+			// If the file size is zero, we are done.
+			if *msg.Size == 0 {
+				file.Close()
+				sendSuccess(conn, msg)
+				continue
+			}
+
 			// Create the upload context.
 			uploadFileContext := &UploadFileContext{
 				ConnId:        connId,
 				Path:          msg.Path,
-				FileSize:      msg.Size,
+				FileSize:      *msg.Size,
 				Fd:            file,
 				BytesReceived: 0,
 			}

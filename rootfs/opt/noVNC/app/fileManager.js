@@ -662,6 +662,12 @@ const FileManager = (function() {
             start: function() {
                 if (this.fileReader) return;
 
+                // Special case for empty files: nothing to read.
+                if (this.files[this.filesProcessed].size === 0) {
+                    advanceUpload();
+                    return;
+                }
+
                 this.fileReader = new fileReaderModule(this.files[this.filesProcessed]);
 
                 // Function to call when a file block is read from the disk. The
@@ -689,7 +695,13 @@ const FileManager = (function() {
             advance: function() {
                 // Calculate progress, based on the current file progress and
                 // the total number of files processed.
-                const progress = Math.floor((this.filesProcessed + 1) * this.curFileProgress.cur / this.curFileProgress.tot / this.totalFiles * 100);
+                const progress = Math.floor(
+                    (this.filesProcessed + 1)
+                    * Math.max(this.curFileProgress.cur, 1)
+                    / Math.max(this.curFileProgress.tot, 1)
+                    / this.totalFiles
+                    * 100
+                );
 
                 const fileCompleted = (this.curFileProgress.cur === this.curFileProgress.tot);
                 if (fileCompleted) {
