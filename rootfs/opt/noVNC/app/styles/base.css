@@ -369,30 +369,6 @@ body {
   display: none;
 }
 
-/* ----------------------------------------
- * File Manager Dialog
- * ----------------------------------------
- */
-
-.fmgr-dialog {
-  position: relative;
-
-  transform: translateY(-50px);
-
-  visibility: hidden;
-  opacity: 0;
-
-  transition: 0.5s ease-in-out;
-}
-.fmgr-dialog.noVNC_open {
-  transform: translateY(0);
-  visibility: visible;
-  opacity: 1;
-}
-.noVNC_hidden {
-  display: none;
-}
-
 /*
 .toolbar {
   padding: 10px;

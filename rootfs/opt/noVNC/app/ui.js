@@ -163,9 +163,12 @@ const UI = {
 
             // Initialize the file manager.
             UI.fileManager = FileManager;
-            UI.fileManager.init(url);
-            UI.fileManager.addEventListener('close', function() {
-                UI.closeFileManager();
+            UI.fileManager.init(url, 'fmgr_modal');
+            UI.fileManager.addEventListener('enabled', function () {
+                UI.enableFileManager();
+            });
+            UI.fileManager.addEventListener('disabled', function () {
+                UI.disableFileManager();
             });
         }
 
@@ -542,8 +545,19 @@ const UI = {
     },
 
     addFileManagerHandlers() {
-        document.getElementById("noVNC_file_manager_button")
-            .addEventListener('click', UI.toggleFileManager);
+        const fmgrModal = document.getElementById('fmgr_modal');
+
+        // Open file manager when the file manager modal is shown.
+        fmgrModal.addEventListener('shown.bs.modal', () => {
+            if (!UI.fileManager) return;
+            UI.openFileManager();
+        });
+
+        // Close file manager when the file manager modal is closed.
+        fmgrModal.addEventListener('hidden.bs.modal', () => {
+            if (!UI.fileManager) return;
+            UI.closeFileManager();
+        });
     },
 
     addTerminalHandlers() {
@@ -1908,24 +1922,34 @@ const UI = {
 
     closeFileManager() {
         if (UI.fileManager) {
-            const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
-            fileManagerBtn.classList.remove('noVNC_selected');
             UI.fileManager.close();
+
+            // Make sure the file manager modal is closed.
+            let fileManagerModalEl = document.getElementById("fmgr_modal");
+            let fileManagerModal = bootstrap.Modal.getInstance(fileManagerModalEl);
+            if (fileManagerModal) fileManagerModal.hide();
         }
     },
 
-    toggleFileManager() {
+    openFileManager() {
         if (UI.fileManager) {
-            const fileManagerBtn = document.getElementById('noVNC_file_manager_button');
-            if (fileManagerBtn.classList.contains('noVNC_selected')) {
-                fileManagerBtn.classList.remove('noVNC_selected');
-                UI.fileManager.close();
-            } else {
-                fileManagerBtn.classList.add('noVNC_selected');
-                UI.fileManager.open();
                 UI.closeControlbar();
-            }
+                UI.fileManager.open();
         }
+    },
+
+    enableFileManager() {
+        if (!UI.fileManager) return;
+        const spinner = document.getElementById("ftmgr_spinner");
+        spinner.classList.remove("d-flex");
+        spinner.classList.add("d-none");
+    },
+
+    disableFileManager() {
+        if (!UI.fileManager) return;
+        const spinner = document.getElementById("ftmgr_spinner");
+        spinner.classList.remove("d-none");
+        spinner.classList.add("d-flex");
     },
 
 /* ------^-------

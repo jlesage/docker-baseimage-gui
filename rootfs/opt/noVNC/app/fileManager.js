@@ -103,6 +103,7 @@ const fileReaderModule = (function() {
 
 // FileManager Module
 const FileManager = (function() {
+    let fileManagerContainerId = null;
     let webSocket = null;
     let webSocketUrl = null;
     let webSocketConnected = false;
@@ -110,6 +111,8 @@ const FileManager = (function() {
     let fileManagerOpened = false;
     let moduleEventCallbacks = {
         'close': [],
+        'enabled': [],
+        'disabled': [],
     };
     let currentPath = '/';
     let activeUpload = null;
@@ -117,14 +120,9 @@ const FileManager = (function() {
     let activePopover = null;
     let activePopoverTarget = null;
 
-    function initialize(wsUrl) {
+    function initialize(wsUrl, containerId) {
         webSocketUrl = wsUrl;
-        connectWebSocket();
-
-        // File manager dialog close button handling.
-        document.querySelector('.fmgr-dialog-close-btn').addEventListener('click', () => {
-            closeFileManager();
-        });
+        fileManagerContainerId = containerId;
 
         // Upload button click handling.
         document.querySelector('.fmgr-upload-btn').addEventListener('click', () => {
@@ -221,6 +219,11 @@ const FileManager = (function() {
     function connectWebSocket() {
         if (webSocket) return;
 
+        if (webSocketConnectTimer) {
+            clearTimeout(webSocketConnectTimer);
+            webSocketConnectTimer = null;
+        }
+
         Log.Info("Establishing WebSocket connection for file manager...");
         webSocket = new WebSocket(webSocketUrl);
         webSocket.binaryType = 'arraybuffer';
@@ -236,10 +239,12 @@ const FileManager = (function() {
         webSocket.onopen = function(e) {
             Log.Info("WebSocket connection for file manager established");
             webSocketConnected = true;
-            if (fileManagerOpened) {
-                clearError();
-                refresh();
-            }
+
+            clearError();
+            refresh();
+
+            // Enable the file manager.
+            enableFileManager();
         };
 
         webSocket.onclose = function(event) {
@@ -248,38 +253,56 @@ const FileManager = (function() {
             } else {
                 // e.g. server process killed or network down
                 // event.code is usually 1006 in this case
-                Log.Info('WebSocket connection for file manager died');
+                Log.Info(`WebSocket connection for file manager died, code=${event.code} reason=${event.reason}`);
             }
 
-            // Destroy the connection.
-            webSocket = null;
-            webSocketConnected = false;
+            // Disable the file manager.
+            disableFileManager();
+
+            // Destroy the WebSocket connection.
+            disconnectWebSocket();
 
             // Attempt to re-connect.
             if (fileManagerOpened) {
                 Log.Info('WebSocket reconnection for file manager will be attempted');
+                showError("Connection lost, reconnecting...");
                 webSocketConnectTimer = setTimeout(connectWebSocket, 1000);
             }
         };
+    }
+
+    function disconnectWebSocket() {
+        if (webSocket) {
+            webSocket.close();
+            webSocket = null;
+            webSocketConnected = false;
+        }
+
+        if (webSocketConnectTimer) {
+            clearTimeout(webSocketConnectTimer);
+            webSocketConnectTimer = null;
+        }
     }
 
     function openFileManager() {
         if (!fileManagerOpened) {
             fileManagerOpened = true;
 
-            // Connect to WebSocket if needed.
-            if (webSocketConnected) {
-                clearError();
-                refresh();
-            } else {
-                currentPath = '/';
-                renderFileList(currentPath, null);
-                showError("Not connected to web services server.");
-                connectWebSocket();
-            }
+            Log.Info("Opening file manager.");
 
-            // Show the file manager dialog.
-            document.querySelector('.fmgr-dialog').classList.add('noVNC_open');
+            // Disable file manager for now. It will be re-enabled
+            // once the WebSocket connection is established.
+            disableFileManager();
+
+            // Clear any existing error.
+            clearError();
+
+            // Initialize file list.
+            currentPath = '/';
+            renderFileList(currentPath, null);
+
+            // Establish WebSocket connection.
+            connectWebSocket();
 
             return true;
         } else {
@@ -291,11 +314,17 @@ const FileManager = (function() {
         if (fileManagerOpened) {
             fileManagerOpened = false;
 
-            // Hide the file manager dialog.
-            document.querySelector('.fmgr-dialog').classList.remove('noVNC_open');
+            Log.Info("Closing file manager.");
 
-            // Stop trying to connect to WebSocket.
-            clearTimeout(webSocketConnectTimer);
+            // Close the WebSocket connection.
+            disconnectWebSocket();
+
+            // Clear any existing error.
+            clearError();
+
+            // Terminate active transfers.
+            terminateDownload();
+            terminateUpload(false);
 
             // Discard any active popover.
             discardActivePopover();
@@ -308,6 +337,20 @@ const FileManager = (function() {
         } else {
             return false;
         }
+    }
+
+    function enableFileManager() {
+        // Invoke the enabled callbacks.
+        moduleEventCallbacks['enabled'].forEach(function (func, index) {
+            func();
+        });
+    }
+
+    function disableFileManager() {
+        // Invoke the disabled callbacks.
+        moduleEventCallbacks['disabled'].forEach(function (func, index) {
+            func();
+        });
     }
 
     function handleWebSocketMessage(event) {
@@ -385,6 +428,7 @@ const FileManager = (function() {
         activePopover = new bootstrap.Popover(elem, {
             title: title,
             content: content,
+            container: document.getElementById(fileManagerContainerId),
             html: true,
             sanitize: false, // Disable sanitization to allow HTML content
             trigger: 'click',
@@ -576,7 +620,7 @@ const FileManager = (function() {
                       onmouseout="this.style.color='inherit';"
                       ${file.isDir ? 'data-fmgr-file-action="navigate"' : ''}
                       >
-                    ${file.name}
+                    ${escapedFileName}
                 </span>
                 <!-- Action buttons. -->
                 <div class="ms-auto d-flex flex-nowrap">
@@ -837,8 +881,8 @@ const FileManager = (function() {
 
     // Public API
     return {
-        init: function(wsUrl) {
-            initialize(wsUrl);
+        init: function(wsUrl, containerId) {
+            initialize(wsUrl, containerId);
         },
 
         initLogging: function(level) {
