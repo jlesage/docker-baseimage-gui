@@ -10,21 +10,22 @@ ARG BASEIMAGE_COMMON=unknown
 
 # Define the Alpine packages to be installed into the image.
 ARG ALPINE_PKGS="\
-    # Needed to generate self-signed certificates
+    # Needed to generate self-signed certificates.
     openssl \
-    # Needed to use netcat with unix socket.
+    # Used to determine if nginx is ready.
     netcat-openbsd \
 "
 
 # Define the Debian/Ubuntu packages to be installed into the image.
 ARG DEBIAN_PKGS="\
+    # Needed to generate self-signed certificates.
+    openssl \
     # Used to determine if nginx is ready.
     netcat-openbsd \
     # For ifconfig
     net-tools \
-    # Needed to generate self-signed certificates
-    openssl \
 "
+
 # Common stuff of the baseimage.
 FROM ${BASEIMAGE_COMMON} AS baseimage-common
 
@@ -38,11 +39,18 @@ WORKDIR /tmp
 ARG ALPINE_PKGS
 ARG DEBIAN_PKGS
 RUN \
-    if [ -n "$(which apk)" ]; then \
-        add-pkg ${ALPINE_PKGS}; \
-    else \
-        add-pkg ${DEBIAN_PKGS}; \
-    fi && \
+    case "$(awk -F= '/^ID=/ {print $2}' /etc/os-release)" in \
+        alpine) \
+            /opt/base/bin/add-pkg ${ALPINE_PKGS}; \
+            ;; \
+        debian|ubuntu) \
+            /opt/base/bin/add-pkg ${DEBIAN_PKGS}; \
+            ;; \
+        *) \
+            echo "ERROR: unknown os ID '$(awk -F= '/^ID=/ {print $2}' /etc/os-release)'"; \
+            exit 1; \
+            ;; \
+    esac && \
     # Remove some unneeded stuff.
     rm -rf /var/cache/fontconfig/*
 
