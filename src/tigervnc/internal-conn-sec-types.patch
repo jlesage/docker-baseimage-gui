@@ -1,25 +1,28 @@
 #
-# This patch adds the ability to configure a different of security types for
+# This patch adds the ability to configure a different security type for
 # internal connection (e.g. Unix domain socket).
 #
 --- a/common/rfb/SConnection.cxx
 +++ b/common/rfb/SConnection.cxx
-@@ -45,6 +45,7 @@ static LogWriter vlog("SConnection");
+@@ -49,7 +49,9 @@ using namespace rfb;
+ static core::LogWriter vlog("SConnection");
  
- SConnection::SConnection(AccessRights accessRights)
-   : readyForSetColourMapEntries(false),
+ SConnection::SConnection(AccessRights accessRights_)
+-  : readyForSetColourMapEntries(false), is(nullptr), os(nullptr),
++  : readyForSetColourMapEntries(false),
 +    isInternal(false),
-     is(0), os(0), reader_(0), writer_(0), ssecurity(0),
++    is(nullptr), os(nullptr),
+     reader_(nullptr), writer_(nullptr), ssecurity(nullptr),
      authFailureTimer(this, &SConnection::handleAuthFailureTimeout),
      state_(RFBSTATE_UNINITIALISED), preferredEncoding(encodingRaw),
-@@ -71,6 +76,17 @@ void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
+@@ -76,6 +78,17 @@ void SConnection::setStreams(rdr::InStream* is_, rdr::OutStream* os_)
    os = os_;
  }
  
 +void SConnection::setInternal(bool internal)
 +{
 +  isInternal = internal;
-+  security.UpdateSecTypes(this);
++  security.UpdateSecTypes(internal);
 +}
 +
 +bool SConnection::getInternal()
@@ -32,7 +35,7 @@
    char str[13];
 --- a/common/rfb/SConnection.h
 +++ b/common/rfb/SConnection.h
-@@ -56,6 +56,11 @@ namespace rfb {
+@@ -59,6 +59,11 @@ namespace rfb {
      // (i.e. SConnection will not delete them).
      void setStreams(rdr::InStream* is, rdr::OutStream* os);
  
@@ -44,7 +47,7 @@
      // initialiseProtocol() should be called once the streams and security
      // types are set.  Subsequently, processMsg() should be called whenever
      // there is data to read on the InStream.
-@@ -242,6 +248,8 @@ namespace rfb {
+@@ -273,6 +278,8 @@ namespace rfb {
  
      int defaultMajorVersion, defaultMinorVersion;
  
@@ -55,11 +58,11 @@
  
 --- a/common/rfb/SecurityServer.cxx
 +++ b/common/rfb/SecurityServer.cxx
-@@ -54,6 +54,19 @@ StringParameter SecurityServer::secTypes
-  "VncAuth",
- ConfServer);
+@@ -64,6 +64,30 @@ core::EnumListParameter SecurityServer::secTypes
+ #endif
+  "VncAuth"});
  
-+StringParameter SecurityServer::internalConnectionSecTypes
++core::EnumListParameter SecurityServer::internalConnectionSecTypes
 +("InternalConnectionSecurityTypes",
 + "Specify which security scheme to use for internal connections (None, VncAuth, Plain"
 +#ifdef HAVE_GNUTLS
@@ -69,53 +72,83 @@
 + ", RA2, RA2ne, RA2_256, RA2ne_256"
 +#endif
 + ")",
-+ "",
-+ConfServer);
++ { "None", "VncAuth", "Plain",
++#ifdef HAVE_GNUTLS
++ "TLSNone", "TLSVnc", "TLSPlain", "X509None", "X509Vnc", "X509Plain",
++#endif
++#ifdef HAVE_NETTLE
++ "RA2", "RA2ne", "RA2_256", "RA2ne_256",
++#endif
++ },
++ {
++#ifdef HAVE_GNUTLS
++ "TLSVnc",
++#endif
++ "VncAuth"});
 +
  SSecurity* SecurityServer::GetSSecurity(SConnection* sc, uint32_t secType)
  {
    if (!IsSupported(secType))
-@@ -94,3 +107,13 @@ bail:
-   throw Exception("Security type not supported");
+@@ -104,3 +128,32 @@ bail:
+   throw std::invalid_argument("Security type not supported");
  }
  
-+void SecurityServer::UpdateSecTypes(SConnection *sc)
++void SecurityServer::UpdateSecTypes(bool internalConnection)
 +{
 +  std::list<uint32_t> newSecTypes;
-+  if (sc->getInternal())
-+    newSecTypes = parseSecTypes(internalConnectionSecTypes);
-+  if (newSecTypes.size() == 0)
-+    newSecTypes = parseSecTypes(secTypes);
++
++  if (internalConnection) {
++    for (core::EnumListEntry type : internalConnectionSecTypes) {
++      uint32_t typeNum = secTypeNum(type.getValueStr().c_str());
++      // Should have been filtered by EnumListParameter, but let's have
++      // a safety net
++      if (typeNum == secTypeInvalid)
++        throw std::logic_error("Unknown security type");
++      newSecTypes.push_back(typeNum);
++    }
++  }
++
++  if (newSecTypes.size() == 0) {
++    for (core::EnumListEntry type : secTypes) {
++      uint32_t typeNum = secTypeNum(type.getValueStr().c_str());
++      // Should have been filtered by EnumListParameter, but let's have
++      // a safety net
++      if (typeNum == secTypeInvalid)
++        throw std::logic_error("Unknown security type");
++      newSecTypes.push_back(typeNum);
++    }
++  }
++
 +  SetSecTypes(newSecTypes);
 +}
 +
 --- a/common/rfb/SecurityServer.h
 +++ b/common/rfb/SecurityServer.h
-@@ -35,7 +35,10 @@ namespace rfb {
+@@ -34,7 +34,10 @@ namespace rfb {
      /* Create server side SSecurity class instance */
      SSecurity* GetSSecurity(SConnection* sc, uint32_t secType);
  
-+    void UpdateSecTypes(SConnection* sc);
++    void UpdateSecTypes(bool internalConnection);
 +
-     static StringParameter secTypes;
-+    static StringParameter internalConnectionSecTypes;
+     static core::EnumListParameter secTypes;
++    static core::EnumListParameter internalConnectionSecTypes;
    };
  
  }
 --- a/common/rfb/VNCSConnectionST.cxx
 +++ b/common/rfb/VNCSConnectionST.cxx
-@@ -22,6 +22,8 @@
- #include <config.h>
- #endif
+@@ -29,6 +29,8 @@
+ #include <rdr/FdInStream.h>
+ #include <rdr/FdOutStream.h>
  
 +#include <sys/socket.h>
 +
  #include <network/TcpSocket.h>
  
  #include <rfb/ComparingUpdateTracker.h>
-@@ -73,6 +75,17 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
+@@ -79,6 +81,17 @@ VNCSConnectionST::VNCSConnectionST(VNCServerST* server_, network::Socket *s,
      else
-       idleTimer.start(secsToMillis(rfb::Server::idleTimeout));
+       idleTimer.start(core::secsToMillis(rfb::Server::idleTimeout));
    }
 +
 +  // Determine is this is an internal connection

@@ -1,46 +1,46 @@
---- a/CMakeLists.txt	2023-02-15 13:02:43.460281768 -0500
-+++ b/CMakeLists.txt	2023-02-15 13:07:14.323272704 -0500
-@@ -284,7 +284,7 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -341,7 +341,7 @@ if (ENABLE_NETTLE)
  endif()
  
  # Check for PAM library
 -if(UNIX AND NOT APPLE)
 +if(ENABLE_UNIX_PASSWORD_VALIDATOR)
-   check_include_files(security/pam_appl.h HAVE_PAM_H)
-   set(CMAKE_REQUIRED_LIBRARIES -lpam)
-   check_function_exists(pam_start HAVE_PAM_START)
---- a/common/rfb/CMakeLists.txt	2023-02-15 13:47:44.408913330 -0500
-+++ b/common/rfb/CMakeLists.txt	2023-02-15 13:48:26.906919800 -0500
-@@ -91,7 +91,7 @@
+   find_package(PAM REQUIRED)
+ endif()
+ 
+--- a/common/rfb/CMakeLists.txt
++++ b/common/rfb/CMakeLists.txt
+@@ -76,7 +76,7 @@ if(WIN32)
    target_sources(rfb PRIVATE WinPasswdValidator.cxx)
  endif(WIN32)
  
 -if(UNIX AND NOT APPLE)
 +if(ENABLE_UNIX_PASSWORD_VALIDATOR)
-   target_sources(rfb PRIVATE UnixPasswordValidator.cxx pam.c)
-   target_link_libraries(rfb ${PAM_LIBS})
- endif()
---- a/common/rfb/SSecurityPlain.cxx	2023-02-15 13:08:20.122930689 -0500
-+++ b/common/rfb/SSecurityPlain.cxx	2023-02-15 13:10:03.848414138 -0500
-@@ -26,7 +26,7 @@
+   target_sources(rfb PRIVATE UnixPasswordValidator.cxx)
+   target_include_directories(rfb SYSTEM PRIVATE ${PAM_INCLUDE_DIRS})
+   target_link_libraries(rfb ${PAM_LIBRARIES})
+--- a/common/rfb/SSecurityPlain.cxx
++++ b/common/rfb/SSecurityPlain.cxx
+@@ -28,7 +28,7 @@
+ #include <rfb/SConnection.h>
  #include <rfb/Exception.h>
- #include <rfb/util.h>
  #include <rdr/InStream.h>
 -#if !defined(WIN32) && !defined(__APPLE__)
 +#if(ENABLE_UNIX_PASSWORD_VALIDATOR)
  #include <rfb/UnixPasswordValidator.h>
  #include <unistd.h>
  #include <pwd.h>
-@@ -55,7 +55,7 @@
-   for (size_t i = 0; i < users.size(); i++) {
-     if (users[i] == "*")
+@@ -53,7 +53,7 @@ bool PasswordValidator::validUser(const char* username)
+   for (const char* user : plainUsers) {
+     if (strcmp(user, "*") == 0)
        return true;
 -#if !defined(WIN32) && !defined(__APPLE__)
 +#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
-     if (users[i] == "%u") {
+     if (strcmp(user, "%u") == 0) {
        struct passwd *pw = getpwnam(username);
        if (pw && pw->pw_uid == getuid())
-@@ -72,7 +72,7 @@
+@@ -72,7 +72,7 @@ SSecurityPlain::SSecurityPlain(SConnection* sc_) : SSecurity(sc_)
  {
  #ifdef WIN32
    valid = new WinPasswdValidator();
@@ -48,19 +48,19 @@
 +#elif(ENABLE_UNIX_PASSWORD_VALIDATOR)
    valid = new UnixPasswordValidator();
  #else
-   valid = NULL;
---- a/common/rfb/SSecurityRSAAES.cxx	2023-02-18 15:14:38.894594813 -0500
-+++ b/common/rfb/SSecurityRSAAES.cxx	2023-02-18 15:15:29.606928303 -0500
-@@ -39,7 +39,7 @@
+   valid = nullptr;
+--- a/common/rfb/SSecurityRSAAES.cxx
++++ b/common/rfb/SSecurityRSAAES.cxx
+@@ -47,7 +47,7 @@
+ #include <rfb/SSecurityRSAAES.h>
+ #include <rfb/SConnection.h>
  #include <rfb/Exception.h>
- #include <rdr/AESInStream.h>
- #include <rdr/AESOutStream.h>
 -#if !defined(WIN32) && !defined(__APPLE__)
 +#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
  #include <rfb/UnixPasswordValidator.h>
  #endif
  #ifdef WIN32
-@@ -554,10 +554,10 @@
+@@ -577,10 +577,10 @@ bool SSecurityRSAAES::readCredentials()
  
  void SSecurityRSAAES::verifyUserPass()
  {
@@ -72,4 +72,24 @@
 +#elif defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
    UnixPasswordValidator *valid = new UnixPasswordValidator();
  #endif
-   if (!valid->validate(sc, username.buf, password.buf)) {
+   std::string msg = "Authentication failed";
+--- a/unix/xserver/hw/vnc/RFBGlue.cc
++++ b/unix/xserver/hw/vnc/RFBGlue.cc
+@@ -32,7 +32,9 @@
+ 
+ #include <network/TcpSocket.h>
+ 
++#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
+ #include <rfb/UnixPasswordValidator.h>
++#endif
+ 
+ #include "RFBGlue.h"
+ 
+@@ -241,5 +243,7 @@ void vncSetDisplayName(const char *displayNumStr)
+ {
+   std::string displayName(":");
+   displayName += displayNumStr;
++#if defined(ENABLE_UNIX_PASSWORD_VALIDATOR)
+   rfb::UnixPasswordValidator::setDisplayName(displayName);
++#endif
+ }

@@ -15,8 +15,8 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-TIGERVNC_VERSION=1.14.1
-XSERVER_VERSION=21.1.18
+TIGERVNC_VERSION=1.16.0
+XSERVER_VERSION=21.1.21
 
 # Use the same versions has Alpine 3.21.
 GMP_VERSION=6.3.0
@@ -608,8 +608,6 @@ log "Configuring mesa..."
         x86|x86_64)
             _gallium_drivers="$_gallium_drivers,svga,i915,iris,crocus"
             ;;
-        x86_64)
-            ;;
         *)
             echo "ERROR: Unknown alpine architecture: $(xx-info alpine-arch)"
             exit 1
@@ -686,16 +684,19 @@ log "Downloading Xorg server..."
 curl -# -L -f ${XSERVER_URL} | tar -xz --strip 1 -C /tmp/tigervnc/unix/xserver
 
 log "Patching TigerVNC..."
-# Apply the TigerVNC patch against the X server.
-patch -p1 -d /tmp/tigervnc/unix/xserver < /tmp/tigervnc/unix/xserver21.patch
-# Disable functions from the X server that conflict with libx11 when linking statically.
-patch -p1 -d /tmp/tigervnc/unix/xserver < "$SCRIPT_DIR"/xserver-disable-unused-functions.patch
-# Set the default DRI drivers directory.
-patch -p1 -d /tmp/tigervnc/unix/xserver < "$SCRIPT_DIR"/xserver-dri-drivers-dir.patch
-# Disable PAM support.
-patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/disable-pam.patch
-# Support for internal connection security types.
-patch -p1 -d /tmp/tigervnc < "$SCRIPT_DIR"/internal-conn-sec-types.patch
+TIGERVNC_PATCHES="
+    /tmp/tigervnc/unix/xserver21.patch:/tmp/tigervnc/unix/xserver
+    "$SCRIPT_DIR"/xserver-disable-unused-functions.patch:/tmp/tigervnc/unix/xserver
+    "$SCRIPT_DIR"/xserver-dri-drivers-dir.patch:/tmp/tigervnc/unix/xserver
+    "$SCRIPT_DIR"/disable-pam.patch:/tmp/tigervnc
+    "$SCRIPT_DIR"/internal-conn-sec-types.patch:/tmp/tigervnc
+"
+for pdef in $TIGERVNC_PATCHES; do
+    p="${pdef%:*}"
+    d="${pdef#*:}"
+    log "  --> Applying patch $(basename "$p")..."
+    patch -p1 -d "$d" < "$p"
+done
 
 log "Configuring TigerVNC..."
 (
@@ -786,7 +787,7 @@ log "Relinking vncpasswd as static binary..."
         -o vncpasswd \
         CMakeFiles/vncpasswd.dir/vncpasswd.cxx.o \
         ../../common/rfb/librfb.a \
-        ../../common/os/libos.a \
+        ../../common/core/libcore.a \
         ../../common/rdr/librdr.a \
 )
 
@@ -828,7 +829,7 @@ log "Relinking Xvnc binary with static libraries..."
         ../../../../common/network/libnetwork.a \
         ../../../../common/rfb/librfb.a \
         ../../../../common/rdr/librdr.a \
-        ../../../../common/os/libos.a \
+        ../../../../common/core/libcore.a \
         ../../../../unix/common/libunixcommon.a \
         $(xx-info sysroot)usr/lib/libXau.a \
         $(xx-info sysroot)usr/lib/libXdmcp.a \
