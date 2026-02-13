@@ -1017,14 +1017,12 @@ server {
 
 	location / {
 		proxy_pass http://docker-myapp;
-	}
-
-	location /websockify {
-		proxy_pass http://docker-myapp;
 		proxy_http_version 1.1;
 		proxy_set_header Upgrade $http_upgrade;
 		proxy_set_header Connection $connection_upgrade;
-		proxy_read_timeout 86400;
+		proxy_buffering off;
+		proxy_read_timeout 86400s;
+		proxy_send_timeout 86400s;
 	}
 }
 
@@ -1059,16 +1057,15 @@ server {
 	location = /myapp {return 301 $scheme://$http_host/myapp/;}
 	location /myapp/ {
 		proxy_pass http://docker-myapp/;
+		proxy_http_version 1.1;
+		proxy_set_header Upgrade $http_upgrade;
+		proxy_set_header Connection $connection_upgrade;
+		proxy_buffering off;
+		proxy_read_timeout 86400s;
+		proxy_send_timeout 86400s;
 		# Uncomment the following line if your Nginx server runs on a port that
 		# differs from the one seen by external clients.
 		#port_in_redirect off;
-		location ~ ^/myapp/(websockify(-.*)?) {
-			proxy_pass http://docker-myapp/$1;
-			proxy_http_version 1.1;
-			proxy_set_header Upgrade $http_upgrade;
-			proxy_set_header Connection $connection_upgrade;
-			proxy_read_timeout 86400;
-		}
 	}
 }
 
@@ -1100,6 +1097,9 @@ the first time clipboard access is requested.
 > copied and pasted using the side panel clipboard, which provides manual
 > clipboard access between the host and the container.
 
+> [!NOTE]
+> This feature is not available to VNC clients.
+
 ### Web Audio
 
 The baseimage supports streaming audio from applications using PulseAudio,
@@ -1117,6 +1117,9 @@ configuring environment variables.
 
 Once enabled, the PulseAudio environment is configured for the application, and
 additional services start to capture and stream audio.
+
+> [!NOTE]
+> This feature is not available to VNC clients.
 
 ### Web File Manager
 
@@ -1138,6 +1141,9 @@ The `WEB_FILE_MANAGER_DENIED_PATHS` environment variable defines which paths are
 explicitly denied access by the file manager. A denied path takes precedence
 over an allowed one.
 
+> [!NOTE]
+> This feature is not available to VNC clients.
+
 ### Web Notifications
 
 The baseimage includes support for notifications sent through the web browser.
@@ -1156,6 +1162,9 @@ configuring environment variables.
 > [!TIP]
 > Make sure `libnotify` is installed along with your application. This is
 > usually the library used to send desktop notifications.
+
+> [!NOTE]
+> This feature is not available to VNC clients.
 
 ### Web Terminal
 
