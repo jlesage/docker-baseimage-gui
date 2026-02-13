@@ -9,7 +9,6 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-# Use the same versions has Alpine 3.20.
 XRDB_VERSION=1.2.2
 
 # Define software download URLs.
@@ -48,8 +47,6 @@ TARGET_PKGS="\
     libxmu-dev \
 "
 
-#    libxkbfile-dev \
-
 log "Installing required Alpine packages..."
 apk --no-cache add $HOST_PKGS
 xx-apk --no-cache --no-scripts add $TARGET_PKGS
@@ -60,8 +57,6 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 mkdir /tmp/xrdb
 log "Downloading xrdb..."
 curl -# -L -f ${XRDB_URL} | tar xJ --strip 1 -C /tmp/xrdb
-
-#    LIBS="-lX11 -lxcb -lXdmcp -lXau" \
 
 log "Configuring xrdb..."
 (
