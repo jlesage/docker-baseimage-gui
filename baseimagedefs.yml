@@ -19,6 +19,28 @@ baseimage:
     any VNC client.
   gui: true
   history:
+    - version: 4.11.0
+      date: 2026-02-14
+      changes:
+        added:
+          - 'Web terminal providing shell access to the container.'
+          - 'Added by the update of jlesage/baseimage to version 3.10.4:'
+          - '2:Script helper to verify whether a package is installed.'
+        changed:
+          - 'Updated TigerVNC to version 1.16.0.'
+          - 'Updated X server to version 21.1.21.'
+          - 'Web services server enhancements:'
+          - '2:Graceful shutdown behavior improved.'
+          - '2:Limit on simultaneous WebSocket connections.'
+          - '2:Harmonized logging across modules.'
+          - 'Web file manager is now displayed in a modal.'
+          - 'Web file manager WebSocket connection is now used only when opened.'
+          - 'Changed by the update of jlesage/baseimage to version 3.10.4:'
+          - '2:Updated scripts to remove dependencies on certain OS tools.'
+        fixed:
+          - 'Uploading zero-byte files via the web file manager.'
+          - 'Interrupted uploads would interfere with other uploads.'
+          - 'File manager error reporting.'
     - version: 4.10.7
       date: 2026-01-20
       changes:
