@@ -38,9 +38,10 @@ baseimage:
           - 'Changed by the update of jlesage/baseimage to version 3.10.4:'
           - '2:Updated scripts to remove dependencies on certain OS tools.'
         fixed:
-          - 'Uploading zero-byte files via the web file manager.'
-          - 'Interrupted uploads would interfere with other uploads.'
-          - 'File manager error reporting.'
+          - 'Web file manager issues:'
+          - '2:Uploading zero-byte files would fail.'
+          - '2:Interrupted uploads would interfere with other uploads.'
+          - '2:Some errors were reported incorrectly.'
     - version: 4.10.7
       date: 2026-01-20
       changes:
