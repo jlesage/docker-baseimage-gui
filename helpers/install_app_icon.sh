@@ -164,7 +164,7 @@ mkdir -p "$ICONS_DIR"
 if $ICON_URL_IS_LOCAL_PATH; then
     cp "$APP_ICON_URL" "$ICONS_DIR"/master_icon.png
 else
-    curl -sS -L -o "$ICONS_DIR"/master_icon.png "$APP_ICON_URL"
+    curl -sS -L -f -o "$ICONS_DIR"/master_icon.png "$APP_ICON_URL"
 fi
 
 # Validate the master icon.
