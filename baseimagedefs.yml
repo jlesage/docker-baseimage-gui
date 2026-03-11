@@ -14,9 +14,13 @@ baseimage:
     containers
   description: |-
     This Docker baseimage simplifies creating containers to run any X graphical
-    application on a headless server. The application's GUI is accessed via a modern
-    web browser (no installation or configuration needed on the client side) or via
-    any VNC client.
+    application on a headless server. The application's full graphical interface
+    directly from any modern web browser - no downloads, installs, or setup required
+    on the client side - or connect with any VNC client.
+
+    The web interface also offers audio playback, seamless clipboard sharing, an
+    integrated file manager and terminal for accessing the container's files and
+    shell, desktop notifications, and more.
   gui: true
   history:
     - version: 4.11.2
