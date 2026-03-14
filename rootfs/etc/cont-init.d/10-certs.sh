@@ -9,22 +9,47 @@ set -u # Treat unset variables as an error.
 # Exit now if secure connection not enabled.
 is-bool-val-true "${SECURE_CONNECTION:-0}" || exit 0
 
+CONTAINER_HOSTNAME="$(hostname)"
 CERT_DIR=/config/certs
 TMP_DIR="$(mktemp -d)"
 
 mkdir -p "${CERT_DIR}"
 
-# Generate certificate used by the WEB server (nginx).
+get_openssl_cnf() {
+    echo "
+[ req ]
+distinguished_name = req_distinguished_name
+x509_extensions = v3_req
+prompt = no
+
+[ req_distinguished_name ]
+C = CA
+CN = ${CONTAINER_HOSTNAME}
+O = ${APP_NAME} Docker Container
+OU = Self-signed certificate for $1
+
+[ v3_req ]
+subjectAltName = @alt_names
+1.3.6.1.4.1.55555.1 = ASN1:UTF8String:container-generated
+
+[ alt_names ]
+DNS.1 = ${CONTAINER_HOSTNAME}
+IP.1 = 127.0.0.1
+IP.2 = ::1"
+}
+
+# Generate certificate used by the web server (nginx).
 if [ ! -f "${CERT_DIR}"/web-privkey.pem ] && [ ! -f "${CERT_DIR}"/web-fullchain.pem ]; then
-    echo "generating self-signed certificate for WEB server..."
+    echo "generating self-signed certificate for web server..."
+    get_openssl_cnf "web access" > "${TMP_DIR}"/openssl-web.cnf
     env HOME="${TMP_DIR}" openssl req \
         -x509 \
         -nodes \
         -days 3650 \
         -newkey rsa:2048 \
-        -subj "/C=CA/O=github.com\\/jlesage\\/$(echo "${APP_NAME}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')/OU=Docker container web access/CN=web.$(echo "${APP_NAME}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').example.com" \
         -keyout "${CERT_DIR}"/web-privkey.pem \
         -out "${CERT_DIR}"/web-fullchain.pem \
+        -config "${TMP_DIR}"/openssl-web.cnf \
         > /dev/null 2>&1
     chmod 400 "${CERT_DIR}"/web-privkey.pem
 fi
@@ -53,14 +78,15 @@ fi
 # Generate certificate used by the VNC server.
 if [ ! -f "${CERT_DIR}"/vnc-privkey.pem ] && [ ! -f "${CERT_DIR}"/vnc-fullchain.pem ]; then
     echo "generating self-signed certificate for VNC server..."
+    get_openssl_cnf "VNC access" > "${TMP_DIR}"/openssl-vnc.cnf
     env HOME="${TMP_DIR}" openssl req \
         -x509 \
         -nodes \
         -days 3650 \
         -newkey rsa:2048 \
-        -subj "/C=CA/O=github.com\\/jlesage\\/$(echo "${APP_NAME}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')/OU=Docker container VNC access/CN=vnc.$(echo "${APP_NAME}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-').example.com" \
         -keyout "${CERT_DIR}"/vnc-privkey.pem \
         -out "${CERT_DIR}"/vnc-fullchain.pem \
+        -config "${TMP_DIR}"/openssl-vnc.cnf \
         > /dev/null 2>&1
     chmod 400 "${CERT_DIR}"/vnc-privkey.pem
 fi
