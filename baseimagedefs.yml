@@ -23,6 +23,11 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.11.3
+      date: 2026-03-14
+      changed:
+        - 'Enable xcompmgr output only when debug is enabled.'
+        - 'Enhanced self-signed certificates by including the Subject Alternative Name (SAN) and using the container hostname instead of a dummy domain name.'
     - version: 4.11.2
       date: 2026-02-22
       fixed:
