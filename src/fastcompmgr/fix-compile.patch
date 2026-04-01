@@ -1,0 +1,100 @@
+--- a/Makefile
++++ b/Makefile
+@@ -1,6 +1,7 @@
+-PACKAGES = x11 xcomposite xfixes xdamage xrender
+-LIBS = `pkg-config --libs ${PACKAGES}` -lm
+-INCS = `pkg-config --cflags ${PACKAGES}`
++PACKAGES = x11 xcb xau xdmcp xcomposite xfixes xdamage xrender
++PKGCONFIG ?= pkg-config
++LIBS = $(shell $(PKGCONFIG) --libs $(PACKAGES)) -lm
++INCS = $(shell $(PKGCONFIG) --cflags $(PACKAGES))
+ CFLAGS ?= -O2 -flto -pipe
+ CFLAGS += -Wall -fno-plt
+ PREFIX = /usr/local
+--- a/fastcompmgr.c
++++ b/fastcompmgr.c
+@@ -2186,45 +2186,45 @@ usage(char *program, int exitcode) {
+   fprintf(stderr, "usage: %s [options]\n", program);
+ 
+   fprintf(stderr,
+-      R"SOMERANDOMTEXT(Options
+-    -d display
+-    Which display should be managed
+-    -r radius
+-    The blur radius for shadows. (default 12)
+-    -o opacity
+-    The translucency for shadows. (default .75)
+-    -l left-offset
+-    The left offset for shadows. (default -15)
+-    -t top-offset
+-    The top offset for shadows. (default -15)
+-    -I fade-in-step
+-    Opacity change between steps while fading in. (default 0.028)
+-    -O fade-out-step
+-    Opacity change between steps while fading out. (default 0.03)
+-    -D fade-delta-time
+-    The time between steps in a fade in milliseconds. (default 10)
+-    -m opacity
+-    The opacity for menus. (default 1.0)
+-    -c
+-    Enabled client-side shadows on windows.
+-    -C
+-    Avoid drawing shadows on dock/panel windows.
+-    -f
+-    Fade windows in/out when opening/closing.
+-    -F
+-    Fade windows during opacity changes.
+-    -i opacity
+-    Opacity of inactive windows. (0.1 - 1.0)
+-    -e opacity
+-    Opacity of window titlebars and borders. (0.1 - 1.0)
+-    -S
+-    Enable synchronous operation (for debugging).
+-    --shadow-red value
+-    Red color value of shadow (0.0 - 1.0, defaults to 0).
+-    --shadow-green value
+-    Green color value of shadow (0.0 - 1.0, defaults to 0).
+-    --shadow-blue value
+-    Blue color value of shadow (0.0 - 1.0, defaults to 0).)SOMERANDOMTEXT"
++    "Options\n"
++    "   -d display\n"
++    "   Which display should be managed\n"
++    "   -r radius\n"
++    "   The blur radius for shadows. (default 12)\n"
++    "   -o opacity\n"
++    "   The translucency for shadows. (default .75)\n"
++    "   -l left-offset\n"
++    "   The left offset for shadows. (default -15)\n"
++    "   -t top-offset\n"
++    "   The top offset for shadows. (default -15)\n"
++    "   -I fade-in-step\n"
++    "   Opacity change between steps while fading in. (default 0.028)\n"
++    "   -O fade-out-step\n"
++    "   Opacity change between steps while fading out. (default 0.03)\n"
++    "   -D fade-delta-time\n"
++    "   The time between steps in a fade in milliseconds. (default 10)\n"
++    "   -m opacity\n"
++    "   The opacity for menus. (default 1.0)\n"
++    "   -c\n"
++    "   Enabled client-side shadows on windows.\n"
++    "   -C\n"
++    "   Avoid drawing shadows on dock/panel windows.\n"
++    "   -f\n"
++    "   Fade windows in/out when opening/closing.\n"
++    "   -F\n"
++    "   Fade windows during opacity changes.\n"
++    "   -i opacity\n"
++    "   Opacity of inactive windows. (0.1 - 1.0)\n"
++    "   -e opacity\n"
++    "   Opacity of window titlebars and borders. (0.1 - 1.0)\n"
++    "   -S\n"
++    "   Enable synchronous operation (for debugging).\n"
++    "   --shadow-red value\n"
++    "   Red color value of shadow (0.0 - 1.0, defaults to 0).\n"
++    "   --shadow-green value\n"
++    "   Green color value of shadow (0.0 - 1.0, defaults to 0).\n"
++    "   --shadow-blue value\n"
++    "   Blue color value of shadow (0.0 - 1.0, defaults to 0).\n"
+   );
+   fprintf(stderr, "\n");
+ 

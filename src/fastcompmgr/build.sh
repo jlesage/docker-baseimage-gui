@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Helper script that builds xcompmgr as a static binary.
+# Helper script that builds fastcompmgr as a static binary.
 #
 # NOTE: This script is expected to be run under Alpine Linux.
 #
@@ -9,13 +9,13 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-XCOMPMGR_VERSION=1.1.10
+FASTCOMPMGR_VERSION=0.6.1
 
 # Use the same versions has Alpine 3.20.
 LIBXDAMAGE_VERSION=1.1.6
 
 # Define software download URLs.
-XCOMPMGR_URL=https://xorg.freedesktop.org/releases/individual/app/xcompmgr-${XCOMPMGR_VERSION}.tar.xz
+FASTCOMPMGR_URL=https://github.com/tycho-kirchner/fastcompmgr/archive/refs/tags/v${FASTCOMPMGR_VERSION}.tar.gz
 LIBXDAMAGE_URL=https://www.x.org/releases/individual/lib/libXdamage-${LIBXDAMAGE_VERSION}.tar.xz
 
 # Set same default compilation flags as abuild.
@@ -41,6 +41,7 @@ HOST_PKGS="\
     build-base \
     clang \
     lld \
+    patch \
     pkgconfig \
 "
 
@@ -84,24 +85,17 @@ log "Installing libXdamage..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxdamage install
 
 #
-# Build xcompmgr.
+# Build fastcompmgr.
 #
-mkdir /tmp/xcompmgr
-log "Downloading xcompmgr..."
-curl -# -L -f ${XCOMPMGR_URL} | tar xJ --strip 1 -C /tmp/xcompmgr
-log "Configuring xcompmgr..."
-(
-    cd /tmp/xcompmgr && \
-    LIBS="-lxcb -lXdmcp -lXau" \
-    ./configure \
-        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
-        --host=$(xx-clang --print-target-triple) \
-        --prefix=/usr \
-)
-log "Compiling xcompmgr..."
-make -C /tmp/xcompmgr -j$(nproc)
-log "Installing xcompmgr..."
-make DESTDIR=/tmp/xcompmgr-install -C /tmp/xcompmgr install
+mkdir /tmp/fastcompmgr
+log "Downloading fastcompmgr..."
+curl -# -L -f ${FASTCOMPMGR_URL} | tar xz --strip 1 -C /tmp/fastcompmgr
+log "Patching fastcompmgr..."
+patch -p1 -d /tmp/fastcompmgr < "$SCRIPT_DIR"/fix-compile.patch
+log "Compiling fastcompmgr..."
+make PKGCONFIG=$(xx-info)-pkg-config -C /tmp/fastcompmgr -j$(nproc)
+log "Installing fastcompmgr..."
+make PREFIX=/tmp/fastcompmgr-install/usr -C /tmp/fastcompmgr install
 
 #
 # Cleanup.
@@ -110,4 +104,4 @@ log "Performing cleanup..."
 apk --no-cache del $HOST_PKGS
 xx-apk --no-cache --no-scripts del $TARGET_PKGS
 apk --no-cache add util-linux # Linux tools still needed and they might be removed if pulled by dependencies.
-rm -rf /tmp/xcompmgr
+rm -rf /tmp/fastcompmgr
