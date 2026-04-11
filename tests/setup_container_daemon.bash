@@ -58,7 +58,7 @@ cat << EOF > "$TESTS_WORKDIR"/startapp_daemon.sh
 #!/bin/sh
 touch /tmp/appready
 echo "Ready!"
-while true;do sleep 999; done
+sleep infinity
 EOF
 chmod a+rx "$TESTS_WORKDIR"/startapp_daemon.sh
 
