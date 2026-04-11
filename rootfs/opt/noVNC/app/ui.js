@@ -393,12 +393,12 @@ const UI = {
     },
 
     checkWebData() {
-        let currentContainerInstanceUID = UI.webData.containerInstanceUID;
+        let currentWebUniqueVersion = UI.webData.webUniqueVersion;
         UI.fetchWebData().then(() => {
-            if (currentContainerInstanceUID === UI.webData.containerInstanceUID) {
-                Log.Error("Container instance UID remained the same.");
+            if (currentWebUniqueVersion === UI.webData.webUniqueVersion) {
+                Log.Debug("Web unique version remained the same.");
             } else {
-                Log.Error("Container instance UID changed. Reloading page.");
+                Log.Error("Web unique version changed. Reloading page.");
                 window.location.reload();
             }
         }).catch((e) => {

@@ -18,8 +18,8 @@ rm -f "${WEB_DATA_FILE}"
 # shellcheck disable=SC2129
 printf '{\n' >> "${WEB_DATA_FILE}"
 
-# Container instance UID.
-printf '    "containerInstanceUID": "%s"' "$(cat /.docker-instance/uuid)" >> "${WEB_DATA_FILE}"
+# Web unique version.
+printf '    "webUniqueVersion": "%s"' "$(sed -n '/ui\.js/s/.*v=\([^";]*\).*/\1/p' /opt/noVNC/index.html)" >> "${WEB_DATA_FILE}"
 
 # Add application name.
 printf ',\n    "applicationName": "%s"' "${APP_NAME}" >> "${WEB_DATA_FILE}"
