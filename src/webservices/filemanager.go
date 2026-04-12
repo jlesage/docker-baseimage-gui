@@ -43,7 +43,7 @@ var deniedPaths []string
 var pendingDownloads *expirable.LRU[string, string] = expirable.NewLRU[string, string](MAX_PENDING_DOWNLOADS, nil, PENDING_DOWNLOAD_VALIDITY_TIME)
 
 // Pending uploads.
-var pendingUploads *expirable.LRU[string, *UploadFileContext] = expirable.NewLRU[string, *UploadFileContext](MAX_PENDING_UPLOADS, evictPendingUpload, PENDING_UPLOAD_VALIDITY_TIME)
+var pendingUploads *expirable.LRU[string, *UploadFileContext] = expirable.NewLRU(MAX_PENDING_UPLOADS, evictPendingUpload, PENDING_UPLOAD_VALIDITY_TIME)
 
 // Message represents the structure of WebSocket messages received from clients.
 type Message struct {
