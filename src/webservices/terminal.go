@@ -25,6 +25,8 @@ const (
 	maxCols, maxRows = 1000, 500
 )
 
+var terminalShellPath string
+
 func getTerminalLogPrefix(connId uint64) string {
 	if connId == 0 {
 		return "terminal: "
@@ -59,7 +61,8 @@ func parseResize(payload string) (int, int, error) {
 	return cols, rows, nil
 }
 
-func getTerminalWebSocketHandler(appCtx context.Context) httprouter.Handle {
+func getTerminalWebSocketHandler(appCtx context.Context, shell string) httprouter.Handle {
+	terminalShellPath = shell
 	return func(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 		terminalWebSocketHandler(appCtx, w, r, ps)
 	}
@@ -90,7 +93,7 @@ func terminalWebSocketHandler(appCtx context.Context, w http.ResponseWriter, r *
 	ptyCloseRequested.Store(false)
 
 	// Start a shell.
-	cmd := exec.Command("/bin/sh")
+	cmd := exec.Command(terminalShellPath)
 	cmd.Dir = "/tmp"
 	ptmx, err := pty.Start(cmd)
 	if err != nil {

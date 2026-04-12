@@ -92,4 +92,6 @@ fi
 
 if is-bool-val-true "${WEB_TERMINAL:-0}"; then
     echo "--enable-terminal"
+    echo "--terminal-shell"
+    echo "${WEB_TERMINAL_SHELL_PATH:-/bin/sh}"
 fi

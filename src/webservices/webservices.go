@@ -24,6 +24,7 @@ func main() {
 	flag.Func("denied-path", "path not allowed to be accessed by the file manager (can be used multiple times)", addDeniedPath)
 	enableNotification := flag.Bool("enable-notification", false, "enable desktop notification service")
 	enableTerminal := flag.Bool("enable-terminal", false, "enable terminal service")
+	terminalShell := flag.String("terminal-shell", "/bin/sh", "shell to use for the web terminal")
 	flag.Parse()
 
 	// Handle log level.
@@ -53,7 +54,7 @@ func main() {
 		router.GET("/ws-notification", getNotificationWebsocketHandler(appCtx))
 	}
 	if *enableTerminal {
-		router.GET("/ws-terminal", getTerminalWebSocketHandler(appCtx))
+		router.GET("/ws-terminal", getTerminalWebSocketHandler(appCtx, *terminalShell))
 	}
 	//router.NotFound = notFoundHandler()
 	//router.MethodNotAllowed = methodNotAllowedHandler()

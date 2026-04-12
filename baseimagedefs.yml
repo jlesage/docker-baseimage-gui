@@ -967,6 +967,16 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_TERMINAL_SHELL_PATH
+      description: >-
+        The shell used by the web terminal.
+      type: public
+      default: /bin/sh
+      unraid_template:
+        title: Web Terminal
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_AUTHENTICATION
       description: >-
         When set to `1`, protects the application's GUI with a login page when
