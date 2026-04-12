@@ -51,6 +51,7 @@ shell, desktop notifications, and more.
       * [Log Monitor](#log-monitor)
          * [Notification Definition](#notification-definition)
          * [Notification Target](#notification-target)
+      * [Using Read-Only Filesystem](#using-read-only-filesystem)
       * [Accessing the GUI](#accessing-the-gui)
       * [Security](#security)
          * [SSVNC](#ssvnc)
@@ -828,6 +829,33 @@ The baseimage includes these notification backends:
 | `stdout`    | Displays a message to standard output, visible in the container's log, in the format `{LEVEL}: {TITLE} {MESSAGE}`. | 21 600s (6 hours) |
 | `yad`       | Displays the notification in a window visible in the application's GUI. | Infinite |
 | `web-notif` | When web notifications are enabled, the notification is displayed by the user's browser. | None |
+
+### Using Read-Only Filesystem
+
+The baseimage supports running with a read-only root filesystem. This can be
+enabled when creating the container by adding the `--read-only` option to the
+`docker run` command.
+
+Running a container in read-only mode improves security and reliability by
+preventing unintended or malicious modifications to the filesystem. It also
+helps ensure that the container remains stateless, making deployments more
+predictable and reproducible.
+
+When this mode is enabled, the container cannot write to the root filesystem.
+However, the baseimage is designed to transparently route standard writable
+locations to appropriate paths:
+
+- Ephemeral data is stored in `/tmp`
+- Persistent data is stored under `/config` (which must already be mounted as a
+  volume)
+
+As a result, the only requirement specific to read-only mode is to make `/tmp`
+writable by mounting it as a temporary filesystem, using the `--tmpfs /tmp`
+option.
+
+As long as `/config` is mounted and `/tmp` is provided as a `tmpfs`, the
+container should operate normally in read-only mode without any further
+configuration.
 
 ### Accessing the GUI
 
