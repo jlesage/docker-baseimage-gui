@@ -59,7 +59,7 @@ teardown() {
         ubuntu)
             case "$ARCH" in
                 i386|i686|x86_64)
-                    MIRROR="http://mirror.math.princeton.edu/pub/ubuntu/"
+                    MIRROR="http://mirror.it.ubc.ca/ubuntu/"
                     ;;
                 *)
                     MIRROR="http://mirrors.ocf.berkeley.edu/ubuntu-ports/"
