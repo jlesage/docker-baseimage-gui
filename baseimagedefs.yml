@@ -23,6 +23,22 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.12.0
+      date: 2026-05-11
+      added:
+        - 'Ability to run the container with read-only filesystem.'
+        - 'Ability to configure the shell used by the web terminal.'
+        - 'Enabled window shadows to improve support of GTK4 applications.'
+      changed:
+        - 'Switched to fastcompmgr as the X compositor.'
+        - 'Updated TigerVNC to version 1.16.2.'
+        - 'Updated noVNC to version 1.7.0.'
+        - 'Improved web authentication compatibility with reverse proxies by using relative redirects.'
+        - 'Changed by the update of jlesage/baseimage to version 3.11.2:'
+        - '2:The underlying distro packages are updated to get all security updates.'
+      removed:
+        - 'Image based on Ubuntu 16.04 (Expanded Security Maintenance ended on 2026/04).'
+        - 'Image based on Alpine 3.16 (reached end of support on 2024-05-23).'
     - version: 4.11.3
       date: 2026-03-14
       changed:
