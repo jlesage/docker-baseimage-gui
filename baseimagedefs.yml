@@ -27,8 +27,11 @@ baseimage:
       date: 2026-05-15
       changes:
         fixed:
-          - 'Fixed by the update of jlesage/baseimage to version 3.11.3:'
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.4:'
           - '2:Installation of Debian-based packages during container builds.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.11.4:'
+          - '2:Handle the group shadow password file on distros that support it.'
     - version: 4.12.0
       date: 2026-05-12
       added:
