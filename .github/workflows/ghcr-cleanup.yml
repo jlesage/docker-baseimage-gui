@@ -20,7 +20,7 @@ jobs:
         with:
           packages: baseimage-gui-build
           delete-tags: common-*
-          older-than: 1 day
+          older-than: 10 day
 
   build_cache:
     name: Cleanup build cache images
