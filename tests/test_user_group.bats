@@ -78,7 +78,7 @@ teardown() {
     case "$OS" in
         debian|ubuntu)
             # Check the staff group.
-            run exec_container_daemon sh -c "grep -q '^staff:x:52:' /etc/group"
+            run exec_container_daemon sh -c "grep -q '^staff:x:50:' /etc/group"
             echo "Group 'staff' /etc/group: $status"
             [ "$status" -eq 0 ]
 
