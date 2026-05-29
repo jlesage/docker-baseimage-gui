@@ -75,7 +75,6 @@ shell, desktop notifications, and more.
       * [Tips and Best Practices](#tips-and-best-practices)
          * [Do Not Modify Baseimage Content](#do-not-modify-baseimage-content)
          * [Default Configuration Files](#default-configuration-files)
-         * [The $HOME Variable](#the-home-variable)
          * [Referencing Linux User/Group](#referencing-linux-usergroup)
          * [Using rootfs Directory](#using-rootfs-directory)
          * [Maximizing Only the Main Window](#maximizing-only-the-main-window)
@@ -101,6 +100,7 @@ This baseimage is available for multiple Linux distributions:
 | [Ubuntu 20.04 LTS] | ubuntu-20.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-20.04-v4?style=for-the-badge)](#) |
 | [Ubuntu 22.04 LTS] | ubuntu-22.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-22.04-v4?style=for-the-badge)](#) |
 | [Ubuntu 24.04 LTS] | ubuntu-24.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-24.04-v4?style=for-the-badge)](#) |
+| [Ubuntu 26.04 LTS] | ubuntu-26.04-vX.Y.Z   | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/ubuntu-26.04-v4?style=for-the-badge)](#) |
 
 Docker image tags follow this structure:
 
@@ -127,6 +127,7 @@ details.
 [Ubuntu 20.04 LTS]: http://releases.ubuntu.com/20.04/
 [Ubuntu 22.04 LTS]: http://releases.ubuntu.com/22.04/
 [Ubuntu 24.04 LTS]: http://releases.ubuntu.com/24.04/
+[Ubuntu 26.04 LTS]: http://releases.ubuntu.com/26.04/
 
 [Releases]: https://github.com/jlesage/docker-baseimage-gui/releases
 [Docker Hub]: https://hub.docker.com/r/jlesage/baseimage-gui/tags
@@ -343,7 +344,7 @@ The baseimage provides the following internal environment variables:
 |`APP_VERSION`| Version of the implemented application. | (no value) |
 |`DOCKER_IMAGE_VERSION`| Version of the Docker image that implements the application. | (no value) |
 |`DOCKER_IMAGE_PLATFORM`| Platform (OS/CPU architecture) of the Docker image that implements the application. | (no value) |
-|`HOME`| Home directory. | (no value) |
+|`HOME`| Home directory. | `/config` |
 |`XDG_CONFIG_HOME`| Defines the base directory for user-specific configuration files. | `/config/xdg/config` |
 |`XDG_DATA_HOME`| Defines the base directory for user-specific data files. | `/config/xdg/data` |
 |`XDG_CACHE_HOME`| Defines the base directory for user-specific non-essential data files. | `/config/xdg/cache` |
@@ -1313,26 +1314,6 @@ original version.
 
 These original files, also called default files, should be stored under the
 `/defaults` directory inside the container.
-
-#### The $HOME Variable
-
-The application runs under a Linux user with a specified ID, without login
-capability, password, valid shell, or home directory, similar to a daemon user.
-
-By default, the `$HOME` environment variable is unset. Some applications expect
-`$HOME` to be set and may not function correctly otherwise.
-
-To address this, set the home directory in the `startapp.sh` script:
-
-```shell
-export HOME=/config
-```
-
-Adjust the location as needed. If the application writes to the home directory,
-use a directory mapped to the host (like `/config`).
-
-This technique can also be applied to services by setting the home directory in
-their `run` script.
 
 #### Referencing Linux User/Group
 
