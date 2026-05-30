@@ -3,21 +3,24 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-# When running the container with host network mode, the Unix sockets from the
-# host somehow interfere with the container: event though they are not visible
-# in the container's file system, they can be seen by netstat.  If the container
-# creates a socket matching one of the host, data written to it are handled by
-# the host, not the container.
-# Thus, we need to select a X display that is not already used.
+#
+# DISPLAY selection (host networking note):
+#
+# With --network=host, X11 abstract sockets from the host are visible
+# inside the container. For DISPLAY=:N, libX11 may prefer the abstract
+# socket @/tmp/.X11-unix/XN before the filesystem socket.
+#
+# This can cause clients to connect to the host X server instead of
+# the local Xvnc, leading to authorization failures.
+#
+# To avoid abstract socket shadowing, we bypass DISPLAY=:N entirely and
+# force the filesystem Unix socket directly by setting:
+#   DISPLAY=/tmp/.X11-unix/X0
+#
+# This ensures X11 clients connect only to the local Xvnc instance and
+# never attempt the abstract socket or host X server.
+#
 
-for d in $(seq 0 16); do
-    if ! netstat -x | grep -q "/tmp/.X11-unix/X${d}"; then
-        echo ":${d}"
-        exit 0
-    fi
-done
-
-echo "ERROR: Could not find available display."
-exit 1
+echo "/tmp/.X11-unix/X0"
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4
