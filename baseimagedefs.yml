@@ -23,6 +23,22 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.12.2
+      date: 2026-05-29
+      changes:
+        added:
+          - 'Image based on Ubuntu 26.04.'
+          - 'Added by the update of jlesage/baseimage to version 3.11.5:'
+          - '2:Default group definitions for Debian-based distributions.'
+        fixed:
+          - 'Force clients to use the local X display to avoid connecting to the host X server in Docker host network mode.'
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.5:'
+          - '2:Installation of Debian-based packages at runtime and during container builds.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.11.5:'
+          - '2:Set default value for the `HOME` internal environment variable.'
+          - '2:Home directory of the `app` user is now set in `/etc/passwd` based on the `HOME` environment variable.'
+          - '2:Internal container environment variables are now also loaded when logging in with Bash.'
     - version: 4.12.1
       date: 2026-05-15
       changes:
