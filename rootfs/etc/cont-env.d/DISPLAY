@@ -13,14 +13,19 @@ set -u # Treat unset variables as an error.
 # This can cause clients to connect to the host X server instead of
 # the local Xvnc, leading to authorization failures.
 #
-# To avoid abstract socket shadowing, we bypass DISPLAY=:N entirely and
-# force the filesystem Unix socket directly by setting:
-#   DISPLAY=/tmp/.X11-unix/X0
-#
-# This ensures X11 clients connect only to the local Xvnc instance and
-# never attempt the abstract socket or host X server.
+# To avoid abstract socket shadowing, find an unused DISPLAY number. This
+# ensures X11 clients connect only to the local Xvnc instance and never
+# attempt the abstract socket or host X server.
 #
 
-echo "/tmp/.X11-unix/X0"
+for d in $(seq 0 16); do
+    if ! netstat -lx | grep -q "/tmp/.X11-unix/X${d}"; then
+        echo ":${d}"
+        exit 0
+    fi
+done
+
+echo "ERROR: Could not find available display." >&2
+exit 1
 
 # vim:ft=sh:ts=4:sw=4:et:sts=4

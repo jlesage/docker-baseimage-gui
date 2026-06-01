@@ -118,4 +118,4 @@ for param in ${XVNC_SERVER_CUSTOM_PARAMS:-}; do
 done
 
 # X11 display.
-echo ":0"
+echo "${DISPLAY}"
