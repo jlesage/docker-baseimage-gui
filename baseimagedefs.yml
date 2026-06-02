@@ -27,7 +27,7 @@ baseimage:
       date: 2026-06-01
       changes:
         fixed:
-          - 'Maintain `DISPLAY` compatibility across various X11 clients while continuing to prevent unintended connections to the host X server.'
+          - 'Maintain `DISPLAY` environment variable compatibility across various X11 clients while continuing to prevent unintended connections to the host X server.'
     - version: 4.12.2
       date: 2026-05-29
       changes:
