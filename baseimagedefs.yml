@@ -23,6 +23,12 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.12.4
+      date: 2026-06-06
+      changes:
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.6:'
+          - '2:`sed-patch` error while handling read-only files.'
     - version: 4.12.3
       date: 2026-06-01
       changes:
