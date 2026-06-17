@@ -86,13 +86,13 @@ This baseimage is available for multiple Linux distributions:
 
 | Linux Distribution | Docker Image Tag      | Size |
 |--------------------|-----------------------|------|
-| [Alpine 3.17]      | alpine-3.17-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.17-v4?style=for-the-badge)](#)  |
 | [Alpine 3.18]      | alpine-3.18-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.18-v4?style=for-the-badge)](#)  |
 | [Alpine 3.19]      | alpine-3.19-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.19-v4?style=for-the-badge)](#)  |
 | [Alpine 3.20]      | alpine-3.20-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.20-v4?style=for-the-badge)](#)  |
 | [Alpine 3.21]      | alpine-3.21-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.21-v4?style=for-the-badge)](#)  |
 | [Alpine 3.22]      | alpine-3.22-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.22-v4?style=for-the-badge)](#)  |
 | [Alpine 3.23]      | alpine-3.23-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.23-v4?style=for-the-badge)](#)  |
+| [Alpine 3.24]      | alpine-3.24-vX.Y.Z    | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/alpine-3.24-v4?style=for-the-badge)](#)  |
 | [Debian 11]        | debian-11-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-11-v4?style=for-the-badge)](#)    |
 | [Debian 12]        | debian-12-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-12-v4?style=for-the-badge)](#)    |
 | [Debian 13]        | debian-13-vX.Y.Z      | [![](https://img.shields.io/docker/image-size/jlesage/baseimage-gui/debian-13-v4?style=for-the-badge)](#)    |
@@ -113,13 +113,13 @@ Docker image tags follow this structure:
 View all available tags on [Docker Hub] or check the [Releases] page for version
 details.
 
-[Alpine 3.17]: https://alpinelinux.org/posts/Alpine-3.17.0-released.html
 [Alpine 3.18]: https://alpinelinux.org/posts/Alpine-3.18.0-released.html
 [Alpine 3.19]: https://alpinelinux.org/posts/Alpine-3.19.0-released.html
 [Alpine 3.20]: https://alpinelinux.org/posts/Alpine-3.20.0-released.html
 [Alpine 3.21]: https://alpinelinux.org/posts/Alpine-3.21.0-released.html
 [Alpine 3.22]: https://alpinelinux.org/posts/Alpine-3.22.0-released.html
 [Alpine 3.23]: https://alpinelinux.org/posts/Alpine-3.23.0-released.html
+[Alpine 3.24]: https://alpinelinux.org/posts/Alpine-3.24.0-released.html
 [Debian 11]: https://www.debian.org/releases/bullseye/
 [Debian 12]: https://www.debian.org/releases/bookworm/
 [Debian 13]: https://www.debian.org/releases/trixie/
