@@ -84,7 +84,7 @@ jobs:
           - '{ "tag_prefix": "alpine-3.21",  "baseimage": "jlesage/baseimage:alpine-3.21-v3.11.7",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "alpine-3.22",  "baseimage": "jlesage/baseimage:alpine-3.22-v3.11.7",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "alpine-3.23",  "baseimage": "jlesage/baseimage:alpine-3.23-v3.11.7",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
-          - '{ "tag_prefix": "alpine-3.24",  "baseimage": "jlesage/baseimage:alpine-3.17-v3.11.7",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
+          - '{ "tag_prefix": "alpine-3.24",  "baseimage": "jlesage/baseimage:alpine-3.24-v3.11.7",  "platforms": "linux/amd64,linux/386,linux/arm/v6,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "debian-11",    "baseimage": "jlesage/baseimage:debian-11-v3.11.7",    "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "debian-12",    "baseimage": "jlesage/baseimage:debian-12-v3.11.7",    "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
           - '{ "tag_prefix": "debian-13",    "baseimage": "jlesage/baseimage:debian-13-v3.11.7",    "platforms": "linux/amd64,linux/386,linux/arm/v7,linux/arm64/v8" }'
