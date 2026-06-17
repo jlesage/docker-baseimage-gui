@@ -23,6 +23,13 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.12.5
+      date: 2026-06-17
+      changes:
+        added:
+          - 'Image based on Alpine 3.24.'
+        removed:
+          - 'Image based on Alpine 3.17 (reached end of support on 2024-11-22).'
     - version: 4.12.4
       date: 2026-06-06
       changes:
