@@ -23,6 +23,20 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.12.6
+      date: 2026-07-12
+      changes:
+        added:
+          - 'Added by the update of jlesage/baseimage to version 3.11.8:'
+          - '2:Users definition: ability to define password.'
+          - '2:Users and groups definition: ability to override name.'
+        fixed:
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.8:'
+          - '2:Regression causing container startup failure when the container engine automatically mounts files under `/run`.'
+          - '2:Users definition: password field not set to `x`.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.11.8:'
+          - '2:Read-only filesystem support now requires exposing `/run` as a tmpfs.'
     - version: 4.12.5
       date: 2026-06-17
       changes:
