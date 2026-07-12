@@ -13,7 +13,7 @@ teardown() {
 }
 
 @test "Checking container can run with read-only filesystem..." {
-    docker_run --rm -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh --read-only --tmpfs /tmp $DOCKER_IMAGE
+    docker_run --rm -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh --read-only --tmpfs /tmp --tmpfs /run $DOCKER_IMAGE
     echo "====================================================================="
     echo " OUTPUT"
     echo "====================================================================="
