@@ -452,19 +452,23 @@ The following files can be defined for a group:
 
 | File                   | Type             | Description | Default |
 |------------------------|------------------|-------------|---------|
-| disabled               | Boolean          | Indicates the group is disabled and will not be created. | `FALSE` |
-| id                     | Unsigned integer | The numeric ID of the group. | None |
+| `name`                 | String           | Overrides the group name. The directory name is used if omitted. | None |
+| `disabled`             | Boolean          | Specifies whether the group is disabled and should not be created. | `FALSE` |
+| `id`                   | Unsigned integer | Specifies the numeric ID of the group. | None |
 
 The following files can be defined for a user:
 
 
 | File                   | Type             | Description | Default |
 |------------------------|------------------|-------------|---------|
-| disabled               | Boolean          | Indicates the user is disabled and will not be created. | `FALSE` |
-| id                     | Unsigned integer | The numeric ID of the user. | None |
-| gid                    | Unsigned integer | The group ID of the user. | None |
-| home                   | String           | The home directory of the user. | `/dev/null` |
-| grps                   | String           | A list of group names the user belongs to, one per line. | None |
+| `name`                 | String           | Overrides the user name. The directory name is used if omitted. | None |
+| `disabled`             | Boolean          | Specifies whether the user is disabled and should not be created. | `FALSE` |
+| `id`                   | Unsigned integer | Specifies the numeric ID of the user. | None |
+| `gid`                  | Unsigned integer | Specifies the primary group ID of the user. | None |
+| `home`                 | String           | Specifies the user's home directory. | `/dev/null` |
+| `grps`                 | String           | Specifies the list of groups the user belongs to, with one group name per line. | None |
+| `password`             | String           | Specifies the user's password. | None |
+| `password_hash`        | String           | Specifies the user's password hash in the format `$id$salt$hash`, as produced by `mkpasswd`. | None |
 
 The following table provides details about some value types:
 
@@ -834,7 +838,7 @@ The baseimage includes these notification backends:
 
 The baseimage supports running with a read-only root filesystem. This can be
 enabled when creating the container by adding the `--read-only` option to the
-`docker run` command.
+`docker run` command (or `read_only: true` in Docker Compose).
 
 Running a container in read-only mode improves security and reliability by
 preventing unintended or malicious modifications to the filesystem. It also
@@ -845,17 +849,17 @@ When this mode is enabled, the container cannot write to the root filesystem.
 However, the baseimage is designed to transparently route standard writable
 locations to appropriate paths:
 
-- Ephemeral data is stored in `/tmp`
-- Persistent data is stored under `/config` (which must already be mounted as a
-  volume)
+- Ephemeral data is stored in `/tmp` and `/run`.
+- Persistent data is stored under `/config` (which must already be mounted as
+  a volume).
 
-As a result, the only requirement specific to read-only mode is to make `/tmp`
-writable by mounting it as a temporary filesystem, using the `--tmpfs /tmp`
-option.
+As a result, the only additional requirements specific to read-only mode are to
+make `/tmp` and `/run` writable by mounting them as temporary filesystems using
+the `--tmpfs /tmp` and `--tmpfs /run` options.
 
-As long as `/config` is mounted and `/tmp` is provided as a `tmpfs`, the
-container should operate normally in read-only mode without any further
-configuration.
+As long as `/config` is mounted as a volume and `/tmp` and `/run` are provided
+as `tmpfs`, the container should operate normally in read-only mode without any
+further configuration.
 
 ### Accessing the GUI
 

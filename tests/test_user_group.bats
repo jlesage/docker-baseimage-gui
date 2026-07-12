@@ -43,7 +43,7 @@ teardown() {
     fi
 
     # Check the root user/group.
-    run exec_container_daemon sh -c "grep -q '^root::0:0::' /etc/passwd"
+    run exec_container_daemon sh -c "grep -q '^root:x:0:0::' /etc/passwd"
     echo "User 'root' /etc/passwd: $status"
     [ "$status" -eq 0 ]
     run exec_container_daemon sh -c "grep -q '^root:x:0:' /etc/group"
@@ -54,7 +54,7 @@ teardown() {
     [ "$status" -eq 0 ]
 
     # Check the app user/group.
-    run exec_container_daemon sh -c "grep -q '^app::2000:3000::' /etc/passwd"
+    run exec_container_daemon sh -c "grep -q '^app:x:2000:3000::' /etc/passwd"
     echo "User 'app' /etc/passwd: $status"
     [ "$status" -eq 0 ]
     run exec_container_daemon sh -c "grep -q '^app:x:3000:' /etc/group"
@@ -88,7 +88,7 @@ teardown() {
             [ "$status" -eq 0 ]
 
             # Check the '_apt' user.
-            run exec_container_daemon sh -c "grep -q '^_apt::105:65534::' /etc/passwd"
+            run exec_container_daemon sh -c "grep -q '^_apt:x:105:65534::' /etc/passwd"
             echo "User '_apt' /etc/passwd: $status"
             [ "$status" -eq 0 ]
             run exec_container_daemon sh -c "grep -q '^_apt:' /etc/shadow"
