@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/godbus/dbus/v5"
@@ -18,13 +19,20 @@ import (
 // Notifications implements the org.freedesktop.Notifications D-Bus interface.
 // https://specifications.freedesktop.org/notification-spec/1.2/protocol.html
 type Notifications struct {
-	nextID uint32
+	nextID atomic.Uint32
 }
 
 // Message represents the structure of WebSocket messages sent to clients.
 type NotificationMessage struct {
-	Summary string `msgpack:"summary"`
-	Body    string `msgpack:"body"`
+	ID            uint32         `msgpack:"id"`
+	AppName       string         `msgpack:"appName"`
+	ReplacesID    uint32         `msgpack:"replacesID"`
+	AppIcon       string         `msgpack:"appIcon"`
+	Summary       string         `msgpack:"summary"`
+	Body          string         `msgpack:"body"`
+	Actions       []string       `msgpack:"actions"`
+	Hints         map[string]any `msgpack:"hints"`
+	ExpireTimeout int32          `msgpack:"expireTimeout"`
 }
 
 // WebSocket clients
@@ -47,7 +55,7 @@ func notificationServiceInit(appCtx context.Context) error {
 	}
 
 	// Register org.freedesktop.Notifications.
-	n := &Notifications{nextID: 0}
+	n := &Notifications{}
 	err = conn.Export(n, "/org/freedesktop/Notifications", "org.freedesktop.Notifications")
 	if err != nil {
 		conn.Close()
@@ -214,17 +222,32 @@ func notificationWebsocketHandler(appCtx context.Context, w http.ResponseWriter,
 
 // Notify handles the org.freedesktop.Notifications.Notify method.
 func (n *Notifications) Notify(appName string, replacesID uint32, appIcon, summary, body string, actions []string, hints map[string]dbus.Variant, expireTimeout int32) (uint32, *dbus.Error) {
-	// Create notification message.
-	message := NotificationMessage{
-		Summary: summary,
-		Body:    body,
-	}
-
 	// Assign a new ID if replacesID is 0.
 	id := replacesID
 	if id == 0 {
-		n.nextID++
-		id = n.nextID
+		id = n.nextID.Add(1)
+		if id == 0 {
+			id = n.nextID.Add(1)
+		}
+	}
+
+	// Unwrap D-Bus variants so their values can be encoded with MessagePack.
+	plainHints := make(map[string]any, len(hints))
+	for name, hint := range hints {
+		plainHints[name] = hint.Value()
+	}
+
+	// Create notification message.
+	message := NotificationMessage{
+		ID:            id,
+		AppName:       appName,
+		ReplacesID:    replacesID,
+		AppIcon:       appIcon,
+		Summary:       summary,
+		Body:          body,
+		Actions:       actions,
+		Hints:         plainHints,
+		ExpireTimeout: expireTimeout,
 	}
 
 	clientsMutex.Lock()
