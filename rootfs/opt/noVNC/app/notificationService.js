@@ -102,9 +102,13 @@ const NotificationService = (function() {
     function handleWebSocketMessage(event) {
         const data = msgpack.decode(new Uint8Array(event.data));
 
-        Log.Debug("Received message: " + JSON.stringify(data));
+        const hintNames = data.hints && typeof data.hints === 'object'
+            ? Object.keys(data.hints)
+            : [];
 
-        if (!data.summary || !data.body) {
+        Log.Debug(`Received notification: id=${data.id}, app=${data.appName}, summary=${data.summary}, hints=${hintNames.join(',')}`);
+
+        if (typeof data.summary !== 'string' || typeof data.body !== 'string') {
             Log.Error("Received invalid notification data.");
             return;
         }
@@ -113,7 +117,7 @@ const NotificationService = (function() {
             new Notification(data.summary, {
                 body: data.body,
                 icon: "app/images/icons/master_icon.png?v=UNIQUE_VERSION",
-                tag: data.replacesID ? `id_${data.replacesID}` : undefined,
+                tag: data.id ? `id_${data.id}` : undefined,
             });
         } else {
             Log.Info('Notification permission has been removed.');
