@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"crypto/rand"
 	"encoding/hex"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -285,13 +286,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	}
 
 	// Validate redirect URLs.
-	if _, err := url.Parse(successRawUrl); err != nil {
+	if err := isSafeRedirectURL(successRawUrl); err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid login request: invalid login success url:", err)
 		gStats.LoginBadRequest.Add(1)
 		return
 	}
-	if _, err := url.Parse(failureRawUrl); err != nil {
+	if err := isSafeRedirectURL(failureRawUrl); err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid login request: invalid login failure url:", err)
 		gStats.LoginBadRequest.Add(1)
@@ -412,7 +413,7 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 	}
 
 	// Validate redirect URL.
-	if _, err := url.Parse(redirectRawUrl); err != nil {
+	if err := isSafeRedirectURL(redirectRawUrl); err != nil {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		log.Debug("invalid logout request: invalid logout redirect url:", err)
 		gStats.LogoutBadRequest.Add(1)
@@ -430,6 +431,45 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 	// Respond with a redirect to the login page.
 	gStats.LogoutSuccess.Add(1)
 	http.Redirect(w, r, redirectRawUrl, http.StatusFound)
+}
+
+// isSafeRedirectURL reports whether raw is a same-origin relative path safe
+// for use in an HTTP Location redirect. Absolute URLs, protocol-relative
+// URLs (//host), backslash tricks, and control characters are rejected.
+// Returns nil if the URL is safe.
+func isSafeRedirectURL(raw string) error {
+	if raw == "" {
+		return errors.New("URL is empty")
+	}
+
+	// Reject control characters (CR/LF header injection, ambiguous parsing).
+	for i := 0; i < len(raw); i++ {
+		if raw[i] < 0x20 || raw[i] == 0x7f {
+			return errors.New("URL contains control characters")
+		}
+	}
+
+	// Some clients treat backslash like slash (e.g. /\evil.example).
+	if strings.Contains(raw, `\`) {
+		return errors.New("URL contains backslash")
+	}
+
+	u, err := url.Parse(raw)
+	if err != nil {
+		return err
+	}
+
+	// Must be relative: no scheme or host (covers http(s):// and //host).
+	if u.IsAbs() || u.Scheme != "" || u.Host != "" || u.User != nil {
+		return errors.New("URL must be a relative path")
+	}
+
+	// Path must be an absolute path on this host, not protocol-relative.
+	if u.Path == "" || !strings.HasPrefix(u.Path, "/") || strings.HasPrefix(u.Path, "//") {
+		return errors.New("URL path must be absolute on this host")
+	}
+
+	return nil
 }
 
 func GenerateToken(length int) (string, error) {
