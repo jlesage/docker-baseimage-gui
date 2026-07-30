@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"net/http"
 	"net/url"
-	"math/rand"
+	"crypto/rand"
 	"encoding/hex"
 	"sync"
 	"sync/atomic"
