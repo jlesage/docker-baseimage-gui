@@ -90,9 +90,13 @@ func main() {
 	gConfig.TokenValidityDuration = time.Hour * time.Duration(Min(8760, Max(1, *tokenValidityTime)))
 
 	// Create a SecureCookie instance.
-	gConfig.SecureCookieInstance = securecookie.New(
-		securecookie.GenerateRandomKey(64),
-		securecookie.GenerateRandomKey(32))
+	// GenerateRandomKey returns nil on failure (e.g. insufficient entropy).
+	hashKey := securecookie.GenerateRandomKey(64)
+	blockKey := securecookie.GenerateRandomKey(32)
+	if hashKey == nil || blockKey == nil {
+		log.Fatal("could not generate secure cookie keys")
+	}
+	gConfig.SecureCookieInstance = securecookie.New(hashKey, blockKey)
 	gConfig.SecureCookieInstance.MaxAge(int(gConfig.TokenValidityDuration.Seconds()))
 
 	// Set name of cookies.
