@@ -539,7 +539,6 @@ func CleanupTokens(mutextLocked bool) {
 	log.Info("cleaning tokens...")
 	for token, expiration := range gTokens {
 		if time.Now().After(expiration) {
-			log.Info("removing expired token", token)
 			delete(gTokens, token)
 		}
 	}
