@@ -64,7 +64,10 @@ func (m *WebSocketConnectionManager) SetupConnection(w http.ResponseWriter, r *h
 	defer m.mu.Unlock()
 
 	// Make sure we didn't exceed the maximum number of active connections.
+	// Respond before Upgrade so the client gets a proper HTTP error rather
+	// than an incomplete response.
 	if len(m.connections) >= maxActiveWebSocketConnections {
+		http.Error(w, "Service Unavailable", http.StatusServiceUnavailable)
 		return nil, 0, fmt.Errorf("maximum number of active WebSocket connections reached")
 	}
 
