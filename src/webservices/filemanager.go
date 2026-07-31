@@ -656,6 +656,9 @@ func hasSubpath(path string, basePath string) (bool, error) {
 
 	if absPath == absBasePath {
 		return true, nil
+	} else if absBasePath == string(filepath.Separator) {
+		// Root is a parent of every absolute path.
+		return true, nil
 	} else if strings.HasPrefix(absPath, absBasePath) {
 		// Base path should be followed by a separator, otherwise
 		// it's not a subpath.
