@@ -380,6 +380,10 @@ static void pa_socket_server_on_connection_cb(pa_socket_server *s, pa_iochannel 
             return;
         }
 
+        // Setup stream callbacks before connecting so READY/read events are not missed.
+        pa_stream_set_state_callback(c->pa_stream, &pa_stream_notify_cb, c);
+        pa_stream_set_read_callback(c->pa_stream, &pa_stream_read_cb, c);
+
         // Connect the stream to source.
         if (pa_stream_connect_record(c->pa_stream, c->monitor_name.c_str(), &buff_attr, flags) != 0) {
             PLOGE << "failed to connect audio stream to source: " << pa_strerror(pa_context_errno(c->pa_context));
@@ -392,10 +396,6 @@ static void pa_socket_server_on_connection_cb(pa_socket_server *s, pa_iochannel 
             << ((buff_attr.maxlength == (uint32_t)-1) ? "-1" : std::to_string(buff_attr.maxlength))
             << ", fragsize="
             << ((buff_attr.fragsize == (uint32_t)-1) ? "-1" : std::to_string(buff_attr.fragsize));
-
-        // Setup stream callbacks.
-        pa_stream_set_state_callback(c->pa_stream, &pa_stream_notify_cb, c);
-        pa_stream_set_read_callback(c->pa_stream, &pa_stream_read_cb, c);
 
         PLOGI << "audio stream recording started";
     }
