@@ -405,6 +405,7 @@ int main(int argc, char **argv)
 {
     int retval = EXIT_FAILURE;
     ar_context c;
+    bool signals_initialized = false;
 
     std::string unix_socket_path;
 
@@ -525,6 +526,7 @@ int main(int argc, char **argv)
             PLOGE << "failed to setup signals";
             goto fail;
         }
+        signals_initialized = true;
         pa_signal_new(SIGINT, exit_signal_callback, &c);
         pa_signal_new(SIGTERM, exit_signal_callback, &c);
         pa_disable_sigpipe();
@@ -580,7 +582,10 @@ fail:
     }
 
     if (c.pa_loop) {
-        pa_signal_done();
+        if (signals_initialized) {
+            pa_signal_done();
+            signals_initialized = false;
+        }
         pa_mainloop_free(c.pa_loop);
         c.pa_loop = nullptr;
     }
