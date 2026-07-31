@@ -425,19 +425,20 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 	token := ""
 
 	// Try to extract token from cookie.
-	if cookie, err := r.Cookie(gConfig.TokenCookieName); err == nil {
+	if cookie, err := r.Cookie(gConfig.TokenCookieName); err != nil {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		log.Debug("invalid logout request: auth cookie missing:", err)
+		gStats.LogoutBadRequest.Add(1)
+		return
+	} else {
 		value := make(map[string]string)
 		// Try to decode it.
 		if err := gConfig.SecureCookieInstance.Decode(gConfig.TokenCookieName, cookie.Value, &value); err == nil {
 			token = value["token"]
+		} else {
+			// Decode may fail after a process restart with new cookie keys.
+			log.Debug("logout request: could not decode auth cookie:", err)
 		}
-	}
-
-	// Remove the token.
-	if token != "" {
-		RemoveToken(token)
-	} else {
-		log.Error("no token provided for logout request")
 	}
 
 	// Fetch redirect URL via cookie.
@@ -457,6 +458,15 @@ func logoutHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) 
 		log.Debug("invalid logout request: invalid logout redirect url:", err)
 		gStats.LogoutBadRequest.Add(1)
 		return
+	}
+
+	// Remove the token from the store when present. Missing tokens are not an
+	// error: after a process restart the store is empty (and the cookie may be
+	// undecodable), so clients still need logout to clear the browser cookie.
+	if token != "" {
+		if !RemoveToken(token) {
+			log.Debug("logout request: token not found in store")
+		}
 	}
 
 	// Remove cookie containing the token.
@@ -553,7 +563,7 @@ func ValidateToken(token string) bool {
 	return false
 }
 
-func RemoveToken(token string) {
+func RemoveToken(token string) bool {
 	gTokensMutex.Lock()
 	defer gTokensMutex.Unlock()
 
@@ -561,8 +571,11 @@ func RemoveToken(token string) {
 		_, found := gTokens[token]
 		if found {
 			delete(gTokens, token)
+			return true
 		}
 	}
+
+	return false
 }
 
 func CleanupTokens(mutexLocked bool) {
