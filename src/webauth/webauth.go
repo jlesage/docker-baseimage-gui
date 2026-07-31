@@ -25,7 +25,6 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/tg123/go-htpasswd"
-	"github.com/jasonlvhit/gocron"
 	"github.com/gorilla/securecookie"
 
 	"webauth/log"
@@ -158,8 +157,11 @@ func main() {
 
 	// Start periodic job to cleanup tokens.
 	go func() {
-		gocron.Every(1).Hour().Do(CleanupTokens, false)
-		<-gocron.Start()
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			CleanupTokens(false)
+		}
 	}()
 
 	// Create HTTP router.
