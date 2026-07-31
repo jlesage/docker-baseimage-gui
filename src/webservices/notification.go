@@ -149,7 +149,8 @@ func notificationWebsocketHandler(appCtx context.Context, w http.ResponseWriter,
 
 	// Create channel for read on WebSocket. No message is expected to be
 	// received, however this allows quick detection of disconnections.
-	readCh := make(chan error)
+	// Buffered so the reader can exit if the main loop returns first.
+	readCh := make(chan error, 1)
 
 	// Register client.
 	clientsMutex.Lock()
@@ -166,12 +167,13 @@ func notificationWebsocketHandler(appCtx context.Context, w http.ResponseWriter,
 	}()
 
 	// Go routine used to read on the WebSocket. It will send any
-	// read error to the channel.
+	// read error to the channel and then exit.
 	go func() {
 		for {
 			_, _, err := conn.ReadMessage()
 			if err != nil {
 				readCh <- err
+				return
 			}
 		}
 	}()
