@@ -34,6 +34,9 @@ const (
 
 	// The maximum number of active WebSocket connections allowed.
 	maxActiveWebSocketConnections = 128
+
+	// Maximum size of a single inbound WebSocket message.
+	maxWebSocketMessageSize = 10 * 1024 * 1024
 )
 
 var (
@@ -76,6 +79,10 @@ func (m *WebSocketConnectionManager) SetupConnection(w http.ResponseWriter, r *h
 	if err != nil {
 		return nil, 0, fmt.Errorf("upgrade failed: %w", err)
 	}
+
+	// Cap inbound message size to avoid unbounded allocation / OOM from a
+	// single huge frame.
+	conn.SetReadLimit(maxWebSocketMessageSize)
 
 	// Register the connection.
 	m.connections[conn] = true
