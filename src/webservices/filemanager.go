@@ -530,11 +530,6 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 				continue
 			}
 
-			if ok := pendingDownloads.Contains(absPath); ok {
-				sendError(conn, "download in progress", msg)
-				continue
-			}
-
 			// Add the file to the pending downloads cache.
 			fileUUID := uuid.New().String()
 			pendingDownloads.Add(fileUUID, absPath)
