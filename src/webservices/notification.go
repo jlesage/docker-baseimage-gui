@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/godbus/dbus/v5"
@@ -18,7 +19,7 @@ import (
 // Notifications implements the org.freedesktop.Notifications D-Bus interface.
 // https://specifications.freedesktop.org/notification-spec/1.2/protocol.html
 type Notifications struct {
-	nextID uint32
+	nextID atomic.Uint32
 }
 
 // Message represents the structure of WebSocket messages sent to clients.
@@ -47,7 +48,7 @@ func notificationServiceInit(appCtx context.Context) error {
 	}
 
 	// Register org.freedesktop.Notifications.
-	n := &Notifications{nextID: 0}
+	n := &Notifications{}
 	err = conn.Export(n, "/org/freedesktop/Notifications", "org.freedesktop.Notifications")
 	if err != nil {
 		conn.Close()
@@ -223,8 +224,7 @@ func (n *Notifications) Notify(appName string, replacesID uint32, appIcon, summa
 	// Assign a new ID if replacesID is 0.
 	id := replacesID
 	if id == 0 {
-		n.nextID++
-		id = n.nextID
+		id = n.nextID.Add(1)
 	}
 
 	clientsMutex.Lock()
