@@ -365,6 +365,11 @@ static void pa_socket_server_on_connection_cb(pa_socket_server *s, pa_iochannel 
 
         // Create a new, unconnected stream.
         c->pa_stream = pa_stream_new(c->pa_context, "output monitor", &c->sample_spec, nullptr /*channel map*/);
+        if (!c->pa_stream) {
+            PLOGE << "failed to create audio stream: " << pa_strerror(pa_context_errno(c->pa_context));
+            quit_mainloop(c, EXIT_FAILURE);
+            return;
+        }
 
         // Connect the stream to source.
         if (pa_stream_connect_record(c->pa_stream, c->monitor_name.c_str(), &buff_attr, flags) != 0) {
