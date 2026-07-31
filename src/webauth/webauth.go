@@ -121,7 +121,9 @@ func main() {
 			<-sighupChannel
 			// Reload password database.
 			log.Info("reloading password database")
-			gPasswordDb.Reload(nil)
+			if err := gPasswordDb.Reload(nil); err != nil {
+				log.Error("could not reload password database:", err)
+			}
 		}
 	}()
 
