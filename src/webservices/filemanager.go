@@ -191,7 +191,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			}
@@ -257,7 +257,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if len(msg.NewName) == 0 {
@@ -285,7 +285,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if !isPathAllowed(msg.Path) {
@@ -319,7 +319,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if !isPathAllowed(msg.Path) {
@@ -345,7 +345,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if msg.Size == nil {
@@ -404,7 +404,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if _, ok := pendingUploads.Get(msg.Path); !ok {
@@ -420,7 +420,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if len(msg.Content) == 0 {
@@ -465,7 +465,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			if len(msg.Path) == 0 {
 				sendError(conn, "path missing", msg)
 				continue
-			} else if len(msg.Path) > MAX_FILENAME_LENGTH {
+			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
 			} else if !isPathAllowed(msg.Path) {
