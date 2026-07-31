@@ -444,6 +444,12 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 				continue
 			}
 
+			// Get only updates LRU recency, not the absolute TTL. Re-Add the
+			// same entry so ExpiresAt is renewed while the transfer is active;
+			// abandoned uploads still expire after PENDING_UPLOAD_VALIDITY_TIME
+			// of inactivity.
+			pendingUploads.Add(msg.Path, uploadFileContext)
+
 			if uploadFileContext.BytesReceived+uint64(len(msg.Content)) > uploadFileContext.FileSize {
 				//uploadFileContext.Cleanup(true)
 				pendingUploads.Remove(msg.Path)
