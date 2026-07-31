@@ -6,6 +6,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"errors"
 	"net"
@@ -188,9 +189,35 @@ func main() {
 		Handler: httpHandler(router),
 	}
 
+	// Create context used to gracefully shutdown the server when
+	// receiving termination signals.
+	appCtx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGINT,
+		syscall.SIGTERM,
+	)
+	defer stop()
+
 	// Start the HTTP server.
 	log.Info("web authentication service ready")
-	server.Serve(unixListener)
+	go func() {
+		if err := server.Serve(unixListener); err != nil && err != http.ErrServerClosed {
+			log.Fatal("could not start web authentication service:", err)
+		}
+	}()
+
+	// Wait for termination signal.
+	<-appCtx.Done()
+	log.Info("shutting down web authentication service...")
+
+	// Gracefully shutdown the HTTP server.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(shutdownCtx); err != nil {
+		log.Fatal("web authentication service forced to shutdown:", err)
+	}
+	log.Info("web authentication service exiting")
 }
 
 func httpHandler(handler http.Handler) http.Handler {
