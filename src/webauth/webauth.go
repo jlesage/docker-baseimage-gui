@@ -176,6 +176,10 @@ func main() {
 	if err != nil {
 		log.Fatal("could not create unix socket listener:", err)
 	}
+	// Restrict the socket to the current user (nginx runs as the same user).
+	if err := os.Chmod(*unixSocket, 0600); err != nil {
+		log.Fatal("could not set unix socket permissions:", err)
+	}
 
 	// Create the HTTP server.
 	server := http.Server{
