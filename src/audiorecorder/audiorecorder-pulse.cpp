@@ -440,6 +440,13 @@ int main(int argc, char **argv)
         c.sample_spec.rate = result["rate"].as<uint32_t>();
         c.sample_spec.channels = result["channels"].as<uint8_t>();
 
+        if (!pa_sample_spec_valid(&c.sample_spec)) {
+            PLOGE << "invalid sample specification: format=" << pa_sample_format_to_string(c.sample_spec.format)
+                  << ", rate=" << c.sample_spec.rate
+                  << ", channels=" << static_cast<unsigned>(c.sample_spec.channels);
+            exit(1);
+        }
+
         if (result.count("latency-msec")) {
             c.latency_ms = result["latency-msec"].as<uint32_t>();
         }
