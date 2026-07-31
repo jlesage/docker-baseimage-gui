@@ -605,15 +605,51 @@ func isPathAllowed(path string) bool {
 	}
 }
 
-func hasSubpath(path string, basePath string) (bool, error) {
-	// Get the absolute path of the input path.
+// resolvePath returns an absolute path with symlinks evaluated. If the final
+// component does not exist yet (create/upload), existing parent components are
+// still resolved so a symlink parent cannot smuggle a path outside the
+// allowlist.
+func resolvePath(path string) (string, error) {
 	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return "", err
+	}
+
+	resolved, err := filepath.EvalSymlinks(absPath)
+	if err == nil {
+		return resolved, nil
+	}
+
+	// Walk up until an existing prefix can be resolved, then rejoin the
+	// missing trailing components.
+	var missing []string
+	current := absPath
+	for {
+		if current == filepath.Dir(current) {
+			return "", err
+		}
+		missing = append(missing, filepath.Base(current))
+		current = filepath.Dir(current)
+
+		resolved, err = filepath.EvalSymlinks(current)
+		if err == nil {
+			for i := len(missing) - 1; i >= 0; i-- {
+				resolved = filepath.Join(resolved, missing[i])
+			}
+			return resolved, nil
+		}
+	}
+}
+
+func hasSubpath(path string, basePath string) (bool, error) {
+	// Resolve absolute paths and symlinks so allow/deny checks cannot be
+	// bypassed via a symlink under an allowed path.
+	absPath, err := resolvePath(path)
 	if err != nil {
 		return false, err
 	}
 
-	// Get the absolute path of the base path.
-	absBasePath, err := filepath.Abs(basePath)
+	absBasePath, err := resolvePath(basePath)
 	if err != nil {
 		return false, err
 	}
