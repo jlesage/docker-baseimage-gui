@@ -65,6 +65,10 @@ func main() {
 	if err != nil {
 		log.Fatal("could not create unix socket listener:", err)
 	}
+	if err := os.Chmod(*unixSocket, 0600); err != nil {
+		log.Fatal("could not set unix socket permissions:", err)
+	}
+	defer os.Remove(*unixSocket)
 
 	// Create the HTTP server.
 	server := http.Server{
