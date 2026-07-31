@@ -86,7 +86,7 @@ func main() {
 	}
 
 	// Handle the token validity time.
-	gConfig.TokenValidityDuration = time.Hour * time.Duration(Min(8760, Max(1, *tokenValidityTime)))
+	gConfig.TokenValidityDuration = time.Hour * time.Duration(min(8760, max(1, *tokenValidityTime)))
 
 	// Create a SecureCookie instance.
 	// GenerateRandomKey returns nil on failure (e.g. insufficient entropy).
@@ -252,7 +252,7 @@ func authHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 func loginHandler(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	// Rate limit login attempts.
-	if gLoginLimiter.Allow() == false {
+	if !gLoginLimiter.Allow() {
 		log.Debug("rate limiting login attempts")
 		http.Error(w,
 			http.StatusText(http.StatusTooManyRequests),
@@ -538,8 +538,8 @@ func RemoveToken(token string) {
 	}
 }
 
-func CleanupTokens(mutextLocked bool) {
-	if !mutextLocked {
+func CleanupTokens(mutexLocked bool) {
+	if !mutexLocked {
 		gTokensMutex.Lock()
 		defer gTokensMutex.Unlock()
 	}
@@ -553,16 +553,3 @@ func CleanupTokens(mutextLocked bool) {
 	log.Info("tokens cleanup terminated")
 }
 
-func Min(x, y uint) uint {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-func Max(x, y uint) uint {
-	if x > y {
-		return x
-	}
-	return y
-}
