@@ -472,7 +472,18 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			// of inactivity.
 			pendingUploads.Add(msg.Path, uploadFileContext)
 
+			uploadFileContext.mu.Lock()
+
+			// Make sure this upload has not been cleaned.
+			if uploadFileContext.Fd == nil {
+				uploadFileContext.mu.Unlock()
+				sendError(conn, "transfer not found", msg)
+				continue
+			}
+
+			// Make sure we have not received too much data.
 			if uploadFileContext.BytesReceived+uint64(len(msg.Content)) > uploadFileContext.FileSize {
+				uploadFileContext.mu.Unlock()
 				//uploadFileContext.Cleanup(true)
 				pendingUploads.Remove(msg.Path)
 				sendError(conn, "too much data received", msg)
@@ -482,6 +493,7 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			// Write data to file.
 			_, err := uploadFileContext.Fd.Write(msg.Content)
 			if err != nil {
+				uploadFileContext.mu.Unlock()
 				//uploadFileContext.Cleanup(true)
 				pendingUploads.Remove(msg.Path)
 				sendError(conn, err.Error(), msg)
@@ -490,7 +502,10 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			uploadFileContext.BytesReceived += uint64(len(msg.Content))
 
 			// Check if upload is terminated.
-			if uploadFileContext.BytesReceived == uploadFileContext.FileSize {
+			complete := uploadFileContext.BytesReceived == uploadFileContext.FileSize
+			uploadFileContext.mu.Unlock()
+
+			if complete {
 				uploadFileContext.Cleanup(false)
 				pendingUploads.Remove(msg.Path)
 			}
