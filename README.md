@@ -394,6 +394,11 @@ they follow the naming convention `CONT_ENV_<environment variable name>`.
 For example, a secret named `CONT_ENV_MY_PASSWORD` creates the environment
 variable `MY_PASSWORD` with the secret's content.
 
+Docker secrets take precedence over environment variables set by other means
+(for example via the `Dockerfile` `ENV` instruction, `docker run -e`, or Compose
+`environment`). If the same variable is provided both as an environment variable
+and as a `CONT_ENV_*` secret, the secret value is used.
+
 ### Ports
 
 The baseimage uses the following ports. With a container using the default

@@ -4,7 +4,7 @@ setup() {
     load setup_common
 
     echo "TEST_VAL" > "$TESTS_WORKDIR"/TEST_VAR
-    echo "USER_VAL" > "$TESTS_WORKDIR"/TEST_VAR_OVERRIDE
+    echo "SECRET_VAL" > "$TESTS_WORKDIR"/TEST_VAR_OVERRIDE
 
     DOCKER_EXTRA_OPTS=()
     DOCKER_EXTRA_OPTS+=("-e" "TEST_VAR_OVERRIDE=USER_VAL")
@@ -33,7 +33,7 @@ teardown() {
     [ "$status" -eq 0 ]
 }
 
-@test "Checking that environment variable is not loaded from docker secrets when overridden by user..." {
+@test "Checking that docker secrets take precedence over environment variables..." {
     # Dump docker logs before proceeding to validations.
     echo "====================================================================="
     echo " DOCKER LOGS"
@@ -43,7 +43,7 @@ teardown() {
     echo " END DOCKER LOGS"
     echo "====================================================================="
 
-    run exec_container_daemon sh -c "cat /proc/1/environ | tr '\0' '\n' | grep '^TEST_VAR_OVERRIDE=USER_VAL'"
+    run exec_container_daemon sh -c "cat /proc/1/environ | tr '\0' '\n' | grep '^TEST_VAR_OVERRIDE=SECRET_VAL$'"
     [ "$status" -eq 0 ]
 }
 
