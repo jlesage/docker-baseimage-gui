@@ -273,12 +273,26 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			} else if len(msg.NewName) > MAX_FILENAME_LENGTH {
 				sendError(conn, "new name too long", msg)
 				continue
+			} else if !isValidFileName(msg.NewName) {
+				sendError(conn, "invalid new name", msg)
+				continue
+			}
+
+			// Build the destination path. NewName is validated as a single
+			// path component so it cannot escape the source directory.
+			newPath := filepath.Join(filepath.Dir(msg.Path), msg.NewName)
+			if len(newPath) > MAX_PATH_LENGTH {
+				sendError(conn, "path too long", msg)
+				continue
 			} else if !isPathAllowed(msg.Path) {
+				sendError(conn, "no such file or directory", msg)
+				continue
+			} else if !isPathAllowed(newPath) {
 				sendError(conn, "no such file or directory", msg)
 				continue
 			}
 
-			err := os.Rename(msg.Path, filepath.Dir(msg.Path)+"/"+msg.NewName)
+			err := os.Rename(msg.Path, newPath)
 			if linkErr, ok := err.(*os.LinkError); ok {
 				sendError(conn, linkErr.Err.Error(), msg)
 				continue
@@ -539,6 +553,23 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			}
 		}
 	}()
+}
+
+// isValidFileName reports whether name is a single path component suitable
+// for rename (no separators, ".", or "..").
+func isValidFileName(name string) bool {
+	if name == "" || name == "." || name == ".." {
+		return false
+	}
+	// Reject separators and null bytes that could form another path.
+	if strings.ContainsAny(name, `/\`+string(filepath.Separator)+"\x00") {
+		return false
+	}
+	// filepath.Base collapses directory components; mismatch means a path.
+	if filepath.Base(name) != name {
+		return false
+	}
+	return true
 }
 
 func addAllowedPath(path string) error {
