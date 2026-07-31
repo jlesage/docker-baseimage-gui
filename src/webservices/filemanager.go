@@ -201,6 +201,9 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
+			} else if !isPathListable(msg.Path) {
+				sendError(conn, "no such file or directory", msg)
+				continue
 			}
 
 			files, err := listDir(msg.Path)
@@ -608,6 +611,32 @@ func isPathAllowed(path string) bool {
 		}
 		return false
 	}
+}
+
+// isPathListable reports whether path may be listed. Unlike isPathAllowed,
+// ancestors of allowed paths are permitted so the client can navigate to
+// them; unrelated paths outside the allowlist are rejected without opening.
+func isPathListable(path string) bool {
+	if isPathAllowed(path) {
+		return true
+	}
+
+	// Denied paths (already rejected by isPathAllowed) stay unlistable.
+	for _, deniedPath := range deniedPaths {
+		ok, err := hasSubpath(path, deniedPath)
+		if err == nil && ok {
+			return false
+		}
+	}
+
+	// Allow listing a directory that is an ancestor of an allowed path.
+	for _, allowedPath := range allowedPaths {
+		ok, err := hasSubpath(allowedPath, path)
+		if err == nil && ok {
+			return true
+		}
+	}
+	return false
 }
 
 // resolvePath returns an absolute path with symlinks evaluated. If the final
