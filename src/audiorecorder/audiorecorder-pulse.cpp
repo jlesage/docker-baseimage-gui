@@ -299,7 +299,7 @@ static void pa_io_callback(pa_iochannel *io, void *userdata)
 
     if (pa_iochannel_is_readable(io)) {
         int r;
-        if ((r = pa_iochannel_read(io, c->rx_buffer, sizeof(c->rx_buffer) <= 0))) {
+        if ((r = pa_iochannel_read(io, c->rx_buffer, sizeof(c->rx_buffer))) <= 0) {
             if (r < 0 && errno == EAGAIN) {
                 // Ignore the error.
                 return;
