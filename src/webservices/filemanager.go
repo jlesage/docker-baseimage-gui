@@ -136,8 +136,15 @@ func downloadHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	// Set the Content-Type header.
 	w.Header().Set("Content-Type", mimeType)
 
-	// Set the Content-Disposition header to prompt download.
-	w.Header().Set("Content-Disposition", "attachment; filename="+fileName)
+	// Set the Content-Disposition header to prompt download. FormatMediaType
+	// properly quotes and encodes the filename (RFC 2183 / 2231).
+	disposition := mime.FormatMediaType("attachment", map[string]string{
+		"filename": fileName,
+	})
+	if disposition == "" {
+		disposition = "attachment"
+	}
+	w.Header().Set("Content-Disposition", disposition)
 
 	// Serve the file.
 	http.ServeContent(w, r, fileName, fileStat.ModTime(), file)
