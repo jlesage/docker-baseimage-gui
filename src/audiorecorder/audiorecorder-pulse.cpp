@@ -167,8 +167,17 @@ void pa_stream_notify_cb(pa_stream *stream, void *userdata)
 
     switch (pa_stream_get_state(stream)) {
         case PA_STREAM_READY:
-            // The stream is established.
-            PLOGD << "audio stream is ready";
+            // The stream is established. Sample spec and channel map are only
+            // valid once the stream is ready.
+            {
+                char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
+                pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(stream));
+                pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(stream));
+
+                PLOGD << "audio stream is ready";
+                PLOGD << "audio stream sample spec: " << sst;
+                PLOGD << "audio stream sample channel map: " << cmt;
+            }
             break;
         case PA_STREAM_FAILED:
         {
@@ -383,15 +392,6 @@ static void pa_socket_server_on_connection_cb(pa_socket_server *s, pa_iochannel 
             << ((buff_attr.maxlength == (uint32_t)-1) ? "-1" : std::to_string(buff_attr.maxlength))
             << ", fragsize="
             << ((buff_attr.fragsize == (uint32_t)-1) ? "-1" : std::to_string(buff_attr.fragsize));
-
-        {
-            char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
-            pa_sample_spec_snprint(sst, sizeof(sst), pa_stream_get_sample_spec(c->pa_stream));
-            pa_channel_map_snprint(cmt, sizeof(cmt), pa_stream_get_channel_map(c->pa_stream));
-
-            PLOGD << "audio stream sample spec: " << sst;
-            PLOGD << "audio stream sample channel map: " << cmt;
-        }
 
         // Setup stream callbacks.
         pa_stream_set_state_callback(c->pa_stream, &pa_stream_notify_cb, c);
