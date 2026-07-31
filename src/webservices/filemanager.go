@@ -428,7 +428,11 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			} else if len(msg.Path) > MAX_PATH_LENGTH {
 				sendError(conn, "path too long", msg)
 				continue
-			} else if _, ok := pendingUploads.Get(msg.Path); !ok {
+			}
+
+			uploadFileContext, ok := pendingUploads.Get(msg.Path)
+			if !ok || uploadFileContext.ConnId != connId {
+				// Same error whether missing or owned by another connection.
 				sendError(conn, "transfer not found", msg)
 				continue
 			}
@@ -453,7 +457,8 @@ func fileManagerWebsocketHandler(appCtx context.Context, w http.ResponseWriter, 
 			}
 
 			uploadFileContext, ok := pendingUploads.Get(msg.Path)
-			if !ok {
+			if !ok || uploadFileContext.ConnId != connId {
+				// Same error whether missing or owned by another connection.
 				sendError(conn, "transfer not found", msg)
 				continue
 			}
