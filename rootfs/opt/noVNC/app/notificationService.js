@@ -11,42 +11,63 @@ const NotificationService = (function() {
     function initialize(wsUrl) {
         webSocketUrl = wsUrl;
 
-        // Handle the state of notification permission.
         if (!("Notification" in window)) {
-            Log.Warn("This browser does not support notification.")
-        } else if (Notification.permission === 'granted') {
+            Log.Warn("This browser does not support notification.");
+            return;
+        }
+
+        if (Notification.permission === 'granted') {
             Log.Info('Notification permission granted.');
             notificationGranted = true;
-        } else if (Notification.permission === 'denied') {
+            return;
+        }
+
+        if (Notification.permission === 'denied') {
             Log.Info('Notification permission denied.');
-            notificationGranted = false;
-        } else {
-            // Ask permission.
+            return;
+        }
+
+        // Permission is still "default". Browsers (especially Safari) only allow
+        // Notification.requestPermission() from a user gesture, so defer the
+        // prompt to the first interaction.
+        Log.Info('Notification permission will be requested on the next user interaction.');
+        let firstInteractionHandled = false;
+        const onFirstInteraction = () => {
+            if (firstInteractionHandled) {
+                return;
+            }
+            firstInteractionHandled = true;
+
             Notification.requestPermission().then(permission => {
                 if (permission === 'granted') {
                     Log.Info('Notification permission has been granted.');
                     notificationGranted = true;
-
-                    // Call the start function again because it might have first
-                    // been called while permission not granted.
+                    // start() may already have been called while waiting.
                     if (started) {
-                        start();
+                        connectWebSocket();
                     }
                 } else {
                     Log.Info('Notification permission has been denied.');
                 }
             });
-        }
+        };
+        ['pointerdown', 'touchstart'].forEach(eventType => {
+            document.addEventListener(eventType, onFirstInteraction, { once: true });
+        });
     }
 
     function start() {
+        started = true;
         if (notificationGranted) {
             connectWebSocket();
-            started = true;
         }
     }
 
     function stop() {
+        if (webSocketConnectTimer) {
+            clearTimeout(webSocketConnectTimer);
+            webSocketConnectTimer = null;
+        }
         disconnectWebSocket();
         started = false;
     }
@@ -85,7 +106,7 @@ const NotificationService = (function() {
             webSocketConnected = false;
 
             // Attempt to re-connect.
-            if (notificationGranted) {
+            if (notificationGranted && started) {
                 Log.Info('WebSocket reconnection for notification service will be attempted');
                 webSocketConnectTimer = setTimeout(connectWebSocket, 1000);
             }
