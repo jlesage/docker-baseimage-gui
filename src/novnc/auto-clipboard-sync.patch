@@ -1,5 +1,5 @@
---- a/core/rfb.js	2025-10-02 22:18:27.444440990 -0400
-+++ b/core/rfb.js	2025-10-02 23:17:29.338761880 -0400
+--- a/core/rfb.js
++++ b/core/rfb.js
 @@ -159,6 +159,10 @@
          this._clipboardText = null;
          this._clipboardServerCapabilitiesActions = {};
@@ -7,7 +7,7 @@
 +        this._clipboardAutoSync = "denied";
 +        this._clipboardAutoSyncWritePerm = null;
 +        this._clipboardAutoSyncReadPerm = null;
-+        this._initClipboardAutoSyncState();
++        this._clipboardAutoSyncEnabled = false;
  
          // Internal objects
          this._sock = null;              // Websock object
@@ -19,16 +19,53 @@
          };
  
          // main setup
-@@ -346,6 +351,8 @@
+@@ -342,6 +347,45 @@
          this._updateClip();
      }
  
 +    get clipboardAutoSync() { return this._clipboardAutoSync; }
 +
++    // Capability only (secure context + APIs + clipboard permission names).
++    // Does not depend on whether permission is granted or denied.
++    // Safari exposes Permissions/Clipboard APIs but rejects clipboard-read/write
++    // permission queries with TypeError.
++    static async isClipboardAutoSyncSupported() {
++        if (!(window.isSecureContext &&
++              navigator?.permissions?.query &&
++              navigator?.clipboard?.readText &&
++              navigator?.clipboard?.writeText)) {
++            return false;
++        }
++
++        try {
++            await navigator.permissions.query(
++                {name: "clipboard-write", allowWithoutGesture: false});
++            await navigator.permissions.query(
++                {name: "clipboard-read", allowWithoutGesture: false});
++            return true;
++        } catch (error) {
++            return false;
++        }
++    }
++
++    get clipboardAutoSyncEnabled() { return this._clipboardAutoSyncEnabled; }
++    set clipboardAutoSyncEnabled(enabled) {
++        enabled = !!enabled;
++        if (enabled === this._clipboardAutoSyncEnabled) {
++            return;
++        }
++        this._clipboardAutoSyncEnabled = enabled;
++        if (enabled) {
++            this._initClipboardAutoSyncState();
++        } else {
++            this._disableClipboardAutoSync();
++        }
++    }
++
      get scaleViewport() { return this._scaleViewport; }
      set scaleViewport(scale) {
          this._scaleViewport = scale;
-@@ -606,6 +613,9 @@
+@@ -602,6 +646,9 @@
          this._canvas.addEventListener("gesturemove", this._eventHandlers.handleGesture);
          this._canvas.addEventListener("gestureend", this._eventHandlers.handleGesture);
  
@@ -38,7 +75,7 @@
          Log.Debug("<< RFB.connect");
      }
  
-@@ -623,6 +633,7 @@
+@@ -619,6 +666,7 @@
          this._canvas.removeEventListener('contextmenu', this._eventHandlers.handleMouse);
          this._canvas.removeEventListener("mousedown", this._eventHandlers.focusCanvas);
          this._canvas.removeEventListener("touchstart", this._eventHandlers.focusCanvas);
@@ -46,19 +83,23 @@
          this._resizeObserver.disconnect();
          this._keyboard.ungrab();
          this._gestures.detach();
-@@ -2327,6 +2338,109 @@
+@@ -2323,6 +2371,139 @@
          return this._fail("Unexpected SetColorMapEntries message");
      }
  
 +    async _initClipboardAutoSyncState() {
-+        if (!window.isSecureContext) {
-+            Log.Info("clipboard auto sync requires a secure context");
++        if (!this._clipboardAutoSyncEnabled) {
 +            return;
-+        } else if (!(navigator?.permissions?.query)) {
-+            Log.Info("clipboard auto sync requires support of Permissions API");
++        }
++
++        // Already initialized.
++        if (this._clipboardAutoSyncWritePerm && this._clipboardAutoSyncReadPerm) {
++            this._updateClipboardAutoSyncState();
 +            return;
-+        } else if (!(navigator?.clipboard?.writeText) || !(navigator?.clipboard?.readText)) {
-+            Log.Info("clipboard auto sync requires support of Clipboard API");
++        }
++
++        if (!(await RFB.isClipboardAutoSyncSupported())) {
++            Log.Info("clipboard auto sync not supported by browser");
 +            return;
 +        }
 +
@@ -70,6 +111,11 @@
 +
 +            Log.Info(`clipboard-write permission status is ${writePerm.state}`);
 +            Log.Info(`clipboard-read permission status is ${readPerm.state}`);
++
++            // Feature may have been disabled while awaiting permission queries.
++            if (!this._clipboardAutoSyncEnabled) {
++                return;
++            }
 +
 +            writePerm.onchange = () => {
 +                Log.Info(`clipboard-write permission status changed to ${writePerm.state}`);
@@ -84,15 +130,36 @@
 +            this._clipboardAutoSyncReadPerm = readPerm;
 +            this._updateClipboardAutoSyncState();
 +        } catch (error) {
-+            if (error instanceof TypeError) {
-+                Log.Error("clipboard permissions query failed: ", error);
-+            } else {
-+                Log.Info("clipboard permission not supported");
-+            }
++            Log.Info("clipboard auto sync not supported by browser: ", error);
++        }
++    }
++
++    _disableClipboardAutoSync() {
++        if (this._clipboardAutoSyncWritePerm) {
++            this._clipboardAutoSyncWritePerm.onchange = null;
++        }
++        if (this._clipboardAutoSyncReadPerm) {
++            this._clipboardAutoSyncReadPerm.onchange = null;
++        }
++        this._clipboardAutoSyncWritePerm = null;
++        this._clipboardAutoSyncReadPerm = null;
++
++        if (this._clipboardAutoSync !== "denied") {
++            Log.Info("clipboard auto sync changed to denied");
++            this._clipboardAutoSync = "denied";
++            this.dispatchEvent(new CustomEvent(
++                "clipboardautosync",
++                { detail: { state: "denied" } }));
 +        }
 +    }
 +
 +    _updateClipboardAutoSyncState() {
++        if (!this._clipboardAutoSyncEnabled ||
++            !this._clipboardAutoSyncWritePerm ||
++            !this._clipboardAutoSyncReadPerm) {
++            return;
++        }
++
 +        let autoSync = "denied";
 +
 +        if (this._clipboardAutoSyncWritePerm.state === "denied" ||
@@ -156,7 +223,7 @@
      _handleServerCutText() {
          Log.Debug("ServerCutText");
  
-@@ -2346,10 +2460,7 @@
+@@ -2342,10 +2523,7 @@
                  return true;
              }
  
@@ -168,7 +235,7 @@
          } else {
              //Extended msg.
              length = Math.abs(length);
-@@ -2484,9 +2595,7 @@
+@@ -2480,9 +2658,7 @@
  
                      textData = textData.replaceAll("\r\n", "\n");
  

@@ -953,6 +953,23 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_HOST_CLIPBOARD_SYNC
+      description: >-
+        When set to `1`, enables support for synchronizing the host system
+        clipboard with the application inside the container. Actual availability
+        still depends on the browser. See
+        [Host Clipboard Sync](#host-clipboard-sync) for details.
+      type: public
+      default: 1
+      unraid_template:
+        title: Web Host Clipboard Sync
+        description: >-
+          When set to `1`, enables support for synchronizing the host system
+          clipboard with the application inside the container. Actual
+          availability still depends on the browser.
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_FILE_MANAGER
       description: >-
         When set to `1`, enables the web file manager, allowing interaction

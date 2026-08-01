@@ -222,6 +222,13 @@ const UI = {
             });
         }
 
+        // Host clipboard sync setting (container policy + browser capability).
+        if (UI.webData.hostClipboardSync &&
+            await RFB.isClipboardAutoSyncSupported()) {
+            document.getElementById('noVNC_setting_host_clipboard_sync_section')
+                .classList.remove("noVNC_hidden");
+        }
+
         // Adapt the interface for touch screen devices
         if (isTouchDevice) {
             document.documentElement.classList.add("noVNC_touch");
@@ -359,6 +366,7 @@ const UI = {
         UI.initSetting('port', port);
         UI.initSetting('encrypt', (window.location.protocol === "https:"));
         UI.initSetting('view_clip', false);
+        UI.initSetting('host_clipboard_sync', true);
         UI.initSetting('resize', resize);
         UI.initSetting('quality', 6);
         UI.initSetting('compression', 2);
@@ -523,6 +531,8 @@ const UI = {
         UI.addSettingChangeHandler('compression', UI.updateCompression);
         UI.addSettingChangeHandler('view_clip');
         UI.addSettingChangeHandler('view_clip', UI.updateViewClip);
+        UI.addSettingChangeHandler('host_clipboard_sync');
+        UI.addSettingChangeHandler('host_clipboard_sync', UI.updateHostClipboardSync);
         UI.addSettingChangeHandler('logging');
         UI.addSettingChangeHandler('logging', UI.updateLogging);
         UI.addSettingChangeHandler('audio_volume');
@@ -1171,7 +1181,7 @@ const UI = {
         });
 
         UI.updateViewOnly(); // requires UI.rfb
-        UI.updateClipboard();
+        UI.updateHostClipboardSync(); // requires UI.rfb
     },
 
     // Called from timer.
@@ -1751,6 +1761,14 @@ const UI = {
             document.getElementById('noVNC_clipboard_section')
                 .classList.remove('noVNC_hidden');
         }
+    },
+
+    updateHostClipboardSync() {
+        if (!UI.rfb) return;
+        const enabled = !!UI.webData.hostClipboardSync &&
+                        !!UI.getSetting('host_clipboard_sync');
+        UI.rfb.clipboardAutoSyncEnabled = enabled;
+        UI.updateClipboard();
     },
 
     updateLogging() {

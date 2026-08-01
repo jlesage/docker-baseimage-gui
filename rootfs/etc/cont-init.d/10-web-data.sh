@@ -86,6 +86,14 @@ else
     printf ',\n    "terminal": false' >> "${WEB_DATA_FILE}"
 fi
 
+# Host clipboard synchronization support.
+# Enabled by default to preserve existing behavior.
+if is-bool-val-true "${WEB_HOST_CLIPBOARD_SYNC:-1}"; then
+    printf ',\n    "hostClipboardSync": true' >> "${WEB_DATA_FILE}"
+else
+    printf ',\n    "hostClipboardSync": false' >> "${WEB_DATA_FILE}"
+fi
+
 # End of the JSON file.
 printf '\n}\n' >> "${WEB_DATA_FILE}"
 

@@ -62,7 +62,7 @@ shell, desktop notifications, and more.
       * [Reverse Proxy](#reverse-proxy)
          * [Routing Based on Hostname](#routing-based-on-hostname)
          * [Routing Based on URL Path](#routing-based-on-url-path)
-      * [Automatic Clipboard Sync](#automatic-clipboard-sync)
+      * [Host Clipboard Sync](#host-clipboard-sync)
       * [Web Audio](#web-audio)
       * [Web File Manager](#web-file-manager)
       * [Web Notifications](#web-notifications)
@@ -314,6 +314,7 @@ The baseimage provides the following public environment variables:
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
 |`DARK_MODE`| When set to `1`, enables dark mode for the application. See Dark Mode](#dark-mode) for details. | `0` |
 |`WEB_AUDIO`| When set to `1`, enables audio support, allowing audio produced by the application to play through the browser. See [Web Audio](#web-audio) for details. | `0` |
+|`WEB_HOST_CLIPBOARD_SYNC`| When set to `1`, enables support for synchronizing the host system clipboard with the application inside the container. Actual availability still depends on the browser. See [Host Clipboard Sync](#host-clipboard-sync) for details. | `1` |
 |`WEB_FILE_MANAGER`| When set to `1`, enables the web file manager, allowing interaction with files inside the container through the web browser, supporting operations like renaming, deleting, uploading, and downloading. See [Web File Manager](#web-file-manager) for details. | `0` |
 |`WEB_FILE_MANAGER_ALLOWED_PATHS`| Comma-separated list of paths within the container that the file manager can access. By default, the container's entire filesystem is not accessible, and this variable specifies allowed paths. If set to `AUTO`, commonly used folders and those mapped to the container are automatically allowed. The value `ALL` allows access to all paths (no restrictions). See [Web File Manager](#web-file-manager) for details. | `AUTO` |
 |`WEB_FILE_MANAGER_DENIED_PATHS`| Comma-separated list of paths within the container that the file manager cannot access. A denied path takes precedence over an allowed path. See [Web File Manager](#web-file-manager) for details. | (no value) |
@@ -1127,21 +1128,30 @@ server {
 
 ```
 
-### Automatic Clipboard Sync
+### Host Clipboard Sync
 
-When the container is accessed through a web browser, automatic clipboard
-synchronization enables seamless sharing of clipboard contents between the host
-system and the application running inside the container. This makes it possible
-to copy and paste text or data directly between the two environments without
-manual transfer steps.
+Host clipboard sync keeps the system clipboard on the machine running the
+browser in sync with the application inside the container. When active, copy
+and paste work directly between the host and the app without using the side
+panel.
 
-This functionality is not available when using VNC clients and is supported only
-in browsers based on the Chromium engine, such as Google Chrome and Microsoft
-Edge.
+This is different from the side panel clipboard, which only mirrors the
+application's clipboard so text can be transferred manually.
 
-Clipboard synchronization operates transparently once permission has been
-granted by the browser. Depending on browser implementation, a prompt may appear
-the first time clipboard access is requested.
+Host clipboard sync is not available when using VNC clients and is supported
+only in browsers based on the Chromium engine, such as Google Chrome and
+Microsoft Edge.
+
+It operates transparently once permission has been granted by the browser.
+Depending on browser implementation, a prompt may appear the first time
+clipboard access is requested.
+
+Support is enabled by default via the `WEB_HOST_CLIPBOARD_SYNC` environment
+variable. Setting it to `1` only enables support on the container side; the
+feature still depends on the browser (engine, secure context, and clipboard
+permissions). Setting it to `0` disables the feature for all sessions. When
+support is enabled, users can also turn host clipboard sync on or off from the
+web interface settings for their own browser.
 
 > [!IMPORTANT]
 > Web browsers only allow access to the clipboard in secure contexts (HTTPS).
@@ -1149,9 +1159,9 @@ the first time clipboard access is requested.
 > [Security](#security) for details.
 
 > [!TIP]
-> If automatic clipboard synchronization is not available, text can still be
-> copied and pasted using the side panel clipboard, which provides manual
-> clipboard access between the host and the container.
+> If host clipboard sync is not available or has been disabled, text can still
+> be copied and pasted using the side panel clipboard, which provides manual
+> access to the application's clipboard.
 
 > [!NOTE]
 > This feature is not available to VNC clients.
