@@ -1164,7 +1164,8 @@ const UI = {
         UI.rfb.addEventListener("securityfailure", UI.securityFailed);
         UI.rfb.addEventListener("clipboard", UI.clipboardReceive);
         UI.rfb.addEventListener("desktopname", UI.updateDesktopName);
-        UI.rfb.addEventListener("clipboardautosync", UI.updateClipboard);
+        UI.rfb.addEventListener("clipboardautosync", UI.handleClipboardAutoSync);
+        UI.rfb.addEventListener("clipboardautosyncrejected", UI.handleClipboardAutoSyncRejected);
         UI.rfb.clipViewport = UI.getSetting('view_clip');
         UI.rfb.scaleViewport = UI.getSetting('resize') === 'scale';
         UI.rfb.resizeSession = UI.getSetting('resize') === 'remote';
@@ -1763,11 +1764,89 @@ const UI = {
         }
     },
 
-    updateHostClipboardSync() {
+    // Browser clipboard permission state changed.
+    handleClipboardAutoSync(e) {
         if (!UI.rfb) return;
+
+        const permission = e?.detail?.state ?? UI.rfb.clipboardAutoSyncPermission;
+        const previous = e?.detail?.previous;
+
+        if (permission === "denied") {
+            // Permanently denied by the browser: force the setting off and grey
+            // it out until the user changes the site permission.
+            WebUtil.writeSetting('host_clipboard_sync', false);
+            UI.updateSetting('host_clipboard_sync');
+            UI.rfb.clipboardAutoSyncEnabled = false;
+            UI.disableSetting('host_clipboard_sync');
+        } else if (permission === "prompt") {
+            // Keep the control clickable so the user can (re)enable sync.
+            UI.enableSetting('host_clipboard_sync');
+
+            // Only force the setting off when permission *returns* to prompt
+            // after a settled browser state. On first load (previous is null)
+            // leave the default (enabled) alone so a first-time user still has
+            // the setting on.
+            if (previous === "granted" || previous === "denied") {
+                WebUtil.writeSetting('host_clipboard_sync', false);
+                UI.updateSetting('host_clipboard_sync');
+                UI.rfb.clipboardAutoSyncEnabled = false;
+            }
+        } else if (permission === "granted") {
+            UI.enableSetting('host_clipboard_sync');
+        }
+
+        UI.updateClipboard();
+    },
+
+    // User dismissed or denied the browser permission prompt.
+    handleClipboardAutoSyncRejected() {
+        if (!UI.rfb) return;
+
+        // Turn the setting back off. Keep it clickable so the user can retry
+        // (unless the browser reports a permanent denial).
+        WebUtil.writeSetting('host_clipboard_sync', false);
+        UI.updateSetting('host_clipboard_sync');
+        UI.rfb.clipboardAutoSyncEnabled = false;
+
+        if (UI.rfb.clipboardAutoSyncPermission === "denied") {
+            UI.disableSetting('host_clipboard_sync');
+        } else {
+            UI.enableSetting('host_clipboard_sync');
+        }
+
+        UI.updateClipboard();
+    },
+
+    async updateHostClipboardSync() {
+        if (!UI.rfb) return;
+
+        // Always monitor browser permission when the container allows the feature
+        // and the browser supports it (so we can grey out on permanent denial).
+        if (UI.webData.hostClipboardSync) {
+            await UI.rfb.initClipboardAutoSyncPermissions();
+        }
+
+        // Do not enable if the browser already permanently denied access.
+        if (UI.rfb.clipboardAutoSyncPermission === "denied") {
+            WebUtil.writeSetting('host_clipboard_sync', false);
+            UI.updateSetting('host_clipboard_sync');
+            UI.rfb.clipboardAutoSyncEnabled = false;
+            UI.disableSetting('host_clipboard_sync');
+            UI.updateClipboard();
+            return;
+        }
+
+        UI.enableSetting('host_clipboard_sync');
+
         const enabled = !!UI.webData.hostClipboardSync &&
                         !!UI.getSetting('host_clipboard_sync');
         UI.rfb.clipboardAutoSyncEnabled = enabled;
+
+        // Turning the setting on should (re)trigger the browser permission flow.
+        if (enabled) {
+            await UI.rfb.requestClipboardAutoSyncAccess();
+        }
+
         UI.updateClipboard();
     },
 

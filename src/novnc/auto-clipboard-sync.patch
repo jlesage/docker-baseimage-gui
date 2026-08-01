@@ -1,17 +1,20 @@
 --- a/core/rfb.js
 +++ b/core/rfb.js
-@@ -159,6 +159,10 @@
+@@ -159,6 +159,13 @@
          this._clipboardText = null;
          this._clipboardServerCapabilitiesActions = {};
          this._clipboardServerCapabilitiesFormats = {};
-+        this._clipboardAutoSync = "denied";
++        this._clipboardAutoSync = null; // unknown until first permission query
 +        this._clipboardAutoSyncWritePerm = null;
 +        this._clipboardAutoSyncReadPerm = null;
 +        this._clipboardAutoSyncEnabled = false;
++        this._clipboardAutoSyncReadInProgress = false;
++        this._clipboardAutoSyncReadBlocked = false;
++        this._clipboardAutoSyncInitPromise = null;
  
          // Internal objects
          this._sock = null;              // Websock object
-@@ -210,6 +214,7 @@
+@@ -210,6 +217,7 @@
              handleGesture: this._handleGesture.bind(this),
              handleRSAAESCredentialsRequired: this._handleRSAAESCredentialsRequired.bind(this),
              handleRSAAESServerVerification: this._handleRSAAESServerVerification.bind(this),
@@ -19,11 +22,21 @@
          };
  
          // main setup
-@@ -342,6 +347,45 @@
+@@ -342,6 +350,82 @@
          this._updateClip();
      }
  
-+    get clipboardAutoSync() { return this._clipboardAutoSync; }
++    // Browser permission state only: null | "denied" | "prompt" | "granted".
++    // null means not queried yet.
++    get clipboardAutoSyncPermission() { return this._clipboardAutoSync; }
++
++    // Effective active host-clipboard sync (enabled by user and permission granted).
++    get clipboardAutoSync() {
++        if (this._clipboardAutoSyncEnabled && this._clipboardAutoSync === "granted") {
++            return "granted";
++        }
++        return "denied";
++    }
 +
 +    // Capability only (secure context + APIs + clipboard permission names).
 +    // Does not depend on whether permission is granted or denied.
@@ -56,16 +69,43 @@
 +        }
 +        this._clipboardAutoSyncEnabled = enabled;
 +        if (enabled) {
++            this._clipboardAutoSyncReadBlocked = false;
 +            this._initClipboardAutoSyncState();
 +        } else {
-+            this._disableClipboardAutoSync();
++            this._stopClipboardAutoSync();
 +        }
++    }
++
++    // Trigger the browser permission prompt (if needed) and attempt a clipboard read.
++    async requestClipboardAutoSyncAccess() {
++        if (!this._clipboardAutoSyncEnabled) {
++            return;
++        }
++
++        this._clipboardAutoSyncReadBlocked = false;
++        await this._initClipboardAutoSyncState();
++
++        if (!this._clipboardAutoSyncEnabled) {
++            return;
++        }
++
++        // Already usable, or permanently denied: nothing more to prompt for.
++        if (this._clipboardAutoSync === "granted") {
++            await this._readClipboardOnFocus();
++            return;
++        }
++        if (this._clipboardAutoSync === "denied") {
++            return;
++        }
++
++        // "prompt": actively request access (does not wait for a later canvas focus).
++        await this._readClipboardOnFocus();
 +    }
 +
      get scaleViewport() { return this._scaleViewport; }
      set scaleViewport(scale) {
          this._scaleViewport = scale;
-@@ -602,6 +646,9 @@
+@@ -602,6 +686,9 @@
          this._canvas.addEventListener("gesturemove", this._eventHandlers.handleGesture);
          this._canvas.addEventListener("gestureend", this._eventHandlers.handleGesture);
  
@@ -75,7 +115,7 @@
          Log.Debug("<< RFB.connect");
      }
  
-@@ -619,6 +666,7 @@
+@@ -619,6 +706,7 @@
          this._canvas.removeEventListener('contextmenu', this._eventHandlers.handleMouse);
          this._canvas.removeEventListener("mousedown", this._eventHandlers.focusCanvas);
          this._canvas.removeEventListener("touchstart", this._eventHandlers.focusCanvas);
@@ -83,21 +123,37 @@
          this._resizeObserver.disconnect();
          this._keyboard.ungrab();
          this._gestures.detach();
-@@ -2323,6 +2371,139 @@
+@@ -2323,6 +2411,163 @@
          return this._fail("Unexpected SetColorMapEntries message");
      }
  
-+    async _initClipboardAutoSyncState() {
-+        if (!this._clipboardAutoSyncEnabled) {
-+            return;
-+        }
++    // Start (or refresh) browser clipboard permission monitoring.
++    // Independent of whether the user currently enables host clipboard sync.
++    async initClipboardAutoSyncPermissions() {
++        await this._initClipboardAutoSyncState();
++    }
 +
++    async _initClipboardAutoSyncState() {
 +        // Already initialized.
 +        if (this._clipboardAutoSyncWritePerm && this._clipboardAutoSyncReadPerm) {
 +            this._updateClipboardAutoSyncState();
 +            return;
 +        }
 +
++        // Coalesce concurrent init calls (e.g. connect + permission request).
++        if (this._clipboardAutoSyncInitPromise) {
++            return this._clipboardAutoSyncInitPromise;
++        }
++
++        this._clipboardAutoSyncInitPromise = this._doInitClipboardAutoSyncState();
++        try {
++            await this._clipboardAutoSyncInitPromise;
++        } finally {
++            this._clipboardAutoSyncInitPromise = null;
++        }
++    }
++
++    async _doInitClipboardAutoSyncState() {
 +        if (!(await RFB.isClipboardAutoSyncSupported())) {
 +            Log.Info("clipboard auto sync not supported by browser");
 +            return;
@@ -111,11 +167,6 @@
 +
 +            Log.Info(`clipboard-write permission status is ${writePerm.state}`);
 +            Log.Info(`clipboard-read permission status is ${readPerm.state}`);
-+
-+            // Feature may have been disabled while awaiting permission queries.
-+            if (!this._clipboardAutoSyncEnabled) {
-+                return;
-+            }
 +
 +            writePerm.onchange = () => {
 +                Log.Info(`clipboard-write permission status changed to ${writePerm.state}`);
@@ -134,28 +185,20 @@
 +        }
 +    }
 +
-+    _disableClipboardAutoSync() {
-+        if (this._clipboardAutoSyncWritePerm) {
-+            this._clipboardAutoSyncWritePerm.onchange = null;
-+        }
-+        if (this._clipboardAutoSyncReadPerm) {
-+            this._clipboardAutoSyncReadPerm.onchange = null;
-+        }
-+        this._clipboardAutoSyncWritePerm = null;
-+        this._clipboardAutoSyncReadPerm = null;
-+
-+        if (this._clipboardAutoSync !== "denied") {
-+            Log.Info("clipboard auto sync changed to denied");
-+            this._clipboardAutoSync = "denied";
-+            this.dispatchEvent(new CustomEvent(
-+                "clipboardautosync",
-+                { detail: { state: "denied" } }));
-+        }
++    // Stop active sync without dropping browser permission monitoring.
++    // Permission listeners stay so we can grey out the UI if the browser
++    // permanently denies access, or re-enable after the user changes settings.
++    _stopClipboardAutoSync() {
++        this._clipboardAutoSyncReadInProgress = false;
++        this._clipboardAutoSyncReadBlocked = false;
++        this.dispatchEvent(new CustomEvent(
++            "clipboardautosync",
++            { detail: { state: this._clipboardAutoSync,
++                        previous: this._clipboardAutoSync } }));
 +    }
 +
 +    _updateClipboardAutoSyncState() {
-+        if (!this._clipboardAutoSyncEnabled ||
-+            !this._clipboardAutoSyncWritePerm ||
++        if (!this._clipboardAutoSyncWritePerm ||
 +            !this._clipboardAutoSyncReadPerm) {
 +            return;
 +        }
@@ -174,37 +217,58 @@
 +        }
 +
 +        if (autoSync != this._clipboardAutoSync) {
-+            Log.Info(`clipboard auto sync changed to ${autoSync}`)
++            const previous = this._clipboardAutoSync;
++            Log.Info(`clipboard auto sync permission changed to ${autoSync}`)
 +            this._clipboardAutoSync = autoSync;
++            // Allow a new clipboard read attempt after permission state changes.
++            this._clipboardAutoSyncReadBlocked = false;
 +            this.dispatchEvent(new CustomEvent(
 +                "clipboardautosync",
-+                { detail: { state: autoSync } }));
++                { detail: { state: autoSync, previous: previous } }));
 +        }
 +    }
 +
 +    async _handleClipboardFocus() {
 +        if (this._viewOnly) return;
++        if (!this._clipboardAutoSyncEnabled) return;
 +        if (this._clipboardAutoSync === "denied") return;
++        await this._readClipboardOnFocus();
++    }
++
++    async _readClipboardOnFocus() {
++        // Avoid concurrent reads and re-prompts while a permission dialog is
++        // open or after the user dismissed/denied the previous attempt.
++        if (this._clipboardAutoSyncReadInProgress) return;
++        if (this._clipboardAutoSyncReadBlocked) return;
 +
 +        // In "prompt" state, reading the clipboard will prompt
 +        // the user for permission.
 +
++        this._clipboardAutoSyncReadInProgress = true;
 +        try {
 +            const text = await navigator.clipboard.readText();
-+            this.clipboardPasteFrom(text);
++            if (this._clipboardAutoSyncEnabled) {
++                this.clipboardPasteFrom(text);
++            }
 +        } catch (error) {
 +            if (error.name === "NotAllowedError") {
-+                // User did not grant permission.
++                // User dismissed or denied the permission prompt. Focus often
++                // returns to the canvas immediately, which would re-trigger
++                // the prompt; block further automatic reads.
 +                Log.Info("clipboard read failed: ", error);
++                this._clipboardAutoSyncReadBlocked = true;
++                this.dispatchEvent(new CustomEvent("clipboardautosyncrejected"));
 +            } else {
 +                Log.Error("clipboard read failed: ", error);
 +            }
++        } finally {
++            this._clipboardAutoSyncReadInProgress = false;
 +        }
 +    }
 +
 +    async _writeClipboard(text) {
 +        if (this._viewOnly) return;
-+        if (this._clipboardAutoSync === "granted") {
++        if (this._clipboardAutoSyncEnabled && this._clipboardAutoSync === "granted") {
 +            (async () => {
 +                try {
 +                    await navigator.clipboard.writeText(text);
@@ -223,7 +287,7 @@
      _handleServerCutText() {
          Log.Debug("ServerCutText");
  
-@@ -2342,10 +2523,7 @@
+@@ -2342,10 +2587,7 @@
                  return true;
              }
  
@@ -235,7 +299,7 @@
          } else {
              //Extended msg.
              length = Math.abs(length);
-@@ -2480,9 +2658,7 @@
+@@ -2480,9 +2722,7 @@
  
                      textData = textData.replaceAll("\r\n", "\n");
  
