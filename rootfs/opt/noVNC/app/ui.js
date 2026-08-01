@@ -1826,6 +1826,9 @@ const UI = {
             await UI.rfb.initClipboardAutoSyncPermissions();
         }
 
+        // Disconnect may clear UI.rfb while we were awaiting permissions.
+        if (!UI.rfb) return;
+
         // Do not enable if the browser already permanently denied access.
         if (UI.rfb.clipboardAutoSyncPermission === "denied") {
             WebUtil.writeSetting('host_clipboard_sync', false);
@@ -1846,6 +1849,9 @@ const UI = {
         if (enabled) {
             await UI.rfb.requestClipboardAutoSyncAccess();
         }
+
+        // Disconnect may clear UI.rfb while we were awaiting permissions.
+        if (!UI.rfb) return;
 
         UI.updateClipboard();
     },
