@@ -997,6 +997,17 @@ for details on configuring environment variables.
 > Web authentication requires the container to be configured with secure web
 > access (HTTPS). See [Security](#security) for details.
 
+After a successful login, a token is issued and stored in the browser. The token
+remains valid for the duration set by `WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME`
+(default: 24 hours). During that time, the user can access the GUI without
+logging in again.
+
+> [!NOTE]
+> Login sessions are intentionally not persisted across container restarts. When
+> the container (or the web authentication service) restarts, all existing
+> tokens become invalid and users must log in again. This is by design: session
+> state is kept in memory and cookie signing keys are regenerated on each start.
+
 ##### Configuring User Credentials
 
 User credentials can be configured in two ways:
