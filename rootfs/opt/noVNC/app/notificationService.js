@@ -123,18 +123,22 @@ const NotificationService = (function() {
     function handleWebSocketMessage(event) {
         const data = msgpack.decode(new Uint8Array(event.data));
 
-        Log.Debug("Received message: " + JSON.stringify(data));
+        // Avoid JSON.stringify of the whole payload (future-proof if more
+        // fields are added); log only the fields we care about.
+        Log.Debug(`Received notification: id=${data.id}, summary=${data.summary}`);
 
-        if (!data.summary || !data.body) {
+        if (typeof data.summary !== 'string' || typeof data.body !== 'string') {
             Log.Error("Received invalid notification data.");
             return;
         }
 
         if (Notification.permission === 'granted') {
+            // Use the assigned notification id as tag so updates (same id /
+            // non-zero replaces_id) replace the existing browser notification.
             new Notification(data.summary, {
                 body: data.body,
                 icon: "app/images/icons/master_icon.png?v=UNIQUE_VERSION",
-                tag: data.replacesID ? `id_${data.replacesID}` : undefined,
+                tag: data.id ? `id_${data.id}` : undefined,
             });
         } else {
             Log.Info('Notification permission has been removed.');

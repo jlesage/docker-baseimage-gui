@@ -23,7 +23,9 @@ type Notifications struct {
 }
 
 // Message represents the structure of WebSocket messages sent to clients.
+// Only fields useful to the browser notification client are forwarded.
 type NotificationMessage struct {
+	ID      uint32 `msgpack:"id"`
 	Summary string `msgpack:"summary"`
 	Body    string `msgpack:"body"`
 }
@@ -217,23 +219,29 @@ func notificationWebsocketHandler(appCtx context.Context, w http.ResponseWriter,
 
 // Notify handles the org.freedesktop.Notifications.Notify method.
 func (n *Notifications) Notify(appName string, replacesID uint32, appIcon, summary, body string, actions []string, hints map[string]dbus.Variant, expireTimeout int32) (uint32, *dbus.Error) {
-	// Create notification message.
-	message := NotificationMessage{
-		Summary: summary,
-		Body:    body,
-	}
-
 	// Assign a new ID if replacesID is 0.
 	id := replacesID
 	if id == 0 {
 		id = n.nextID.Add(1)
+		// uint32 can wrap to 0; skip it (0 means "new" in the protocol).
+		if id == 0 {
+			id = n.nextID.Add(1)
+		}
+	}
+
+	// Create notification message. Forward id so the browser can set a stable
+	// Notification.tag for replacement.
+	message := NotificationMessage{
+		ID:      id,
+		Summary: summary,
+		Body:    body,
 	}
 
 	clientsMutex.Lock()
 	defer clientsMutex.Unlock()
 
 	// Send to WebSocket clients.
-	log.Debugf("%s new desktop notification received, forwarding to %d client(s)", getNotificationLogPrefix(0), len(clients))
+	log.Debugf("%s new desktop notification received (id=%d), forwarding to %d client(s)", getNotificationLogPrefix(0), id, len(clients))
 	for _, ch := range clients {
 		// Send without blocking.
 		select {
