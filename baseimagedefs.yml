@@ -1081,7 +1081,23 @@ container:
         description: >-
           When set to `1`, protects the application's GUI with a login page when
           accessed via a web browser. Access is granted only with valid
-          credentials.
+          credentials. Requires secure web access (HTTPS).
+        display: advanced
+        required: false
+        mask: false
+    - name: WEB_AUTHENTICATION_ALLOW_INSECURE
+      description: >-
+        When set to `1`, allows web authentication without
+        `SECURE_CONNECTION`. **Not recommended.** Credentials and session
+        tokens may travel in cleartext. Use only if you fully understand the
+        risks. See [Web Authentication](#web-authentication) for details.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Authentication Allow Insecure
+        description: >-
+          When set to `1`, allows web authentication without secure connection
+          (HTTPS). NOT RECOMMENDED. Use only if you fully understand the risks.
         display: advanced
         required: false
         mask: false

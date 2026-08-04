@@ -10,11 +10,23 @@ if is-bool-val-false "${WEB_AUTHENTICATION:-0}"; then
     exit 0
 fi
 
-# Verify that secure connection is enabled.
+# Verify that secure connection is enabled, unless the insecure override is set.
 if is-bool-val-false "${SECURE_CONNECTION:-0}"; then
-    echo "ERROR: web authentication requires secure web access to be enabled."
-    echo "       make sure to set SECURE_CONNECTION=1 environment variable."
-    exit 1
+    if is-bool-val-true "${WEB_AUTHENTICATION_ALLOW_INSECURE:-0}"; then
+        echo "***************************************************************************"
+        echo "* WARNING: web authentication is enabled without a secure connection!     *"
+        echo "*                                                                         *"
+        echo "* Credentials and session tokens may travel in cleartext between the      *"
+        echo "* client and this container.                                              *"
+        echo "*                                                                         *"
+        echo "* Do not publish the container web port on an untrusted network. Clients  *"
+        echo "* should reach the application only over HTTPS.                           *"
+        echo "***************************************************************************"
+    else
+        echo "ERROR: web authentication requires secure web access to be enabled."
+        echo "       make sure to set SECURE_CONNECTION=1 environment variable."
+        exit 1
+    fi
 fi
 
 # Make sure the password db exists.

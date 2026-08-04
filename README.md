@@ -322,6 +322,7 @@ The baseimage provides the following public environment variables:
 |`WEB_TERMINAL`| When set to `1`, enables access to a terminal from the web interface. It is strongly recommended to configure the container with secure web access (HTTPS). See [Web Terminal](#web-terminal) for details. | `0` |
 |`WEB_TERMINAL_SHELL_PATH`| The shell used by the web terminal. | `/bin/sh` |
 |`WEB_AUTHENTICATION`| When set to `1`, protects the application's GUI with a login page when accessed via a web browser. Access is granted only with valid credentials. Requires the container to be configured with secure web access (HTTPS). See [Web Authentication](#web-authentication) for details. | `0` |
+|`WEB_AUTHENTICATION_ALLOW_INSECURE`| When set to `1`, allows web authentication without `SECURE_CONNECTION`. **Not recommended.** Credentials and session tokens may travel in cleartext. Use only if you fully understand the risks. See [Web Authentication](#web-authentication) for details. | `0` |
 |`WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME`| Lifetime of a token, in hours. A token is assigned to the user after successful login. As long as the token is valid, the user can access the application's GUI without logging in again. Once the token expires, the login page is displayed again. | `24` |
 |`WEB_AUTHENTICATION_USERNAME`| Optional username for web authentication. Provides a quick and easy way to configure credentials for a single user. For more secure configuration or multiple users, see the [Web Authentication](#web-authentication) section. | (no value) |
 |`WEB_AUTHENTICATION_PASSWORD`| Optional password for web authentication. Provides a quick and easy way to configure credentials for a single user. For more secure configuration or multiple users, see the [Web Authentication](#web-authentication) section. | (no value) |
@@ -996,7 +997,16 @@ for details on configuring environment variables.
 
 > [!IMPORTANT]
 > Web authentication requires the container to be configured with secure web
-> access (HTTPS). See [Security](#security) for details.
+> access (HTTPS) via `SECURE_CONNECTION=1`. See [Security](#security) for
+> details.
+
+> [!CAUTION]
+> If a reverse proxy is used and it cannot use HTTPS to the container backend,
+> set `WEB_AUTHENTICATION_ALLOW_INSECURE=1` so web authentication can run with
+> `SECURE_CONNECTION=0`. This is a last resort: credentials and session tokens
+> may travel in cleartext between the proxy and the container. Do not publish
+> the container web port on an untrusted network, and ensure browsers reach the
+> application only over HTTPS through the reverse proxy.
 
 After a successful login, a token is issued and stored in the browser. The token
 remains valid for the duration set by `WEB_AUTHENTICATION_TOKEN_VALIDITY_TIME`

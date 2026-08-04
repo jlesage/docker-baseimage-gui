@@ -3,7 +3,10 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-if is-bool-val-true "${WEB_AUTHENTICATION:-0}" && is-bool-val-true "${SECURE_CONNECTION:-0}"; then
+if is-bool-val-true "${WEB_AUTHENTICATION:-0}" && {
+    is-bool-val-true "${SECURE_CONNECTION:-0}" ||
+    is-bool-val-true "${WEB_AUTHENTICATION_ALLOW_INSECURE:-0}"
+}; then
     echo "false"
 else
     echo "true"
