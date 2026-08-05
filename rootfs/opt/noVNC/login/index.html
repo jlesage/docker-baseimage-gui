@@ -33,6 +33,7 @@
                     <div id="loginStatus" class="alert alert-danger mb-4 d-none" role="alert">
                     </div>
                     <form action="login" method="post" id="loginForm" novalidate>
+                    <fieldset id="loginFieldset" class="border-0 p-0 m-0">
                     <div class="form-floating mb-3">
                         <input
                             type="text"
@@ -65,6 +66,7 @@
                             <span id="loginButtonSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
                         </button>
                     </div>
+                    </fieldset>
                     </form>
                 </div>
             </div>
@@ -73,6 +75,18 @@
 
 <script src="js.cookie.min.js?v=UNIQUE_VERSION"></script>
 <script type="module">
+    const form = document.forms['loginForm'];
+    const loginStatus = document.getElementById('loginStatus');
+
+    // Login requires a secure context (HTTPS, or localhost).
+    const secureContext = window.isSecureContext === true;
+    if (!secureContext) {
+        document.getElementById('loginFieldset').disabled = true;
+        loginStatus.innerText =
+            'This connection is not secure. Sign-in has been disabled.';
+        loginStatus.classList.remove('d-none');
+    }
+
     let webData = null;
     await fetch('./webdata.json')
         .then(response => {
@@ -105,29 +119,34 @@
         document.documentElement.setAttribute('data-bs-theme', 'dark');
     }
 
-    // Show login status message if needed.
-    var loginResult = Cookies.get('login_result');
-    if (loginResult === 'INVALID_CREDENTIALS') {
-        var loginStatus = document.getElementById('loginStatus');
-        loginStatus.innerText = "Incorrect username or password.";
-        loginStatus.classList.remove("d-none");
+    // Show login status message if needed (do not override the insecure-context message).
+    if (secureContext) {
+        var loginResult = Cookies.get('login_result');
+        if (loginResult === 'INVALID_CREDENTIALS') {
+            loginStatus.innerText = "Incorrect username or password.";
+            loginStatus.classList.remove("d-none");
+        }
     }
     Cookies.remove('login_result', { path: 'login' });
 
     // Handle submit event.
-    const form = document.forms['loginForm'];
     form.addEventListener('submit', (event) => {
+        if (!secureContext) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
         if (!form.checkValidity()) {
-            var loginStatus = document.getElementById('loginStatus');
             loginStatus.classList.add("d-none");
 
-	    event.preventDefault();
+            event.preventDefault();
             event.stopPropagation();
         } else {
             // Disable the button and show the spinner.
-            loginButton.disabled = true;
-            loginButtonLabel.classList.add("d-none");
-            loginButtonSpinner.classList.remove("d-none");
+            document.getElementById('loginButton').disabled = true;
+            document.getElementById('loginButtonLabel').classList.add("d-none");
+            document.getElementById('loginButtonSpinner').classList.remove("d-none");
         }
 
         form.classList.add('was-validated');
