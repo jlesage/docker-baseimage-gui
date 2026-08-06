@@ -23,6 +23,28 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.13.0
+      date: 2026-08-05
+      changes:
+        added:
+          - 'Option to control host clipboard synchronization (via environment variable and web UI toggle).'
+          - 'Option to allow web authentication without secure connection for reverse-proxy edge cases.'
+        fixed:
+          - 'Web authentication security and robustness issues.'
+          - 'Web file manager path validation and access control issues.'
+          - 'Audio recorder stability and correctness issues.'
+          - 'Web services reliability issues.'
+          - 'Browser notification issues:'
+          - '2:Permission prompt failing when requested during page load.'
+          - '2:Notification updates creating a new toast instead of replacing the existing one.'
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.9:'
+          - '2:Incorrect handling of logmonitor target debouncing when it is not set.'
+          - '2:Incorrect interval calculation in the container init process for the `yearly` and `monthly` service interval keywords.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.11.9:'
+          - '2:Docker secrets now take precedence over environment variables set by other means.'
+          - '2:Users definition: password is hashed via stdin so it no longer appears in process listings.'
+          - '2:Applied robustness improvements to the container init process.'
     - version: 4.12.6
       date: 2026-07-12
       changes:
