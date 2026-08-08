@@ -1,8 +1,8 @@
 import * as Log from '../core/util/logging.js';
 
 function escapeHtml(str) {
-    if (str === null) return str;
-    return str
+    if (str === null || str === undefined) return str;
+    return String(str)
         .replace(/&/g, '&amp;')
         .replace(/</g, '&lt;')
         .replace(/>/g, '&gt;')
@@ -11,13 +11,21 @@ function escapeHtml(str) {
 }
 
 function unescapeHtml(str) {
-    if (str === null) return str;
-    return str
+    if (str === null || str === undefined) return str;
+    return String(str)
         .replace(/&amp;/g, '&')
         .replace(/&lt;/g, '<')
         .replace(/&gt;/g, '>')
         .replace(/&quot;/g, '"')
         .replace(/&#39;/g, "'");
+}
+
+// Join path segments without producing a double slash at the root.
+function joinPath(dir, name) {
+    if (!dir || dir === '/') {
+        return '/' + name;
+    }
+    return dir.replace(/\/+$/, '') + '/' + name;
 }
 
 const fileReaderModule = (function() {
@@ -119,6 +127,7 @@ const FileManager = (function() {
     let activeDownload = null;
     let activePopover = null;
     let activePopoverTarget = null;
+    let uploadUiResetTimer = null;
 
     function initialize(wsUrl, containerId) {
         webSocketUrl = wsUrl;
@@ -354,25 +363,42 @@ const FileManager = (function() {
     }
 
     function handleWebSocketMessage(event) {
-        const data = msgpack.decode(new Uint8Array(event.data));
+        let data;
+        try {
+            data = msgpack.decode(new Uint8Array(event.data));
+        } catch (e) {
+            Log.Error("Failed to decode file manager WebSocket message: " + e);
+            return;
+        }
 
-        Log.Debug("Received message: " + JSON.stringify(data));
+        // Log only selected fields to avoid large / unexpected payloads.
+        Log.Debug(`Received message: type=${data.type}` +
+                  (data.req ? `, req.type=${data.req.type}` : '') +
+                  (data.error !== undefined ? `, error=${data.error}` : '') +
+                  (data.uuid !== undefined ? `, uuid=${data.uuid}` : '') +
+                  (Array.isArray(data.files) ? `, files=${data.files.length}` : ''));
 
         switch (data.type) {
             case 'error':
                 showError(data);
-                switch (data.req.type) {
-                    case 'upload':
-                    case 'uploadBlock':
-                        terminateUpload(false);
-                        break;
-                    case 'download':
-                        terminateDownload();
-                        break;
+                if (data.req) {
+                    switch (data.req.type) {
+                        case 'upload':
+                        case 'uploadBlock':
+                            terminateUpload(false);
+                            break;
+                        case 'download':
+                            terminateDownload();
+                            break;
+                    }
                 }
                 break;
             case 'success':
                 clearError();
+                if (!data.req) {
+                    Log.Error("Received success message without request context.");
+                    break;
+                }
                 switch (data.req.type) {
                     case 'listDir':
                         renderFileList(data.req.path, data.files);
@@ -413,7 +439,7 @@ const FileManager = (function() {
                 downloadFile(name, path);
                 break;
             case 'rename':
-                const isDir = targetElem.getAttribute('data-fmgr-file-is-dir');
+                const isDir = fileEntryElem.getAttribute('data-fmgr-file-is-dir');
                 confirmRename(targetElem, name, path, isDir === 'true');
                 break;
             case 'delete':
@@ -448,7 +474,7 @@ const FileManager = (function() {
     }
 
     function showError(message) {
-        if (typeof message === 'object') {
+        if (typeof message === 'object' && message !== null) {
             let errMsg = message.error === undefined ? "unknown error" : message.error;
 
             if (message.req !== undefined) {
@@ -481,9 +507,12 @@ const FileManager = (function() {
             message = errMsg;
         }
 
+        // Escape untrusted server/user text before inserting into HTML.
+        const safeMessage = escapeHtml(message);
+
         const alertHtml = `
                     <div class="alert alert-danger alert-dismissible fade show m-0" role="alert">
-                        ${message}
+                        ${safeMessage}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
         `;
@@ -586,7 +615,7 @@ const FileManager = (function() {
                 if (userInput) {
                     webSocket.send(msgpack.encode({ 
                         type: 'createFolder', 
-                        path: `${currentPath}/${userInput}` 
+                        path: joinPath(currentPath, userInput)
                     }));
                 }
                 break;
@@ -700,7 +729,7 @@ const FileManager = (function() {
                 if (this.filesProcessed < this.totalFiles) {
                     webSocket.send(msgpack.encode({
                         type: 'upload',
-                        path: this.destDir + '/' + this.files[this.filesProcessed].name,
+                        path: joinPath(this.destDir, this.files[this.filesProcessed].name),
                         size: this.files[this.filesProcessed].size,
                     }));
                 }
@@ -735,7 +764,7 @@ const FileManager = (function() {
                     // Send the blob to server.
                     webSocket.send(msgpack.encode({
                         type: 'uploadBlock',
-                        path: this.destDir + '/' + this.files[this.filesProcessed].name,
+                        path: joinPath(this.destDir, this.files[this.filesProcessed].name),
                         content: new Uint8Array(blob), // Convert to b64 ?
                     }));
                 });
@@ -790,11 +819,18 @@ const FileManager = (function() {
                 if (sendCancel) {
                     webSocket.send(msgpack.encode({
                         type: 'cancelUpload',
-                        path: this.destDir + '/' + this.files[this.filesProcessed].name,
+                        path: joinPath(this.destDir, this.files[this.filesProcessed].name),
                     }));
                 }
             },
         };
+
+        // Cancel any pending UI reset from a previous upload so it cannot
+        // hide the progress bar or re-enable the button mid-transfer.
+        if (uploadUiResetTimer) {
+            clearTimeout(uploadUiResetTimer);
+            uploadUiResetTimer = null;
+        }
 
         // Disable the upload button.
         document.querySelector('.fmgr-upload-btn').disabled = true;
@@ -838,7 +874,14 @@ const FileManager = (function() {
 
             document.querySelector('.fmgr-file-input').value = '';
 
-            setTimeout(() => {
+            if (uploadUiResetTimer) {
+                clearTimeout(uploadUiResetTimer);
+            }
+            uploadUiResetTimer = setTimeout(() => {
+                uploadUiResetTimer = null;
+                // Only reset UI if no new upload started in the meantime.
+                if (activeUpload) return;
+
                 // Hide progress bar.
                 document.querySelector('.fmgr-upload-progress').classList.add('d-none');
 
