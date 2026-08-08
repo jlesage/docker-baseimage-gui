@@ -220,6 +220,10 @@ body {
 
   transition: 0.5s ease-in-out;
 }
+/* Programmatic focus only (tabIndex=-1); do not show a focus ring on the panel. */
+#noVNC_control_bar:focus {
+  outline: none;
+}
 #noVNC_control_bar.noVNC_open {
   left: 0;
   right: auto;

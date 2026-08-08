@@ -784,16 +784,16 @@ const UI = {
     },
 
     openControlbar() {
-        document.getElementById('noVNC_control_bar')
-            .classList.add("noVNC_open");
+        const bar = document.getElementById('noVNC_control_bar');
+        bar.classList.add("noVNC_open");
 
-        // Set focus on the clipboard text box, if it is visible from the
-        // the control menu.
-        // NOTE: We don't want this behavior on touch device, because this will
-        // brings up the virtual keyboard, which might not be wanted.
-        if (!isTouchDevice && document.getElementById('clipboardCollapse')
-            .classList.contains("show")) {
-            document.getElementById('noVNC_clipboard_text').focus();
+        // Move focus into the control bar so a later canvas focus can close it.
+        // tabIndex=-1 is required: a plain div is not focusable otherwise.
+        // On touch devices, skip focusing: some mobile browsers treat a focus
+        // change as a reason to show the on-screen keyboard.
+        if (!isTouchDevice) {
+            bar.tabIndex = -1;
+            bar.focus();
         }
     },
 
