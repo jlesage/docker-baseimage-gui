@@ -25,7 +25,7 @@ const PCMEncodingDefinitions = {
         peekFunction: function(data, offset) { return DataView.prototype.getInt16.call(data, offset, false /* bigEndian */); },
     },
     '32bitIntLE': {
-        bitDepth: 16,
+        bitDepth: 32,
         sampleSize: 32 / 8,
         maxValue: 2147483648,
         peekFunction: function(data, offset) { return DataView.prototype.getInt32.call(data, offset, true /* littleEndian */); },
