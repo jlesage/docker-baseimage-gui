@@ -53,6 +53,15 @@ const UI = {
 
     terminal: null,
 
+    // Build a WebSocket path that correctly joins the page pathname with a
+    // relative service path (handles missing trailing slash on the page path).
+    buildWebSocketPath(servicePath) {
+        const pagePath = window.location.pathname.replace(/\/?$/, '/');
+        // pagePath is always absolute and ends with '/'; strip leading slash
+        // when concatenating after the host:port segment which already has one.
+        return pagePath.substr(1) + servicePath;
+    },
+
     async start() {
         // Initialize setting storage
         await WebUtil.initSettings();
@@ -76,7 +85,7 @@ const UI = {
             .forEach(el => el.innerText = UI.webData.applicationName);
 
         // Update logo image properties.
-        document.getElementById('noVNC_app_logo').alt = UI.webData.applicationName + 'logo';
+        document.getElementById('noVNC_app_logo').alt = UI.webData.applicationName + ' logo';
         document.getElementById('noVNC_app_logo').title = UI.webData.applicationName;
 
         // Set or hide the application version.
@@ -159,7 +168,7 @@ const UI = {
             if (port) {
                 url += ':' + port;
             }
-            url += '/' + window.location.pathname.substr(1) + path;
+            url += '/' + UI.buildWebSocketPath(path);
 
             // Initialize the file manager.
             UI.fileManager = FileManager;
@@ -184,7 +193,7 @@ const UI = {
             if (port) {
                 url += ':' + port;
             }
-            url += '/' + window.location.pathname.substr(1) + path;
+            url += '/' + UI.buildWebSocketPath(path);
 
             UI.notificationService = NotificationService;
             UI.notificationService.init(url);
@@ -207,7 +216,7 @@ const UI = {
             if (port) {
                 url += ':' + port;
             }
-            url += '/' + window.location.pathname.substr(1) + path;
+            url += '/' + UI.buildWebSocketPath(path);
 
             UI.terminal = Terminal;
             UI.terminal.init(url, "terminal_container");
@@ -493,8 +502,11 @@ const UI = {
     },
 
     addConnectionControlHandlers() {
+        // Handle form submit (button click or Enter) so credentials are sent
+        // without a full page navigation.
         document.getElementById("noVNC_credentials_button")
-            .addEventListener('click', UI.setCredentials);
+            .closest('form')
+            .addEventListener('submit', UI.setCredentials);
     },
 
     addClipboardHandlers() {
@@ -1143,7 +1155,7 @@ const UI = {
         if (port) {
             url += ':' + port;
         }
-        url += '/' + window.location.pathname.substr(1) + path;
+        url += '/' + UI.buildWebSocketPath(path);
 
         try {
             UI.rfb = new RFB(document.getElementById('noVNC_container'), url,
@@ -1919,13 +1931,25 @@ const UI = {
             UI.audioContext.audioEnabled = true;
         }
 
+        // Persist enabled state so a volume-slider unmute survives reload.
+        WebUtil.writeSetting('audio_enabled', UI.audioContext.audioEnabled ? '1' : '0');
+
         UI.updateAudio();
     },
 
     updateAudio() {
         if (!UI.audioContext) return;
 
+        function clearAudioReconnectTimer() {
+            if (UI.audioContext.reconnectTimer) {
+                clearTimeout(UI.audioContext.reconnectTimer);
+                UI.audioContext.reconnectTimer = null;
+            }
+        }
+
         function connectWebSocket() {
+            clearAudioReconnectTimer();
+
             const host = UI.getSetting('host');
             const port = UI.getSetting('port');
             const audio_path = UI.getSetting('audio_path');
@@ -1936,7 +1960,7 @@ const UI = {
             if (port) {
                 url += ':' + port;
             }
-            url += '/' + window.location.pathname.substr(1) + audio_path;
+            url += '/' + UI.buildWebSocketPath(audio_path);
 
             if (!UI.audioContext.audioEnabled) return;
 
@@ -1968,7 +1992,8 @@ const UI = {
                 // Attempt to re-connect.
                 if (UI.audioContext.audioEnabled) {
                     Log.Info('WebSocket reconnection for audio will be attempted');
-                    setTimeout(connectWebSocket, 1000);
+                    clearAudioReconnectTimer();
+                    UI.audioContext.reconnectTimer = setTimeout(connectWebSocket, 1000);
                 }
             };
         }
@@ -2001,6 +2026,9 @@ const UI = {
         }
         else {
             // Audio should be disabled.
+
+            // Cancel any pending reconnect so a late timer cannot reopen the socket.
+            clearAudioReconnectTimer();
 
             // Close the WebSocket connection.
             if (UI.audioContext.webSocket) {
