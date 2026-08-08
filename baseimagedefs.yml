@@ -23,6 +23,20 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.13.1
+      date: 2026-08-08
+      changes:
+        fixed:
+          - 'Control bar auto-closing when host clipboard synchronization is enabled.'
+          - 'Audio playback re-enabling itself after being muted.'
+          - 'Web interface robustness and security issues.'
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.10:'
+          - '2:Account management tools replacing account database symbolic links with regular files.'
+          - '2:Installation of Debian-based packages that call account management tools via absolute paths under `/usr/bin`.'
+        changed:
+          - 'Changed by the update of jlesage/baseimage to version 3.11.10:'
+          - '2:Updated shadow-rs to version 0.2.1.'
+          - '2:Primary group ID (`GROUP_ID`) is now always included in the service supplementary groups list.'
     - version: 4.13.0
       date: 2026-08-05
       changes:
