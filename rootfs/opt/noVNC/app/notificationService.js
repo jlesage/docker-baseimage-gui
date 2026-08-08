@@ -75,6 +75,11 @@ const NotificationService = (function() {
     function connectWebSocket() {
         if (webSocket) return;
 
+        if (webSocketConnectTimer) {
+            clearTimeout(webSocketConnectTimer);
+            webSocketConnectTimer = null;
+        }
+
         Log.Info("Establishing WebSocket connection for notification service...");
         webSocket = new WebSocket(webSocketUrl);
         webSocket.binaryType = 'arraybuffer';
@@ -108,6 +113,9 @@ const NotificationService = (function() {
             // Attempt to re-connect.
             if (notificationGranted && started) {
                 Log.Info('WebSocket reconnection for notification service will be attempted');
+                if (webSocketConnectTimer) {
+                    clearTimeout(webSocketConnectTimer);
+                }
                 webSocketConnectTimer = setTimeout(connectWebSocket, 1000);
             }
         };
@@ -121,7 +129,13 @@ const NotificationService = (function() {
     }
 
     function handleWebSocketMessage(event) {
-        const data = msgpack.decode(new Uint8Array(event.data));
+        let data;
+        try {
+            data = msgpack.decode(new Uint8Array(event.data));
+        } catch (e) {
+            Log.Error("Failed to decode notification WebSocket message: " + e);
+            return;
+        }
 
         // Avoid JSON.stringify of the whole payload (future-proof if more
         // fields are added); log only the fields we care about.
