@@ -23,6 +23,13 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.13.2
+      date: 2026-08-14
+      changes:
+        fixed:
+          - 'Regression causing web notifications to be sent repeatedly.'
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.11:'
+          - '2:logmonitor leaking zombie `send` processes when a matching log line repeats.'
     - version: 4.13.1
       date: 2026-08-08
       changes:
