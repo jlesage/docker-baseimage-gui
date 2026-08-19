@@ -123,7 +123,7 @@
          this._resizeObserver.disconnect();
          this._keyboard.ungrab();
          this._gestures.detach();
-@@ -2323,6 +2411,163 @@
+@@ -2323,6 +2411,170 @@
          return this._fail("Unexpected SetColorMapEntries message");
      }
  
@@ -240,6 +240,7 @@
 +        // open or after the user dismissed/denied the previous attempt.
 +        if (this._clipboardAutoSyncReadInProgress) return;
 +        if (this._clipboardAutoSyncReadBlocked) return;
++        if (!document.hasFocus()) return;
 +
 +        // In "prompt" state, reading the clipboard will prompt
 +        // the user for permission.
@@ -252,12 +253,18 @@
 +            }
 +        } catch (error) {
 +            if (error.name === "NotAllowedError") {
-+                // User dismissed or denied the permission prompt. Focus often
-+                // returns to the canvas immediately, which would re-trigger
-+                // the prompt; block further automatic reads.
-+                Log.Info("clipboard read failed: ", error);
-+                this._clipboardAutoSyncReadBlocked = true;
-+                this.dispatchEvent(new CustomEvent("clipboardautosyncrejected"));
++                // Unfocused document is not a permission decision.
++                if (!document.hasFocus() ||
++                    (error.message || "").toLowerCase().includes("not focused")) {
++                    Log.Info("clipboard read skipped: document is not focused");
++                } else {
++                    // User dismissed or denied the permission prompt. Focus often
++                    // returns to the canvas immediately, which would re-trigger
++                    // the prompt; block further automatic reads.
++                    Log.Info("clipboard read failed: ", error);
++                    this._clipboardAutoSyncReadBlocked = true;
++                    this.dispatchEvent(new CustomEvent("clipboardautosyncrejected"));
++                }
 +            } else {
 +                Log.Error("clipboard read failed: ", error);
 +            }
@@ -287,7 +294,7 @@
      _handleServerCutText() {
          Log.Debug("ServerCutText");
  
-@@ -2342,10 +2587,7 @@
+@@ -2342,10 +2594,7 @@
                  return true;
              }
  
@@ -299,7 +306,7 @@
          } else {
              //Extended msg.
              length = Math.abs(length);
-@@ -2480,9 +2722,7 @@
+@@ -2480,9 +2729,7 @@
  
                      textData = textData.replaceAll("\r\n", "\n");
  
