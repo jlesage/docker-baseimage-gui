@@ -1295,6 +1295,14 @@ container:
         supporting a wide range of Chinese/Japanese/Korean characters.
       type: public
       default: 0
+      unraid_template:
+        title: Enable CJK Font
+        description: >-
+          When set to `1`, installs the open-source font `WenQuanYi Zen Hei`,
+          supporting a wide range of Chinese/Japanese/Korean characters.
+        display: advanced
+        required: false
+        mask: false
 
   # Volumes
   volumes: []
