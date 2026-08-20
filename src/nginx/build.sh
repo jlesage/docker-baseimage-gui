@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# Helper script that builds the TigerVNC server as a static binary.
+# Helper script that builds nginx as a static binary.
 #
 # NOTE: This script is expected to be run under Alpine Linux.
 #
@@ -8,12 +8,14 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
 # Define software versions.
-NGINX_VERSION=1.24.0
+NGINX_VERSION=1.30.4
 NGINXWEBSOCKIFYMOD_VERSION=0.0.3
 
 # Define software download URLs.
-NGINX_URL=http://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
+NGINX_URL=https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 NGINXWEBSOCKIFYMOD_URL=https://github.com/tg123/websockify-nginx-module/archive/v${NGINXWEBSOCKIFYMOD_VERSION}.tar.gz
 
 log() {
@@ -35,7 +37,7 @@ TARGET_PKGS="\
     linux-headers \
     openssl-dev \
     openssl-libs-static \
-    pcre-dev \
+    pcre2-dev \
 "
 
 log "Installing required Alpine packages..."
@@ -54,10 +56,11 @@ log "Downloading WebSockify Nginx module..."
 mkdir /tmp/websockify-nginx-module
 curl -# -L -f ${NGINXWEBSOCKIFYMOD_URL} | tar xz --strip 1 -C /tmp/websockify-nginx-module
 
-# See the Yocto Nginx recipe: https://github.com/openembedded/meta-openembedded/tree/master/meta-webserver/recipes-httpd/nginx
-echo "Patching Nginx for cross-compile support..."
-curl -# -L -f https://github.com/openembedded/meta-openembedded/raw/master/meta-webserver/recipes-httpd/nginx/files/nginx-cross.patch | patch -p1 -d /tmp/nginx
-curl -# -L -f https://github.com/openembedded/meta-openembedded/raw/master/meta-webserver/recipes-httpd/nginx/files/0001-Allow-the-overriding-of-the-endianness-via-the-confi.patch | patch -p1 -d /tmp/nginx
+# Cross-compile patches from the OpenEmbedded nginx 1.30.4 recipe:
+# https://github.com/openembedded/meta-openembedded/tree/5f231b197c182048cb4d79bbeffc04a8ecac027a/meta-webserver/recipes-httpd/nginx
+log "Patching Nginx for cross-compile support..."
+patch -p1 -d /tmp/nginx < "${SCRIPT_DIR}/nginx-cross.patch"
+patch -p1 -d /tmp/nginx < "${SCRIPT_DIR}/0001-Allow-the-overriding-of-the-endianness-via-the-confi.patch"
 
 case "$(xx-info arch)" in
     x86_64|aarch64) PTRSIZE=8 ;;
@@ -127,6 +130,7 @@ log "Configuring Nginx..."
         --without-http_upstream_least_conn_module \
         --without-http_upstream_keepalive_module \
         --without-http_upstream_zone_module \
+        --without-http_upstream_sticky \
         \
         --with-stream \
         --with-stream_ssl_module \

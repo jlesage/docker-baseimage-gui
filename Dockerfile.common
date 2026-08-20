@@ -168,8 +168,8 @@ RUN upx /tmp/yad-install/usr/bin/yad
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS nginx
 ARG TARGETPLATFORM
 COPY --from=xx / /
-COPY src/nginx/build.sh /tmp/build-nginx.sh
-RUN /tmp/build-nginx.sh
+COPY src/nginx /tmp/build-nginx
+RUN /tmp/build-nginx/build.sh
 RUN xx-verify --static /tmp/nginx-install/sbin/nginx
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/nginx-install/sbin/nginx
