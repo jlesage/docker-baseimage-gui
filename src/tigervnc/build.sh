@@ -41,7 +41,7 @@ LLVM_VERSION=19.1.4
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
 XSERVER_URL=https://www.x.org/releases/individual/xserver/xorg-server-${XSERVER_VERSION}.tar.gz
 
-GMP_URL=https://ftpmirror.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz
+GMP_URL=https://gmplib.org/download/gmp/gmp-${GMP_VERSION}.tar.xz
 NETTLE_URL=https://ftpmirror.gnu.org/gnu/nettle/nettle-${NETTLE_VERSION}.tar.gz
 GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-${GNUTLS_VERSION}.tar.xz
 LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.gz
