@@ -81,6 +81,7 @@ const UI = {
         // Set page title.
         document.title = UI.webData.applicationName;
         UI.desktopName = UI.webData.applicationName;
+        WebUtil.registerWebApp(UI.webData.applicationName);
         Array.from(document.getElementsByName('noVNC_app_name'))
             .forEach(el => el.innerText = UI.webData.applicationName);
 

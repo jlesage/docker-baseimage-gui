@@ -248,3 +248,23 @@ function localStorageRemove(name) {
         }
     }
 }
+
+// Set the web app title and register the service worker.
+export function registerWebApp(appName) {
+    if (appName) {
+        let el = document.querySelector('meta[name="apple-mobile-web-app-title"]');
+        if (!el) {
+            el = document.createElement('meta');
+            el.setAttribute('name', 'apple-mobile-web-app-title');
+            document.head.appendChild(el);
+        }
+        el.setAttribute('content', appName);
+    }
+
+    if (!('serviceWorker' in navigator)) {
+        return Promise.resolve();
+    }
+    return navigator.serviceWorker.register('./service-worker.js').catch((err) => {
+        Log.Info('Service worker registration failed: ' + err);
+    });
+}
