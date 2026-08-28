@@ -1,0 +1,15 @@
+{
+    "name": "APP_NAME",
+    "short_name": "APP_NAME",
+    "description": "Opens the graphical interface of APP_NAME running in a Docker container.",
+    "start_url": "./",
+    "scope": "./",
+    "display": "standalone",
+    "background_color": "#313131",
+    "theme_color": "#313131",
+    "icons": [
+        { "src": "android-chrome-192x192.png?v=UNIQUE_VERSION", "type": "image/png", "sizes": "192x192" },
+        { "src": "android-chrome-512x512.png?v=UNIQUE_VERSION", "type": "image/png", "sizes": "512x512" },
+        { "src": "android-chrome-512x512-mask.png?v=UNIQUE_VERSION", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+    ]
+}

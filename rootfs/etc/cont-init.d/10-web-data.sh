@@ -19,7 +19,7 @@ rm -f "${WEB_DATA_FILE}"
 printf '{\n' >> "${WEB_DATA_FILE}"
 
 # Web unique version.
-printf '    "webUniqueVersion": "%s"' "$(sed -n '/ui\.js/s/.*v=\([^";]*\).*/\1/p' /opt/noVNC/index.html)" >> "${WEB_DATA_FILE}"
+printf '    "webUniqueVersion": "%s"' "$(cat /tmp/.web_unique_version)" >> "${WEB_DATA_FILE}"
 
 # Add application name.
 printf ',\n    "applicationName": "%s"' "${APP_NAME}" >> "${WEB_DATA_FILE}"

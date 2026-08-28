@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles/bootstrap.min.css?v=UNIQUE_VERSION">
     <link rel="stylesheet" href="styles/login.css?v=UNIQUE_VERSION">
-    <title>Login</title>
+    <title>Login - APP_NAME</title>
 </head>
 <!-- https://www.ludiflex.com/responsive-login-page-created-with-bootstrap-5/ -->
 <body>
@@ -18,9 +18,9 @@
             <!-- Left Box -->
             <div class="col-md-6 rounded-4 d-flex justify-content-center align-items-center flex-row flex-md-column left-box">
                 <div class="featured-image px-2 px-md-0">
-                    <img src="master_icon.png?v=UNIQUE_VERSION" id="appLogo" class="img-fluid" style="width: 250px;">
+                    <img src="master_icon.png?v=UNIQUE_VERSION" id="appLogo" class="img-fluid" style="width: 250px;" alt="APP_NAME logo" title="APP_NAME">
                 </div>
-                <label name="appName" class="text-white text-md-center fs-2 px-2 px-md-0" style="font-family: 'Courier New', Courier, monospace; font-weight: 600;"></label>
+                <label name="appName" class="text-white text-md-center fs-2 px-2 px-md-0" style="font-family: 'Courier New', Courier, monospace; font-weight: 600;">APP_NAME</label>
             </div>
 
             <!-- Right Box -->
@@ -28,7 +28,7 @@
                 <div class="d-flex flex-column">
                     <div class="header-text mb-4">
                         <h2>Welcome Back</h2>
-                        <p class="mb-0">Login to access your <span name="appName">DockerApp</span> container instance</p>
+                        <p class="mb-0">Login to access your <span name="appName">APP_NAME</span> container instance</p>
                     </div>
                     <div id="loginStatus" class="alert alert-danger mb-4 d-none" role="alert">
                     </div>
@@ -101,17 +101,6 @@
         .catch(error => {
             throw new Error(`Could not load web data: ${error}`);
         });
-
-    // Update page title.
-    document.title = 'Login - ' + webData.applicationName;
-
-    // Update application name fields.
-    Array.from(document.getElementsByName('appName'))
-        .forEach(el => el.innerText = webData.applicationName);
-
-    // Update logo image properties.
-    document.getElementById('appLogo').alt = webData.applicationName + ' logo';
-    document.getElementById('appLogo').title = webData.applicationName;
 
     // Enable dark mode.
     if (webData.darkMode) {

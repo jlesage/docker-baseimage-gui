@@ -102,6 +102,7 @@ log "Configuring Nginx..."
         --with-threads \
         --with-file-aio \
         --with-http_ssl_module \
+        --with-http_sub_module \
         --with-pcre \
         --with-pcre-jit \
         \

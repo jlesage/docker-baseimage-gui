@@ -248,11 +248,8 @@ ARG XTERM_ADDON_FIT_MAP_URL=https://cdn.jsdelivr.net/npm/@xterm/addon-fit@${XTER
 WORKDIR /tmp
 COPY src/novnc /build
 COPY helpers/* /usr/bin/
-COPY rootfs/opt/noVNC/index.html /opt/noVNC/index.html
-COPY rootfs/opt/noVNC/app/notificationService.js /opt/noVNC/app/notificationService.js
 COPY rootfs/opt/noVNC/app/pcm-player.js /tmp/pcm-player.js
 COPY rootfs/opt/noVNC/app/unmute.js /tmp/unmute.js
-COPY rootfs/opt/noVNC/login/index.html /opt/noVNC/login/index.html
 RUN \
     # Install required tools.
     apk --no-cache add \
@@ -300,12 +297,6 @@ RUN \
     curl -# -L -o /opt/noVNC/app/styles/xterm.css ${XTERM_CSS_URL} && \
     curl -# -L -o /opt/noVNC/app/xterm-addon-fit.js ${XTERM_ADDON_FIT_URL} && \
     curl -# -L -o /opt/noVNC/app/xterm-addon-fit.js.map ${XTERM_ADDON_FIT_MAP_URL}
-RUN \
-    # Set version of CSS and JavaScript file URLs.
-    date | md5sum | cut -c1-10 > /tmp/unique_version && \
-    sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/app/notificationService.js && \
-    sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/index.html && \
-    sed "s/UNIQUE_VERSION/$(cat /tmp/unique_version)/g" -i /opt/noVNC/login/index.html
 RUN \
     # Minify Javascript.
     minify -o /opt/noVNC/app/pcm-player.min.js /tmp/pcm-player.js && \

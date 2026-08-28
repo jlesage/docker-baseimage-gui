@@ -23,6 +23,7 @@ AUTH_CONF=/var/tmp/nginx/auth.conf
 FMGR_CONF=/var/tmp/nginx/fmgr.conf
 NOTIF_CONF=/var/tmp/nginx/notif.conf
 TERM_CONF=/var/tmp/nginx/term.conf
+SUB_FILTER_CONF=/var/tmp/nginx/sub_filter.conf
 
 # Make sure required directories exist.
 for dir in ${NGINX_DIRS}; do
@@ -114,6 +115,27 @@ fi
 if is-bool-val-true "${WEB_TERMINAL:-0}"; then
     cp -a /opt/base/etc/nginx/include/terminal.conf "${TERM_CONF}"
 fi
+
+html_escape() {
+    printf '%s' "$1" | awk '
+    BEGIN { ORS = "" }
+    {
+        gsub(/&/, "\\&amp;")
+        gsub(/</, "\\&lt;")
+        gsub(/>/, "\\&gt;")
+        gsub(/"/, "\\&quot;")
+        gsub(/'\''/, "\\&#39;")
+        gsub(/\$/, "\\&#36;")
+        print
+    }'
+}
+
+{
+    printf 'sub_filter_once off;\n'
+    printf 'sub_filter_types application/javascript text/javascript application/manifest+json;\n'
+    printf "sub_filter 'UNIQUE_VERSION' '%s';\n" "$(cat /tmp/.web_unique_version)"
+    printf "sub_filter 'APP_NAME' '%s';\n" "$(html_escape "${APP_NAME:-DockerApp}")"
+} > "${SUB_FILTER_CONF}"
 
 # Make sure required directories are properly owned.
 for dir in ${NGINX_DIRS}; do

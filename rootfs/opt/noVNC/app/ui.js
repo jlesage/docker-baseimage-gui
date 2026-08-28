@@ -78,16 +78,8 @@ const UI = {
 
         UI.initSettings();
 
-        // Set page title.
-        document.title = UI.webData.applicationName;
-        UI.desktopName = UI.webData.applicationName;
-        WebUtil.registerWebApp(UI.webData.applicationName);
-        Array.from(document.getElementsByName('noVNC_app_name'))
-            .forEach(el => el.innerText = UI.webData.applicationName);
-
-        // Update logo image properties.
-        document.getElementById('noVNC_app_logo').alt = UI.webData.applicationName + ' logo';
-        document.getElementById('noVNC_app_logo').title = UI.webData.applicationName;
+        UI.desktopName = document.title;
+        WebUtil.registerWebApp();
 
         // Set or hide the application version.
         if (UI.webData.applicationVersion) {
