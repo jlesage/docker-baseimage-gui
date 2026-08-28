@@ -27,7 +27,7 @@
      }
  
 +    // Browser permission state only: null | "denied" | "prompt" | "granted".
-+    // null means not queried yet.
++    // null means not queried yet, or auto-sync is unsupported (e.g. HTTP).
 +    get clipboardAutoSyncPermission() { return this._clipboardAutoSync; }
 +
 +    // Effective active host-clipboard sync (enabled by user and permission granted).
@@ -89,17 +89,17 @@
 +            return;
 +        }
 +
-+        // Already usable, or permanently denied: nothing more to prompt for.
++        // Read only when permission is granted or still promptable.
 +        if (this._clipboardAutoSync === "granted") {
 +            await this._readClipboardOnFocus();
 +            return;
 +        }
-+        if (this._clipboardAutoSync === "denied") {
++        if (this._clipboardAutoSync === "prompt") {
++            await this._readClipboardOnFocus();
 +            return;
 +        }
 +
-+        // "prompt": actively request access (does not wait for a later canvas focus).
-+        await this._readClipboardOnFocus();
++        // "denied" or null (unsupported, e.g. HTTP): do not read.
 +    }
 +
      get scaleViewport() { return this._scaleViewport; }
@@ -123,7 +123,7 @@
          this._resizeObserver.disconnect();
          this._keyboard.ungrab();
          this._gestures.detach();
-@@ -2323,6 +2411,170 @@
+@@ -2323,6 +2411,174 @@
          return this._fail("Unexpected SetColorMapEntries message");
      }
  
@@ -155,6 +155,9 @@
 +
 +    async _doInitClipboardAutoSyncState() {
 +        if (!(await RFB.isClipboardAutoSyncSupported())) {
++            // Leave _clipboardAutoSync as null (not "denied") so the UI can
++            // distinguish "unsupported" from a permanent browser denial and
++            // will not persist the user setting as off.
 +            Log.Info("clipboard auto sync not supported by browser");
 +            return;
 +        }
@@ -231,7 +234,8 @@
 +    async _handleClipboardFocus() {
 +        if (this._viewOnly) return;
 +        if (!this._clipboardAutoSyncEnabled) return;
-+        if (this._clipboardAutoSync === "denied") return;
++        if (this._clipboardAutoSync !== "granted" &&
++            this._clipboardAutoSync !== "prompt") return;
 +        await this._readClipboardOnFocus();
 +    }
 +
@@ -240,7 +244,7 @@
 +        // open or after the user dismissed/denied the previous attempt.
 +        if (this._clipboardAutoSyncReadInProgress) return;
 +        if (this._clipboardAutoSyncReadBlocked) return;
-+        if (!document.hasFocus()) return;
++        if (!document.hasFocus() || !navigator?.clipboard?.readText) return;
 +
 +        // In "prompt" state, reading the clipboard will prompt
 +        // the user for permission.
@@ -294,7 +298,7 @@
      _handleServerCutText() {
          Log.Debug("ServerCutText");
  
-@@ -2342,10 +2594,7 @@
+@@ -2342,10 +2598,7 @@
                  return true;
              }
  
@@ -306,7 +310,7 @@
          } else {
              //Extended msg.
              length = Math.abs(length);
-@@ -2480,9 +2729,7 @@
+@@ -2480,9 +2733,7 @@
  
                      textData = textData.replaceAll("\r\n", "\n");
  

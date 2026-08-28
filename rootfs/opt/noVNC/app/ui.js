@@ -1842,6 +1842,14 @@ const UI = {
         // Disconnect may clear UI.rfb while we were awaiting permissions.
         if (!UI.rfb) return;
 
+        // Clipboard API unavailable (insecure HTTP, missing APIs, etc.).
+        // Leave the stored setting unchanged so a later HTTPS visit is unaffected.
+        if (UI.rfb.clipboardAutoSyncPermission == null) {
+            UI.rfb.clipboardAutoSyncEnabled = false;
+            UI.updateClipboard();
+            return;
+        }
+
         // Do not enable if the browser already permanently denied access.
         if (UI.rfb.clipboardAutoSyncPermission === "denied") {
             WebUtil.writeSetting('host_clipboard_sync', false);
