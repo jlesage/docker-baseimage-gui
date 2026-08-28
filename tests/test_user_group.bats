@@ -300,6 +300,62 @@ dump_daemon_logs() {
     [ "$status" -eq 0 ]
 }
 
+@test "Checking that service sgid always includes GROUP_ID..." {
+    # Discard docker CLI stderr (platform mismatch warnings under QEMU) so it
+    # does not pollute $output used for an exact comparison.
+    run no_stderr docker run --rm --entrypoint /defaults/service/sgid \
+        -e GROUP_ID=3000 \
+        "$DOCKER_IMAGE"
+    echo "====================================================================="
+    echo " OUTPUT"
+    echo "====================================================================="
+    echo "$output"
+    echo "====================================================================="
+    echo " END OUTPUT"
+    echo "====================================================================="
+    echo "STATUS: $status"
+    [ "$status" -eq 0 ]
+    [ "$output" = "3000" ]
+}
+
+@test "Checking that service sgid merges GROUP_ID with SUP_GROUP_IDS..." {
+    # Discard docker CLI stderr (platform mismatch warnings under QEMU) so it
+    # does not pollute $output used for an exact comparison.
+    run no_stderr docker run --rm --entrypoint /defaults/service/sgid \
+        -e GROUP_ID=3000 \
+        -e SUP_GROUP_IDS=5100,9999 \
+        "$DOCKER_IMAGE"
+    echo "====================================================================="
+    echo " OUTPUT"
+    echo "====================================================================="
+    echo "$output"
+    echo "====================================================================="
+    echo " END OUTPUT"
+    echo "====================================================================="
+    echo "STATUS: $status"
+    [ "$status" -eq 0 ]
+    [ "$output" = $'3000\n5100\n9999' ]
+}
+
+@test "Checking that service sgid deduplicates GROUP_ID..." {
+    # Discard docker CLI stderr (platform mismatch warnings under QEMU) so it
+    # does not pollute $output used for an exact comparison.
+    run no_stderr docker run --rm --entrypoint /defaults/service/sgid \
+        -e GROUP_ID=3000 \
+        -e SUP_GROUP_IDS=3000,5100 \
+        "$DOCKER_IMAGE"
+    echo "====================================================================="
+    echo " OUTPUT"
+    echo "====================================================================="
+    echo "$output"
+    echo "====================================================================="
+    echo " END OUTPUT"
+    echo "====================================================================="
+    echo "STATUS: $status"
+    [ "$status" -eq 0 ]
+    [ "$output" = $'3000\n5100' ]
+}
+
 @test "Checking that an invalid group ID in cont-groups.d causes a failure..." {
     mkdir -p "$TESTS_WORKDIR"/badgrp
     echo "notanumber" > "$TESTS_WORKDIR"/badgrp/id

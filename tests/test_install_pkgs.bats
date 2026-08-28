@@ -26,7 +26,30 @@ teardown() {
 }
 
 @test "Checking that package can be installed successfully..." {
-    docker_run --rm -e "INSTALL_PACKAGES=xterm" -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh $DOCKER_IMAGE
+    docker_run --rm $DOCKER_IMAGE cat /etc/os-release
+    [ "$status" -eq 0 ]
+
+    regex="^ID=.*"
+    for item in "${lines[@]}"; do
+        if [[ "$item" =~ $regex ]]; then
+            OS="${item#*=}"
+            break;
+        fi
+    done
+
+    case "$OS" in
+        debian)
+            INSTALL_PACKAGES="xterm systemd xrdp pulseaudio"
+            ;;
+        ubuntu)
+            INSTALL_PACKAGES="xterm systemd xrdp pulseaudio"
+            ;;
+        *)
+            INSTALL_PACKAGES="xterm"
+            ;;
+    esac
+
+    docker_run --rm -e "INSTALL_PACKAGES=$INSTALL_PACKAGES" -v "$TESTS_WORKDIR"/startapp.sh:/startapp.sh $DOCKER_IMAGE
     echo "====================================================================="
     echo " OUTPUT"
     echo "====================================================================="
