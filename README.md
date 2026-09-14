@@ -30,6 +30,7 @@ shell, desktop notifications, and more.
          * [Docker Secrets](#docker-secrets)
       * [Ports](#ports)
       * [User/Group IDs](#usergroup-ids)
+         * [Application User](#application-user)
          * [System Files](#system-files)
       * [Initialization Scripts](#initialization-scripts)
       * [Finalization Scripts](#finalization-scripts)
@@ -437,6 +438,30 @@ uid=1000(myuser) gid=1000(myuser) groups=1000(myuser),4(adm),24(cdrom),27(sudo),
 
 Use the `uid` (user ID) and `gid` (group ID) values to configure the container.
 
+#### Application User
+
+The application runs as the Linux user `app`. This user and its primary group
+are created during container startup. Their attributes come from environment
+variables:
+
+  - User ID: `USER_ID`
+  - Group ID: `GROUP_ID`
+  - Home directory: `HOME` (defaults to `/config`)
+  - Supplementary groups: `SUP_GROUP_IDS`, merged with `SUP_GROUP_IDS_INTERNAL`
+    and any `SUP_GROUP_IDS_INTERNAL_*` variables
+
+`app` is a reserved name. It is defined like any other account, under
+`/etc/cont-users.d/app` and `/etc/cont-groups.d/app`. Do not create another
+user or group named `app`.
+
+Because `USER_ID` and `GROUP_ID` are chosen to match the host, they may collide
+with IDs of other accounts already defined in the container. For example,
+`GROUP_ID=100` on Debian, where the `users` group is `100`. The `app` account
+allows this: two names may share the same numeric ID.
+
+Supplementary group IDs that do not already exist in the container are created
+as `grp<ID>` so membership can be recorded in `/etc/group`.
+
 #### System Files
 
 Some applications might expect certain Linux users or groups to be present in
@@ -444,7 +469,8 @@ system files `/etc/passwd` and `/etc/group`, which stores information about user
 accounts and groups respectively.
 
 These users or groups can be defined so that they are created automatically
-in the system during container initialization.
+in the system during container initialization. The `app` user and group shipped
+by this baseimage use the same mechanism.
 
 Users are defined under `/etc/cont-users.d/` in the container, while groups are
 defined under `/etc/cont-groups.d/`. Each entry has its own directory named
@@ -461,6 +487,7 @@ The following files can be defined for a group:
 | `name`                 | String           | Overrides the group name. The directory name is used if omitted. | None |
 | `disabled`             | Boolean          | Specifies whether the group is disabled and should not be created. | `FALSE` |
 | `id`                   | Unsigned integer | Specifies the numeric ID of the group. | None |
+| `allow_duplicate_id`   | Boolean          | Allows the numeric ID to match an existing group. Names must still be unique. | `FALSE` |
 
 The following files can be defined for a user:
 
@@ -473,6 +500,8 @@ The following files can be defined for a user:
 | `gid`                  | Unsigned integer | Specifies the primary group ID of the user. | None |
 | `home`                 | String           | Specifies the user's home directory. | `/dev/null` |
 | `grps`                 | String           | Specifies the list of groups the user belongs to, with one group name per line. | None |
+| `gids`                 | String           | Specifies numeric supplementary group IDs, one per line. | None |
+| `allow_duplicate_id`   | Boolean          | Allows the numeric ID to match an existing user. Names must still be unique. | `FALSE` |
 | `password`             | String           | Specifies the user's password. | None |
 | `password_hash`        | String           | Specifies the user's password hash in the format `$id$salt$hash`, as produced by `mkpasswd`. | None |
 
