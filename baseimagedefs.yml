@@ -23,6 +23,26 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.14.0
+      date: 2026-09-17
+      changes:
+        added:
+          - 'Progressive Web App support, allowing the web interface to be installed as an app.'
+          - 'Added by the update of jlesage/baseimage to version 3.11.12:'
+          - '2:Users and groups definition: `allow_duplicate_id` attribute to allow numeric ID collisions.'
+          - '2:Users definition: `gids` attribute for numeric supplementary group IDs.'
+        changed:
+          - 'Updated nginx to version 1.30.4.'
+          - 'Changed by the update of jlesage/baseimage to version 3.11.12:'
+          - '2:The `app` user and group are now defined via `/etc/cont-users.d/` and `/etc/cont-groups.d/`, like other accounts.'
+          - '2:Updated shadow-rs to version 0.5.0.'
+        fixed:
+          - 'Host clipboard synchronization disabling itself.'
+          - 'Fixed by the update of jlesage/baseimage to version 3.11.12:'
+          - '2:Supplementary groups from `SUP_GROUP_IDS_INTERNAL_*` were not added to the `app` user in `/etc/group`.'
+          - '2:Incorrect loading of subsequent service dependencies in the container init process.'
+        removed:
+          - 'Image based on Debian 11 (reached end of support on 2026-08-31).'
     - version: 4.13.2
       date: 2026-08-14
       changes:
