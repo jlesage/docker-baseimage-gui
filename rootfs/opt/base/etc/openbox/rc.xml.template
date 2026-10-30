@@ -199,34 +199,6 @@
   <!-- Set this to TRUE to move the mouse pointer across the desktop when
        switching due to hitting the edge of the screen -->
 
-  <context name="Frame">
-    <mousebind button="A-Left" action="Press">
-      <action name="Focus"/>
-      <action name="Raise"/>
-    </mousebind>
-    <mousebind button="A-Left" action="Click">
-      <action name="Unshade"/>
-    </mousebind>
-    <mousebind button="A-Left" action="Drag">
-      <action name="Move"/>
-    </mousebind>
-
-    <mousebind button="A-Right" action="Press">
-      <action name="Focus"/>
-      <action name="Raise"/>
-      <action name="Unshade"/>
-    </mousebind>
-    <mousebind button="A-Right" action="Drag">
-      <action name="Resize"/>
-    </mousebind> 
-
-    <mousebind button="A-Middle" action="Press">
-      <action name="Lower"/>
-      <action name="FocusToBottom"/>
-      <action name="Unfocus"/>
-    </mousebind>
-  </context>
-
   <context name="Titlebar">
     <mousebind button="Left" action="Drag">
       <action name="Move"/>
