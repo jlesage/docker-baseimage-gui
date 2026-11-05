@@ -1,1 +1,8 @@
-/opt/base/bin/pulseaudio
+#!/bin/sh
+set -eu
+
+# A daemon killed without cleanup leaves its FIFO behind.
+if is-bool-val-true "${WEB_MICROPHONE:-0}" && [ -p /tmp/vnc-microphone.fifo ]; then
+    rm -f /tmp/vnc-microphone.fifo
+fi
+exec /opt/base/bin/pulseaudio "$@"

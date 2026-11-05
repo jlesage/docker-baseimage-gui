@@ -3,7 +3,7 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-if is-bool-val-true "${WEB_AUDIO:-0}"; then
+if is-bool-val-true "${WEB_AUDIO:-0}" || is-bool-val-true "${WEB_MICROPHONE:-0}"; then
     # Audio support enabled.
     echo "unix:/tmp/pulseaudio.sock"
 else

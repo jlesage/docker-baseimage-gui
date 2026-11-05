@@ -1016,6 +1016,20 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_MICROPHONE
+      description: >-
+        When set to `1`, enables browser microphone redirection to a PulseAudio
+        capture source inside the container. Requires HTTPS or localhost.
+        See [Web Microphone](#web-microphone) for details.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Microphone
+        description: >-
+          Enable browser microphone redirection to applications in the container.
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_HOST_CLIPBOARD_SYNC
       description: >-
         When set to `1`, enables support for synchronizing the host system

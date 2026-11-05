@@ -14,3 +14,7 @@ if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
     printf "%s\n" "--log-level=4"
     printf "%s\n" "--verbose"
 fi
+
+if is-bool-val-true "${WEB_MICROPHONE:-0}"; then
+    printf "%s\n" "--file=/opt/base/etc/pulse-microphone.pa"
+fi

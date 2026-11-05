@@ -49,9 +49,23 @@ typedef struct {
 typedef handle* lt_dlhandle;
 
 PA_DECLARE(null_sink);
+PA_DECLARE(pipe_source);
 PA_DECLARE(native_protocol_unix);
 
 static handle g_handles[] = {
+    {
+        .modulename = "module-pipe-source",
+        .syms = {
+            PA_SYMBOL_INIT(pipe_source),
+            PA_SYMBOL_GET_N_USED(pipe_source),
+            PA_SYMBOL_DONE(pipe_source),
+            PA_SYMBOL_AUTHOR(pipe_source),
+            PA_SYMBOL_DESCRIPTION(pipe_source),
+            PA_SYMBOL_USAGE(pipe_source),
+            PA_SYMBOL_VERSION(pipe_source),
+            PA_SYMBOL_LOAD_ONCE(pipe_source),
+        }
+    },
     {
         .modulename = "module-null-sink",
         .syms = {

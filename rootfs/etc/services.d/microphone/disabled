@@ -1,0 +1,7 @@
+#!/bin/sh
+set -eu
+if is-bool-val-true "${WEB_MICROPHONE:-0}"; then
+    echo false
+else
+    echo true
+fi

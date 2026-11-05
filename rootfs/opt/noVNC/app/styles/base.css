@@ -594,3 +594,15 @@ html[data-bs-theme="dark"] .btn.noVNC_selected {
 }
 
 
+#noVNC_microphone_device {
+  min-width: 0;
+  width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#noVNC_microphone_button {
+  flex-shrink: 0;
+}
+

@@ -93,9 +93,21 @@
                     <li class="list-group-item noVNC_hidden" id="noVNC_audio_section">
                         <label class="custom-accordion-button text-nowrap" data-bs-toggle="collapse" data-bs-target="#audioCollapse">Audio</label>
                         <div class="collapse show" id="audioCollapse">
-                            <div class="d-flex flex-row">
+                            <div class="d-flex flex-row noVNC_hidden" id="noVNC_audio_playback">
                                 <a class="btn shadow-none p-0 pe-1" href="#" title="Mute/Unmute" id="noVNC_audio_button"><i class="fas fa-volume-mute fa-fw fa-lg" id="noVNC_audio_button_icon"></i></a>
                                 <input type="range" min="0" max="100" value="0" class="form-range flex-grow-1" id="noVNC_setting_audio_volume">
+                            </div>
+                            <div class="mt-2 noVNC_hidden" id="noVNC_microphone_section">
+                                <div class="d-flex flex-row align-items-center">
+                                    <button class="btn shadow-none p-0 pe-1" type="button" id="noVNC_microphone_button" title="Enable microphone" aria-pressed="false" aria-describedby="noVNC_microphone_status" disabled>
+                                        <i class="fas fa-microphone-slash fa-fw fa-lg" id="noVNC_microphone_icon" aria-hidden="true"></i>
+                                        <span class="visually-hidden" id="noVNC_microphone_label">Enable microphone</span>
+                                    </button>
+                                    <select class="form-select form-select-sm flex-grow-1" id="noVNC_microphone_device" aria-label="Microphone source" aria-describedby="noVNC_microphone_status" disabled>
+                                        <option value="">Default</option>
+                                    </select>
+                                </div>
+                                <div class="small mt-1 text-danger text-break noVNC_hidden" id="noVNC_microphone_status" role="status" aria-live="polite"></div>
                             </div>
                         </div>
                     </li>

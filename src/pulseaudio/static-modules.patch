@@ -179,3 +179,79 @@ index f918ea605..edcbe9a28 100644
  #endif /* PA_MODULE_NAME */
  
  #endif
+
+diff --git a/src/modules/module-pipe-source.c b/src/modules/module-pipe-source.c
+--- a/src/modules/module-pipe-source.c
++++ b/src/modules/module-pipe-source.c
+@@ -19,6 +19,10 @@
+
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
++#endif
++
++#ifdef __PA_STATIC_MODULE
++#define PA_MODULE_NAME pipe_source
+ #endif
+
+ #include <stdlib.h>
+@@ -202,7 +206,11 @@
+     pa_log_debug("Thread shutting down");
+ }
+
++#ifdef __PA_STATIC_MODULE
++int pa__init__pipe_source(pa_module *m) {
++#else
+ int pa__init(pa_module *m) {
++#endif
+     struct userdata *u;
+     struct stat st;
+     pa_sample_spec ss;
+@@ -238,13 +246,13 @@
+
+     u->filename = pa_runtime_path(pa_modargs_get_value(ma, "file", DEFAULT_FILE_NAME));
+
+-    if (mkfifo(u->filename, 0666) < 0) {
++    if (mkfifo(u->filename, 0600) < 0) {
+         pa_log("mkfifo('%s'): %s", u->filename, pa_cstrerror(errno));
+         goto fail;
+     } else {
+         /* Our umask is 077, so the pipe won't be created with the requested
+          * permissions. Let's fix the permissions with chmod(). */
+-        if (chmod(u->filename, 0666) < 0)
++        if (chmod(u->filename, 0600) < 0)
+             pa_log_warn("chomd('%s'): %s", u->filename, pa_cstrerror(errno));
+     }
+
+@@ -315,12 +323,20 @@
+     if (ma)
+         pa_modargs_free(ma);
+
++#ifdef __PA_STATIC_MODULE
++    pa__done__pipe_source(m);
++#else
+     pa__done(m);
++#endif
+
+     return -1;
+ }
+
++#ifdef __PA_STATIC_MODULE
++int pa__get_n_used__pipe_source(pa_module *m) {
++#else
+ int pa__get_n_used(pa_module *m) {
++#endif
+     struct userdata *u;
+
+     pa_assert(m);
+@@ -329,7 +345,11 @@
+     return pa_source_linked_by(u->source);
+ }
+
++#ifdef __PA_STATIC_MODULE
++void pa__done__pipe_source(pa_module *m) {
++#else
+ void pa__done(pa_module *m) {
++#endif
+     struct userdata *u;
+
+     pa_assert(m);
