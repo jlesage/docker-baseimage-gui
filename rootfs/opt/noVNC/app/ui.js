@@ -1244,6 +1244,11 @@ const UI = {
                     UI.updateAudioVolume();
                 }, { once: true });
             });
+        } else if (UI.audioContext) {
+            // Reconnected after the first user interaction: disconnecting
+            // turned audio off, so restore it as the volume slider left it
+            // (still muted if the user muted it).
+            UI.updateAudioVolume();
         }
 
         // Start desktop notification.
