@@ -4,7 +4,11 @@
 # The web client asks for pseudo-encoding -524289. Other clients do not.
 # When the cursor's last row spells a name, a client that asked receives
 # the image unchanged. Everyone else gets the picture with the row
-# removed. The stored cursor is left unchanged.
+# removed.
+#
+# The cursor drawn into the screen is the picture with the row removed.
+# That drawing is used for a client with no local cursor, and when the
+# pointer moves without a pointer event from the client.
 #
 --- a/common/rfb/encodings.h
 +++ b/common/rfb/encodings.h
@@ -40,7 +44,7 @@
  #include <rfb/UpdateTracker.h>
  #include <rfb/Encoder.h>
  #include <rfb/ScreenSet.h>
-@@ -447,42 +450,77 @@
+@@ -447,42 +450,52 @@
  void SMsgWriter::writePseudoRects()
  {
    if (needCursor) {
@@ -52,34 +56,9 @@
 +    // A client that did not ask for cursor names gets the picture with
 +    // the name row removed. The stored cursor is left unchanged.
 +    if (!client->supportsEncoding(pseudoEncodingViewerCursor)) {
-+      int w = stored.width();
-+      int h = stored.height();
-+      int sw = 0;
-+      int sh = 0;
-+      std::vector<uint8_t> buf;
-+      if (h > 1)
-+        buf.resize((size_t)w * (size_t)(h - 1) * 4);
-+      if (stripViewerCursorNameRow(stored.getBuffer(), w, h,
-+                                   buf.empty() ? nullptr : buf.data(),
-+                                   &sw, &sh)) {
-+        if (sh == 0) {
-+          static const uint8_t dummy = 0;
-+          stripped.reset(new Cursor(0, 0, core::Point(0, 0), &dummy));
-+        } else {
-+          core::Point hot = stored.hotspot();
-+          if (hot.x < 0)
-+            hot.x = 0;
-+          if (hot.y < 0)
-+            hot.y = 0;
-+          if (hot.x >= sw)
-+            hot.x = sw - 1;
-+          if (hot.y >= sh)
-+            hot.y = sh - 1;
-+          stripped.reset(new Cursor(sw, sh, hot, buf.data()));
-+          stripped->crop();
-+        }
++      stripped.reset(viewerCursorWithoutNameRow(stored));
++      if (stripped)
 +        cursor = stripped.get();
-+      }
 +    }
  
      if (client->supportsEncoding(pseudoEncodingCursorWithAlpha)) {
@@ -137,7 +116,7 @@
        throw std::logic_error("Client does not support local cursor");
 --- a/common/rfb/viewer-cursor.h
 +++ b/common/rfb/viewer-cursor.h
-@@ -0,0 +1,23 @@
+@@ -0,0 +1,28 @@
 +#ifndef __RFB_VIEWER_CURSOR_H__
 +#define __RFB_VIEWER_CURSOR_H__
 +
@@ -158,15 +137,24 @@
 +  bool stripViewerCursorNameRow(const uint8_t* rgba, int w, int h,
 +                                uint8_t* out, int* outW, int* outH);
 +
++  // A new cursor with the name row removed, or nullptr when the image
++  // has no name row. The caller owns the result.
++  class Cursor;
++  Cursor* viewerCursorWithoutNameRow(const Cursor& cursor);
++
 +}
 +
 +#endif
 --- a/common/rfb/viewer-cursor.cxx
 +++ b/common/rfb/viewer-cursor.cxx
-@@ -0,0 +1,131 @@
+@@ -0,0 +1,168 @@
 +#include "viewer-cursor.h"
 +
 +#include <string.h>
++
++#include <vector>
++
++#include "Cursor.h"
 +
 +namespace rfb {
 +
@@ -294,4 +282,111 @@
 +    return true;
 +  }
 +
++  Cursor* viewerCursorWithoutNameRow(const Cursor& stored)
++  {
++    int w = stored.width();
++    int h = stored.height();
++    int sw = 0;
++    int sh = 0;
++    std::vector<uint8_t> buf;
++
++    if (h > 1)
++      buf.resize((size_t)w * (size_t)(h - 1) * 4);
++    if (!stripViewerCursorNameRow(stored.getBuffer(), w, h,
++                                  buf.empty() ? nullptr : buf.data(),
++                                  &sw, &sh))
++      return nullptr;
++    if (sh == 0) {
++      static const uint8_t dummy = 0;
++      return new Cursor(0, 0, core::Point(0, 0), &dummy);
++    }
++
++    core::Point hot = stored.hotspot();
++    if (hot.x < 0)
++      hot.x = 0;
++    if (hot.y < 0)
++      hot.y = 0;
++    if (hot.x >= sw)
++      hot.x = sw - 1;
++    if (hot.y >= sh)
++      hot.y = sh - 1;
++    Cursor* stripped = new Cursor(sw, sh, hot, buf.data());
++    stripped->crop();
++    return stripped;
++  }
++
 +}
+--- a/common/rfb/VNCServerST.h
++++ b/common/rfb/VNCServerST.h
+@@ -204,6 +204,9 @@
+ 
+     core::Point cursorPos;
+     Cursor* cursor;
++    // Picture used when this server draws the cursor into the screen.
++    // Null means `cursor` has no name row. Otherwise the name row is gone.
++    Cursor* renderedCursorShape;
+     RenderedCursor renderedCursor;
+     bool renderedCursorInvalid;
+ 
+--- a/common/rfb/VNCServerST.cxx
++++ b/common/rfb/VNCServerST.cxx
+@@ -71,6 +71,7 @@
+ #include <rfb/VNCServerST.h>
+ #include <rfb/VNCSConnectionST.h>
+ #include <rfb/ledStates.h>
++#include <rfb/viewer-cursor.h>
+ 
+ 
+ using namespace rfb;
+@@ -90,7 +91,7 @@
+     ledState(ledUnknown), name(name_), pointerClient(nullptr),
+     clipboardClient(nullptr), pointerClientTime(0),
+     comparer(nullptr), cursor(new Cursor(0, 0, {}, nullptr)),
+-    renderedCursorInvalid(false),
++    renderedCursorShape(nullptr), renderedCursorInvalid(false),
+     keyRemapper(&KeyRemapper::defInstance),
+     idleTimer(this), disconnectTimer(this), connectTimer(this),
+     msc(0), queuedMsc(0), frameTimer(this)
+@@ -132,6 +133,7 @@
+   delete comparer;
+ 
+   delete cursor;
++  delete renderedCursorShape;
+ }
+ 
+ 
+@@ -493,8 +495,12 @@
+                             const uint8_t* data)
+ {
+   delete cursor;
++  delete renderedCursorShape;
+   cursor = new Cursor(width, height, newHotspot, data);
+   cursor->crop();
++  // The screen-drawn cursor must not include the name row. Clients that
++  // asked for the name still receive `cursor` unchanged.
++  renderedCursorShape = viewerCursorWithoutNameRow(*cursor);
+ 
+   renderedCursorInvalid = true;
+ 
+@@ -911,8 +917,9 @@
+   toCheck = ui.changed.union_(ui.copied);
+ 
+   if (needRenderedCursor()) {
+-    core::Rect clippedCursorRect = core::Rect(0, 0, cursor->width(), cursor->height())
+-                                   .translate(cursorPos.subtract(cursor->hotspot()))
++    const Cursor* drawn = renderedCursorShape ? renderedCursorShape : cursor;
++    core::Rect clippedCursorRect = core::Rect(0, 0, drawn->width(), drawn->height())
++                                   .translate(cursorPos.subtract(drawn->hotspot()))
+                                    .intersect(pb->getRect());
+ 
+     if (!toCheck.intersect(clippedCursorRect).is_empty())
+@@ -963,7 +970,8 @@
+ const RenderedCursor* VNCServerST::getRenderedCursor()
+ {
+   if (renderedCursorInvalid) {
+-    renderedCursor.update(pb, cursor, cursorPos);
++    renderedCursor.update(pb, renderedCursorShape ? renderedCursorShape : cursor,
++                          cursorPos);
+     renderedCursorInvalid = false;
+   }
+ 
