@@ -183,6 +183,7 @@ make -C /tmp/libxfixes -j$(nproc)
 
 log "Installing libXfixes..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxfixes install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build libXcursor.
@@ -209,6 +210,7 @@ make -C /tmp/libxcursor -j$(nproc)
 
 log "Installing libXcursor..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxcursor install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
 # Build fontconfig.
