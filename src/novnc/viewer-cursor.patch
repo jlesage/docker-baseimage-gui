@@ -1,0 +1,164 @@
+#
+# Cursor names for the web viewer.
+#
+# The page asks for pseudo-encoding -524289 only when the browser can
+# show its own pointer. A cursor whose last row spells a name then
+# becomes that pointer. A touch browser does not ask, so this server
+# sends the picture with the row already removed.
+#
+diff -ruN a/core/encodings.js b/core/encodings.js
+--- a/core/encodings.js	2026-04-28 10:41:46.000000000 +0000
++++ b/core/encodings.js	2026-10-31 02:02:55.028542651 +0000
+@@ -23,6 +23,7 @@
+     pseudoEncodingDesktopSize: -223,
+     pseudoEncodingLastRect: -224,
+     pseudoEncodingCursor: -239,
++    pseudoEncodingViewerCursor: -524289,
+     pseudoEncodingQEMUExtendedKeyEvent: -258,
+     pseudoEncodingQEMULedEvent: -261,
+     pseudoEncodingDesktopName: -307,
+diff -ruN a/core/rfb.js b/core/rfb.js
+--- a/core/rfb.js	2026-10-31 02:02:43.059212021 +0000
++++ b/core/rfb.js	2026-10-31 02:02:55.029088391 +0000
+@@ -20,6 +20,6 @@
+ import Keyboard from "./input/keyboard.js";
+ import GestureHandler from "./input/gesturehandler.js";
+-import Cursor from "./util/cursor.js";
++import Cursor, { useFallback } from "./util/cursor.js";
+ import Websock from "./websock.js";
+ import KeyTable from "./input/keysym.js";
+ import XtScancode from "./input/xtscancodes.js";
+@@ -2356,6 +2356,9 @@
+         if (this._fbDepth == 24) {
+             encs.push(encodings.pseudoEncodingVMwareCursor);
+             encs.push(encodings.pseudoEncodingCursor);
++            if (!useFallback) {
++                encs.push(encodings.pseudoEncodingViewerCursor);
++            }
+         }
+ 
+         RFB.messages.clientEncodings(this._sock, encs);
+diff -ruN a/core/util/cursor.js b/core/util/cursor.js
+--- a/core/util/cursor.js	2026-04-28 10:41:46.000000000 +0000
++++ b/core/util/cursor.js	2026-10-31 02:02:55.029498152 +0000
+@@ -5,6 +5,7 @@
+  */
+ 
+ import { supportsCursorURIs, isTouchDevice } from './browser.js';
++import { decodeCursorKeyword } from './cursor-keyword.js';
+ 
+-const useFallback = !supportsCursorURIs || isTouchDevice;
++export const useFallback = !supportsCursorURIs || isTouchDevice;
+ 
+@@ -78,6 +79,12 @@
+     }
+ 
+     change(rgba, hotx, hoty, w, h) {
++        const name = (w > 0 && h > 0) ? decodeCursorKeyword(rgba, w, h) : null;
++        if (name && !useFallback) {
++            // The browser draws its own pointer for this name.
++            this._target.style.cursor = name;
++            return;
++        }
+         if ((w === 0) || (h === 0)) {
+             this.clear();
+             return;
+diff -ruN a/core/util/cursor-keyword.js b/core/util/cursor-keyword.js
+--- a/core/util/cursor-keyword.js	1970-01-01 00:00:00.000000000 +0000
++++ b/core/util/cursor-keyword.js	2026-10-31 02:02:55.029332412 +0000
+@@ -0,0 +1,95 @@
++/*
++ * Cursor name carried in the last row of a cursor image.
++ *
++ * The web viewer reads the name and sets the browser cursor. A client
++ * that did not ask for this support never sees the row: this server
++ * removes it before sending the picture.
++ */
++
++const CURSOR_NAMES = new Set([
++    "auto",
++    "default",
++    "none",
++    "context-menu",
++    "help",
++    "pointer",
++    "progress",
++    "wait",
++    "cell",
++    "crosshair",
++    "text",
++    "vertical-text",
++    "alias",
++    "copy",
++    "move",
++    "no-drop",
++    "not-allowed",
++    "grab",
++    "grabbing",
++    "e-resize",
++    "n-resize",
++    "ne-resize",
++    "nw-resize",
++    "s-resize",
++    "se-resize",
++    "sw-resize",
++    "w-resize",
++    "ew-resize",
++    "ns-resize",
++    "nesw-resize",
++    "nwse-resize",
++    "col-resize",
++    "row-resize",
++    "all-scroll",
++    "zoom-in",
++    "zoom-out",
++]);
++
++const MAGIC = [0x56, 0x43, 0x55, 0x52]; // VCUR
++const VERSION = 1;
++
++// rgba is a sequence of bytes, R G B A. Returns the cursor name, or null.
++export function decodeCursorKeyword(rgba, w, h) {
++    if (h < 1 || w < 5) {
++        return null;
++    }
++    const row = (h - 1) * w * 4;
++    for (let i = 0; i < 4; i++) {
++        const o = row + i * 4;
++        if (rgba[o] !== MAGIC[i] || rgba[o + 1] !== 0 ||
++            rgba[o + 2] !== 0 || rgba[o + 3] !== 255) {
++            return null;
++        }
++    }
++    const ver = row + 4 * 4;
++    if (rgba[ver] !== VERSION || rgba[ver + 1] !== 0 ||
++        rgba[ver + 2] !== 0 || rgba[ver + 3] !== 255) {
++        return null;
++    }
++    let name = "";
++    for (let x = 5; x < w; x++) {
++        const o = row + x * 4;
++        const r = rgba[o];
++        const g = rgba[o + 1];
++        const b = rgba[o + 2];
++        const a = rgba[o + 3];
++        if (r === 0 && g === 0 && b === 0 && a === 0) {
++            for (let x2 = x; x2 < w; x2++) {
++                const o2 = row + x2 * 4;
++                if (rgba[o2] !== 0 || rgba[o2 + 1] !== 0 ||
++                    rgba[o2 + 2] !== 0 || rgba[o2 + 3] !== 0) {
++                    return null;
++                }
++            }
++            break;
++        }
++        if (g !== 0 || b !== 0 || a !== 255 || r < 0x20 || r > 0x7e) {
++            return null;
++        }
++        name += String.fromCharCode(r);
++    }
++    if (!CURSOR_NAMES.has(name)) {
++        return null;
++    }
++    return name;
++}

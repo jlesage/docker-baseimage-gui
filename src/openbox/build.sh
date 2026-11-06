@@ -14,12 +14,16 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 OPENBOX_VERSION=3.6.1
 PANGO_VERSION=1.49.3
 LIBXRANDR_VERSION=1.5.4
+LIBXFIXES_VERSION=6.0.1
+LIBXCURSOR_VERSION=1.2.3
 BROTLI_VERSION=1.1.0
 
 # Define software download URLs.
 OPENBOX_URL=http://openbox.org/dist/openbox/openbox-${OPENBOX_VERSION}.tar.xz
 PANGO_URL=https://download.gnome.org/sources/pango/${PANGO_VERSION%.*}/pango-${PANGO_VERSION}.tar.xz
 LIBXRANDR_URL=https://www.x.org/releases/individual/lib/libXrandr-${LIBXRANDR_VERSION}.tar.xz
+LIBXFIXES_URL=https://www.x.org/releases/individual/lib/libXfixes-${LIBXFIXES_VERSION}.tar.xz
+LIBXCURSOR_URL=https://www.x.org/releases/individual/lib/libXcursor-${LIBXCURSOR_VERSION}.tar.xz
 BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
 
 # Set same default compilation flags as abuild.
@@ -155,6 +159,58 @@ log "Installing libXrandr..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/libxrandr install
 
 #
+# Build libXfixes.
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
+#
+mkdir /tmp/libxfixes
+log "Downloading libXfixes..."
+curl -# -L -f ${LIBXFIXES_URL} | tar -xJ --strip 1 -C /tmp/libxfixes
+
+log "Configuring libXfixes..."
+(
+    cd /tmp/libxfixes && LDFLAGS= ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --enable-malloc0returnsnull \
+)
+
+log "Compiling libXfixes..."
+make -C /tmp/libxfixes -j$(nproc)
+
+log "Installing libXfixes..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libxfixes install
+
+#
+# Build libXcursor.
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
+#
+mkdir /tmp/libxcursor
+log "Downloading libXcursor..."
+curl -# -L -f ${LIBXCURSOR_URL} | tar -xJ --strip 1 -C /tmp/libxcursor
+
+log "Configuring libXcursor..."
+(
+    cd /tmp/libxcursor && LDFLAGS= ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --enable-malloc0returnsnull \
+)
+
+log "Compiling libXcursor..."
+make -C /tmp/libxcursor -j$(nproc)
+
+log "Installing libXcursor..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libxcursor install
+
+#
 # Build fontconfig.
 #
 # Fontconfig is already built by an earlier stage in Dockerfile.  The static
@@ -196,7 +252,6 @@ make -C /tmp/brotli/build -j$(nproc)
 log "Installing brotli..."
 make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
 
-#
 # Build Openbox.
 #
 mkdir /tmp/openbox
@@ -214,7 +269,8 @@ cp -v "$SCRIPT_DIR"/config.sub /tmp/openbox
 log "Configuring Openbox..."
 (
     cd /tmp/openbox && \
-        LIBS="-lX11 -lxcb -lXdmcp -lXau -lXext -lXft -lXrandr -lfontconfig -lfreetype -lpng -lXrender -lexpat -lxml2 -lz -lbz2 -llzma -lbrotlidec -lbrotlicommon -lintl -lfribidi -lharfbuzz -lpangoxft-1.0 -lpangoft2-1.0 -lpango-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lpcre2-8 -lgraphite2 -lffi" \
+        PKG_CONFIG_PATH="$(xx-info sysroot)/usr/lib/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}" \
+        LIBS="-lXcursor -lXfixes -lX11 -lxcb -lXdmcp -lXau -lXext -lXft -lXrandr -lfontconfig -lfreetype -lpng -lXrender -lexpat -lxml2 -lz -lbz2 -llzma -lbrotlidec -lbrotlicommon -lintl -lfribidi -lharfbuzz -lpangoxft-1.0 -lpangoft2-1.0 -lpango-1.0 -lgio-2.0 -lgobject-2.0 -lglib-2.0 -lpcre2-8 -lgraphite2 -lffi" \
         ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
@@ -224,7 +280,6 @@ log "Configuring Openbox..."
         --enable-static \
         --disable-nls \
         --disable-startup-notification \
-        --disable-xcursor \
         --disable-librsvg \
         --disable-session-management \
         --disable-xkb \

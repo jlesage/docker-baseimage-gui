@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+# libXcursor uses this list instead of its built-in one. ~/.icons is
+# searched before /opt/base so a derived image can replace one cursor
+# by dropping a file in /config/.icons/viewer-cursor/cursors/.
+echo "~/.local/share/icons:~/.icons:/opt/base/share/icons:/usr/share/icons:/usr/share/pixmaps"
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4

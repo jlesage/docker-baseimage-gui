@@ -35,6 +35,11 @@ COPY --from=xx / /
 COPY src/intel_clc /build
 RUN /build/build.sh
 
+# Build the viewer-cursor theme.
+FROM --platform=$BUILDPLATFORM alpine:3.21 AS viewer-cursor-theme
+COPY src/viewer-cursor-theme /build
+RUN /build/build.sh
+
 # Build TigerVNC server.
 FROM --platform=$BUILDPLATFORM alpine:3.21 AS tigervnc
 ARG TARGETPLATFORM
@@ -274,6 +279,7 @@ RUN \
     curl -# -L ${NOVNC_URL} | tar -xz --strip 1 -C /tmp/noVNC && \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/auto-clipboard-sync.patch && \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/mac-key-remap.patch && \
+    patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/viewer-cursor.patch && \
     cp -vr /tmp/noVNC/core /opt/noVNC/ && \
     cp -vr /tmp/noVNC/vendor /opt/noVNC/
 RUN \
@@ -313,6 +319,7 @@ FROM scratch
 COPY --link helpers/* /opt/base/bin/
 COPY --link rootfs/ /
 COPY --link --from=tigervnc /tmp/tigervnc-rootfs /
+COPY --link --from=viewer-cursor-theme /tmp/viewer-cursor-theme /opt/base/share/icons/viewer-cursor
 COPY --link --from=xkeyboard-config /tmp/xkb-install/usr/share/X11/xkb /opt/base/share/X11/xkb
 COPY --link --from=xrdb /tmp/xrdb-install/usr/bin/xrdb /opt/base/bin/
 COPY --link --from=xkbcomp /tmp/xkbcomp-install/usr/bin/xkbcomp /opt/base/bin/

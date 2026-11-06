@@ -691,6 +691,7 @@ TIGERVNC_PATCHES="
     "$SCRIPT_DIR"/xserver-dri-drivers-dir.patch:/tmp/tigervnc/unix/xserver
     "$SCRIPT_DIR"/disable-pam.patch:/tmp/tigervnc
     "$SCRIPT_DIR"/internal-conn-sec-types.patch:/tmp/tigervnc
+    "$SCRIPT_DIR"/viewer-cursor.patch:/tmp/tigervnc
 "
 for pdef in $TIGERVNC_PATCHES; do
     p="${pdef%:*}"

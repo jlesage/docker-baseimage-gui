@@ -1,0 +1,297 @@
+#
+# Cursor names for the web viewer.
+#
+# The web client asks for pseudo-encoding -524289. Other clients do not.
+# When the cursor's last row spells a name, a client that asked receives
+# the image unchanged. Everyone else gets the picture with the row
+# removed. The stored cursor is left unchanged.
+#
+--- a/common/rfb/encodings.h
++++ b/common/rfb/encodings.h
+@@ -35,6 +35,7 @@
+ 
+   const int pseudoEncodingXCursor = -240;
+   const int pseudoEncodingCursor = -239;
++  const int pseudoEncodingViewerCursor = -524289;
+   const int pseudoEncodingExtendedMouseButtons = -316;
+   const int pseudoEncodingDesktopSize = -223;
+   const int pseudoEncodingLEDState = -261;
+--- a/common/rfb/CMakeLists.txt
++++ b/common/rfb/CMakeLists.txt
+@@ -53,7 +53,8 @@
+   ZRLEEncoder.cxx
+   ZRLEDecoder.cxx
+   encodings.cxx
+-  obfuscate.cxx)
++  obfuscate.cxx
++  viewer-cursor.cxx)
+ 
+ target_include_directories(rfb PUBLIC ${CMAKE_SOURCE_DIR}/common)
+ target_include_directories(rfb SYSTEM PUBLIC ${JPEG_INCLUDE_DIR})
+--- a/common/rfb/SMsgWriter.cxx
++++ b/common/rfb/SMsgWriter.cxx
+@@ -36,6 +36,9 @@
+ #include <rfb/clipboardTypes.h>
+ #include <rfb/ClientParams.h>
+ #include <rfb/Cursor.h>
++#include <rfb/viewer-cursor.h>
++#include <memory>
++#include <vector>
+ #include <rfb/UpdateTracker.h>
+ #include <rfb/Encoder.h>
+ #include <rfb/ScreenSet.h>
+@@ -447,42 +450,77 @@
+ void SMsgWriter::writePseudoRects()
+ {
+   if (needCursor) {
+-    const Cursor& cursor = client->cursor();
++    const Cursor& stored = client->cursor();
++    std::unique_ptr<Cursor> stripped;
++    const Cursor* cursor = &stored;
++
++    // A client that did not ask for cursor names gets the picture with
++    // the name row removed. The stored cursor is left unchanged.
++    if (!client->supportsEncoding(pseudoEncodingViewerCursor)) {
++      int w = stored.width();
++      int h = stored.height();
++      int sw = 0;
++      int sh = 0;
++      std::vector<uint8_t> buf;
++      if (h > 1)
++        buf.resize((size_t)w * (size_t)(h - 1) * 4);
++      if (stripViewerCursorNameRow(stored.getBuffer(), w, h,
++                                   buf.empty() ? nullptr : buf.data(),
++                                   &sw, &sh)) {
++        if (sh == 0) {
++          static const uint8_t dummy = 0;
++          stripped.reset(new Cursor(0, 0, core::Point(0, 0), &dummy));
++        } else {
++          core::Point hot = stored.hotspot();
++          if (hot.x < 0)
++            hot.x = 0;
++          if (hot.y < 0)
++            hot.y = 0;
++          if (hot.x >= sw)
++            hot.x = sw - 1;
++          if (hot.y >= sh)
++            hot.y = sh - 1;
++          stripped.reset(new Cursor(sw, sh, hot, buf.data()));
++          stripped->crop();
++        }
++        cursor = stripped.get();
++      }
++    }
+ 
+     if (client->supportsEncoding(pseudoEncodingCursorWithAlpha)) {
+-      writeSetCursorWithAlphaRect(cursor.width(), cursor.height(),
+-                                  cursor.hotspot().x, cursor.hotspot().y,
+-                                  cursor.getBuffer());
++      writeSetCursorWithAlphaRect(cursor->width(), cursor->height(),
++                                  cursor->hotspot().x, cursor->hotspot().y,
++                                  cursor->getBuffer());
+     } else if (client->supportsEncoding(pseudoEncodingVMwareCursor)) {
+-      writeSetVMwareCursorRect(cursor.width(), cursor.height(),
+-                               cursor.hotspot().x, cursor.hotspot().y,
+-                               cursor.getBuffer());
++      writeSetVMwareCursorRect(cursor->width(), cursor->height(),
++                               cursor->hotspot().x, cursor->hotspot().y,
++                               cursor->getBuffer());
+     } else if (client->supportsEncoding(pseudoEncodingCursor)) {
+-      size_t data_len = cursor.width()*cursor.height() *
++      size_t data_len = cursor->width()*cursor->height() *
+                         (client->pf().bpp/8);
+       std::vector<uint8_t> data(data_len);
+-      std::vector<uint8_t> mask(cursor.getMask());
++      std::vector<uint8_t> mask(cursor->getMask());
+ 
+       const uint8_t* in;
+       uint8_t* out;
+ 
+-      in = cursor.getBuffer();
++      in = cursor->getBuffer();
+       out = data.data();
+-      for (int i = 0;i < cursor.width()*cursor.height();i++) {
++      for (int i = 0;i < cursor->width()*cursor->height();i++) {
+         client->pf().bufferFromRGB(out, in, 1);
+         in += 4;
+         out += client->pf().bpp/8;
+       }
+ 
+-      writeSetCursorRect(cursor.width(), cursor.height(),
+-                         cursor.hotspot().x, cursor.hotspot().y,
++      writeSetCursorRect(cursor->width(), cursor->height(),
++                         cursor->hotspot().x, cursor->hotspot().y,
+                          data.data(), mask.data());
+     } else if (client->supportsEncoding(pseudoEncodingXCursor)) {
+-      std::vector<uint8_t> bitmap(cursor.getBitmap());
+-      std::vector<uint8_t> mask(cursor.getMask());
++      std::vector<uint8_t> bitmap(cursor->getBitmap());
++      std::vector<uint8_t> mask(cursor->getMask());
+ 
+-      writeSetXCursorRect(cursor.width(), cursor.height(),
+-                          cursor.hotspot().x, cursor.hotspot().y,
++      writeSetXCursorRect(cursor->width(), cursor->height(),
++                          cursor->hotspot().x, cursor->hotspot().y,
+                           bitmap.data(), mask.data());
+     } else {
+       throw std::logic_error("Client does not support local cursor");
+--- a/common/rfb/viewer-cursor.h
++++ b/common/rfb/viewer-cursor.h
+@@ -0,0 +1,23 @@
++#ifndef __RFB_VIEWER_CURSOR_H__
++#define __RFB_VIEWER_CURSOR_H__
++
++#include <stdint.h>
++
++namespace rfb {
++
++  // Last row of an RGBA cursor. Returns true when the row spells a
++  // cursor name this server understands. name receives a NUL-terminated
++  // string of at most nameCap-1 characters.
++  bool decodeViewerCursorName(const uint8_t* rgba, int w, int h,
++                              char* name, int nameCap);
++
++  // Drop that row. Returns false when the image has no name row.
++  // On success outW and outH describe what remains. outH is 0 when the
++  // image was only the name row, and out may be null in that case.
++  // Otherwise out must hold w*(h-1)*4 bytes.
++  bool stripViewerCursorNameRow(const uint8_t* rgba, int w, int h,
++                                uint8_t* out, int* outW, int* outH);
++
++}
++
++#endif
+--- a/common/rfb/viewer-cursor.cxx
++++ b/common/rfb/viewer-cursor.cxx
+@@ -0,0 +1,131 @@
++#include "viewer-cursor.h"
++
++#include <string.h>
++
++namespace rfb {
++
++  static const char* cursorNames[] = {
++    "alias",
++    "all-scroll",
++    "auto",
++    "cell",
++    "col-resize",
++    "context-menu",
++    "copy",
++    "crosshair",
++    "default",
++    "e-resize",
++    "ew-resize",
++    "grab",
++    "grabbing",
++    "help",
++    "move",
++    "n-resize",
++    "ne-resize",
++    "nesw-resize",
++    "no-drop",
++    "none",
++    "not-allowed",
++    "ns-resize",
++    "nw-resize",
++    "nwse-resize",
++    "pointer",
++    "progress",
++    "row-resize",
++    "s-resize",
++    "se-resize",
++    "sw-resize",
++    "text",
++    "vertical-text",
++    "w-resize",
++    "wait",
++    "zoom-in",
++    "zoom-out",
++  };
++
++  static const int cursorNameCount =
++    (int)(sizeof(cursorNames) / sizeof(cursorNames[0]));
++
++  static bool knownName(const char* name)
++  {
++    int lo = 0;
++    int hi = cursorNameCount - 1;
++    while (lo <= hi) {
++      int mid = (lo + hi) / 2;
++      int cmp = strcmp(name, cursorNames[mid]);
++      if (cmp == 0)
++        return true;
++      if (cmp < 0)
++        hi = mid - 1;
++      else
++        lo = mid + 1;
++    }
++    return false;
++  }
++
++  static bool opaqueByte(const uint8_t* p, uint8_t value)
++  {
++    return p[0] == value && p[1] == 0 && p[2] == 0 && p[3] == 255;
++  }
++
++  bool decodeViewerCursorName(const uint8_t* rgba, int w, int h,
++                              char* name, int nameCap)
++  {
++    if (rgba == nullptr || name == nullptr || nameCap < 2)
++      return false;
++    if (h < 1 || w < 5)
++      return false;
++
++    const uint8_t* row = rgba + (size_t)(h - 1) * (size_t)w * 4;
++    static const uint8_t magic[4] = { 'V', 'C', 'U', 'R' };
++    for (int i = 0; i < 4; i++) {
++      if (!opaqueByte(row + i * 4, magic[i]))
++        return false;
++    }
++    if (!opaqueByte(row + 4 * 4, 1))
++      return false;
++
++    int n = 0;
++    for (int x = 5; x < w; x++) {
++      const uint8_t* p = row + x * 4;
++      if (p[0] == 0 && p[1] == 0 && p[2] == 0 && p[3] == 0) {
++        for (int x2 = x; x2 < w; x2++) {
++          const uint8_t* q = row + x2 * 4;
++          if (q[0] != 0 || q[1] != 0 || q[2] != 0 || q[3] != 0)
++            return false;
++        }
++        break;
++      }
++      if (p[1] != 0 || p[2] != 0 || p[3] != 255 || p[0] < 0x20 || p[0] > 0x7e)
++        return false;
++      if (n + 1 >= nameCap)
++        return false;
++      name[n++] = (char)p[0];
++    }
++    name[n] = '\0';
++    return knownName(name);
++  }
++
++  bool stripViewerCursorNameRow(const uint8_t* rgba, int w, int h,
++                                uint8_t* out, int* outW, int* outH)
++  {
++    char name[32];
++    if (!decodeViewerCursorName(rgba, w, h, name, (int)sizeof(name)))
++      return false;
++    if (outW == nullptr || outH == nullptr)
++      return false;
++    if (h <= 1) {
++      *outW = 0;
++      *outH = 0;
++      return true;
++    }
++    if (out == nullptr)
++      return false;
++    size_t nbytes = (size_t)w * (size_t)(h - 1) * 4;
++    memcpy(out, rgba, nbytes);
++    *outW = w;
++    *outH = h - 1;
++    return true;
++  }
++
++}
