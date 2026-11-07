@@ -896,31 +896,38 @@ cp -av /tmp/tigervnc-install/usr/bin/vncpasswd "$TIGERVNC_ROOTFS_BASE_DIR"/bin/
 cp -av $(xx-info sysroot)usr/lib/dri "$TIGERVNC_ROOTFS_BASE_DIR"/lib/
 
 # Setup LDD for cross-compilation.
+# Native binutils already owns /usr/<tuple>. The binutils-<arch> packages
+# install those same files, so they can only be added when cross-compiling.
+# A native build uses the system ldd instead.
 LDD_PREFIX=
-case "$(xx-info alpine-arch)" in
-    armhf)
-        LDD_PREFIX=armv6-alpine-linux-musleabihf-
-        apk --no-cache add binutils-armhf
-        ;;
-    armv7)
-        LDD_PREFIX=armv7-alpine-linux-musleabihf-
-        apk --no-cache add binutils-armv7
-        ;;
-    aarch64)
-        LDD_PREFIX=aarch64-alpine-linux-musl-
-        apk --no-cache add binutils-aarch64
-        ;;
-    x86)
-        LDD_PREFIX=i586-alpine-linux-musl-
-        apk --no-cache add binutils-x86
-        ;;
-    x86_64)
-        ;;
-    *)
-        echo "ERROR: Unknown alpine architecture: $(xx-info alpine-arch)"
-        exit 1
-        ;;
-esac
+if xx-info is-cross; then
+    case "$(xx-info alpine-arch)" in
+        armhf)
+            LDD_PREFIX=armv6-alpine-linux-musleabihf-
+            apk --no-cache add binutils-armhf
+            ;;
+        armv7)
+            LDD_PREFIX=armv7-alpine-linux-musleabihf-
+            apk --no-cache add binutils-armv7
+            ;;
+        aarch64)
+            LDD_PREFIX=aarch64-alpine-linux-musl-
+            apk --no-cache add binutils-aarch64
+            ;;
+        x86)
+            LDD_PREFIX=i586-alpine-linux-musl-
+            apk --no-cache add binutils-x86
+            ;;
+        x86_64)
+            LDD_PREFIX=x86_64-alpine-linux-musl-
+            apk --no-cache add binutils-x86_64
+            ;;
+        *)
+            echo "ERROR: Unknown alpine architecture: $(xx-info alpine-arch)"
+            exit 1
+            ;;
+    esac
+fi
 LDD="${LDD_PREFIX}ldd"
 if [ -n "$LDD_PREFIX" ]; then
     export CT_XLDD_VERBOSE=1
