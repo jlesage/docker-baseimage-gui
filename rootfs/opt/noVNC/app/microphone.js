@@ -1,6 +1,6 @@
 import * as Log from '../core/util/logging.js';
 
-const MIME_TYPES = ['audio/webm;codecs=opus', 'audio/ogg;codecs=opus'];
+const MIME_TYPES = ['audio/webm;codecs=opus'];
 const MAX_BUFFERED_BYTES = 32 * 1024;
 const SETUP_TIMEOUT_MS = 10000;
 const CAPTURE_TIMEOUT_MS = 30000;
@@ -34,7 +34,7 @@ function microphoneUnavailableReason(media, mimeType) {
         return 'Microphone access is blocked for this page. Open the desktop directly in a browser tab, or allow microphone access for the embedded page.';
     }
     if (!media?.getUserMedia || !mimeType) {
-        return 'This browser cannot record Opus microphone audio. Try a browser supporting WebM/Opus or Ogg/Opus.';
+        return 'This browser cannot record Opus microphone audio. Try a browser supporting WebM/Opus.';
     }
     return '';
 }
@@ -271,7 +271,7 @@ export default class Microphone {
             case 'TimeoutError':
                 return 'Microphone access timed out. Respond to the browser permission prompt and retry.';
             case 'NotSupportedError':
-                return 'This browser could not start Opus microphone recording. Try a browser supporting WebM/Opus or Ogg/Opus.';
+                return 'This browser could not start Opus microphone recording. Try a browser supporting WebM/Opus.';
             case 'SecurityError':
                 return 'Microphone access is disabled by your browser or its security settings. Allow access for this site and try again.';
             default:
@@ -427,7 +427,7 @@ export default class Microphone {
 
     switchMicrophone() {
         if (!this.session) return;
-        // A new recorder must send fresh WebM/Ogg headers to a new decoder.
+        // A new recorder must send fresh WebM headers to a new decoder.
         this.stop('Switching microphones…');
         return this.start();
     }

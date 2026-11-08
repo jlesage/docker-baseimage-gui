@@ -1249,7 +1249,7 @@ browser.
 
 > [!IMPORTANT]
 > Web browsers only allow microphone access in secure contexts (HTTPS or localhost).
-> The browser must also support recording Opus audio in WebM or Ogg format.
+> The browser must also support recording Opus audio in WebM format. Ogg/Opus recording is not supported.
 > See [Security](#security) for details on configuring secure web access.
 
 > [!NOTE]

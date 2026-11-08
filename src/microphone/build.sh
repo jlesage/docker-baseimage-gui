@@ -1,128 +1,162 @@
 #!/bin/sh
-# Build a self-contained microphone bridge with the shared xx/musl toolchain.
-set -eu
+#
+# Helper script that builds the microphone bridge as a static binary.
+#
+# NOTE: This script is expected to be run under Alpine Linux.
+#
 
-GSTREAMER_VERSION=1.26.11
+set -e # Exit immediately if a command exits with a non-zero status.
+set -u # Treat unset variables as an error.
+
+# Define software versions.
 OPUS_VERSION=1.5.2
-GSTREAMER_URL=https://gstreamer.freedesktop.org/src
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-BUILD_DIR=/tmp/microphone-gstreamer
+# Keep in sync with microphone.c: short-read IO and an 8192-byte internal buffer.
+NESTEGG_VERSION=767aab25013acefbdcc6d68a2a7a2c9081303e3f
+
+# Define software download URLs.
+OPUS_URL=https://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.gz
+NESTEGG_URL=https://github.com/mozilla/nestegg/archive/${NESTEGG_VERSION}.tar.gz
+
+# Set same default compilation flags as abuild.
+export CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections"
+export CXXFLAGS="$CFLAGS"
+export CPPFLAGS="$CFLAGS"
+export LDFLAGS="-Wl,--gc-sections"
 
 export CC=xx-clang
 export CXX=xx-clang++
-export CFLAGS="-Os -fomit-frame-pointer -ffunction-sections -fdata-sections"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS="-Wl,--gc-sections"
-
-SYSROOT="$(xx-info sysroot)"
 export PKG_CONFIG="$(xx-info)-pkg-config"
-# Static plugin metadata lives outside pkg-config's default library directory.
-export PKG_CONFIG_PATH="${SYSROOT}usr/lib/gstreamer-1.0/pkgconfig"
-mkdir -p "$BUILD_DIR"
 
-build_gstreamer_module() {
-    module="$1"
-    shift
-    archive="$BUILD_DIR/$module.tar.xz"
-    source_dir="$BUILD_DIR/$module"
-    echo ">>> Building static $module for ${TARGETPLATFORM}..."
-    curl --fail --location --retry 3 \
-        "$GSTREAMER_URL/$module/$module-$GSTREAMER_VERSION.tar.xz" --output "$archive"
-    mkdir -p "$source_dir"
-    tar -xJf "$archive" --strip-components=1 -C "$source_dir"
-    meson setup "$source_dir/build" "$source_dir" \
-        --cross-file "$BUILD_DIR/cross.ini" --wrap-mode=nofallback \
-        --prefix=/usr --libdir=lib --buildtype=release \
-        --default-library=static --auto-features=disabled -Dprefer_static=true \
-        "$@"
-    meson compile -C "$source_dir/build" -j"$(nproc)"
-    DESTDIR="$SYSROOT" meson install --no-rebuild -C "$source_dir/build"
-    rm -rf "$source_dir" "$archive"
+# Use LLVM archive tools for target libraries alongside the Clang cross-compiler.
+export AR=llvm-ar
+export RANLIB=llvm-ranlib
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+BUILD_DIR=/tmp/microphone-libraries
+
+log() {
+    echo ">>> $*"
 }
 
+#
+# Required packages.
+# Build tools run on BUILDPLATFORM; libraries/headers target TARGETPLATFORM.
+#
+HOST_PKGS="\
+    curl \
+    clang \
+    lld \
+    llvm \
+    make \
+    pkgconf \
+    autoconf \
+    automake \
+    libtool \
+"
+
+TARGET_PKGS="\
+    gcc \
+    musl-dev \
+    glib-dev \
+    glib-static \
+    libffi-dev \
+    util-linux-static \
+"
+
+#
+# Build Opus.
+# Alpine 3.20 ships no libopus.a, so build the target library from source.
+#
 build_opus() {
-    # Alpine 3.20 ships no libopus.a. Build the same codec version for the target.
-    opus_dir="$BUILD_DIR/opus"
-    curl --fail --location --retry 3 \
-        "https://downloads.xiph.org/releases/opus/opus-${OPUS_VERSION}.tar.gz" \
-        --output "$BUILD_DIR/opus.tar.gz"
-    mkdir -p "$opus_dir"
-    tar -xzf "$BUILD_DIR/opus.tar.gz" --strip-components=1 -C "$opus_dir"
+    mkdir -p "$BUILD_DIR/opus"
+    log "Downloading Opus..."
+    # Do not restore archive ownership when building under rootless Podman.
+    curl -# -L -f ${OPUS_URL} | tar -xz --no-same-owner --strip 1 -C "$BUILD_DIR/opus"
+
+    log "Configuring Opus..."
     (
-        cd "$opus_dir"
-        AR=llvm-ar RANLIB=llvm-ranlib ./configure \
-            --build="$(TARGETPLATFORM= xx-clang --print-target-triple)" \
-            --host="$(xx-clang --print-target-triple)" \
-            --prefix=/usr --libdir=/usr/lib \
-            --enable-static --disable-shared --disable-extra-programs --disable-doc \
+        cd "$BUILD_DIR/opus" && \
+        ./configure \
+            --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+            --host=$(xx-clang --print-target-triple) \
+            --prefix=/usr \
+            --libdir=/usr/lib \
+            --enable-static \
+            --disable-shared \
+            --disable-extra-programs \
+            --disable-doc \
             --disable-asm
     )
-    make -C "$opus_dir" -j"$(nproc)"
-    DESTDIR="$SYSROOT" make -C "$opus_dir" install
-    rm -rf "$opus_dir" "$BUILD_DIR/opus.tar.gz"
+
+    log "Compiling Opus..."
+    make -C "$BUILD_DIR/opus" -j$(nproc)
+
+    log "Installing Opus..."
+    DESTDIR=$(xx-info sysroot) make -C "$BUILD_DIR/opus" install
 }
 
+#
+# Build nestegg.
+# Use a pinned revision with the short-read IO callback API.
+#
+build_nestegg() {
+    mkdir -p "$BUILD_DIR/nestegg"
+    log "Downloading nestegg..."
+    curl -# -L -f ${NESTEGG_URL} | tar -xz --no-same-owner --strip 1 -C "$BUILD_DIR/nestegg"
+
+    log "Configuring nestegg..."
+    (
+        cd "$BUILD_DIR/nestegg" && \
+        autoreconf -ivf && \
+        ./configure \
+            --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+            --host=$(xx-clang --print-target-triple) \
+            --prefix=/usr \
+            --libdir=/usr/lib \
+            --enable-static \
+            --disable-shared \
+            --disable-doc
+    )
+
+    log "Compiling nestegg..."
+    make -C "$BUILD_DIR/nestegg" -j$(nproc)
+
+    log "Installing nestegg..."
+    DESTDIR=$(xx-info sysroot) make -C "$BUILD_DIR/nestegg" install
+}
+
+# Keep dependency compilation in its own image layer for source-only rebuilds.
 build_libraries() {
-    # Build tools run on BUILDPLATFORM. All libraries/headers come from TARGETPLATFORM.
-    apk --no-cache add curl clang lld llvm make meson ninja pkgconf python3 glib-dev flex bison
-    xx-apk --no-cache --no-scripts add \
-        gcc musl-dev glib-dev glib-static libffi-dev util-linux-static \
-        libogg-dev libogg-static zlib-dev zlib-static
-
-    # Meson's CPU family names differ from Docker's platform architecture names.
-    case "$(xx-info arch)" in
-        amd64) CPU_FAMILY=x86_64 ;;
-        386) CPU_FAMILY=x86 ;;
-        arm64) CPU_FAMILY=aarch64 ;;
-        arm) CPU_FAMILY=arm ;;
-        *) CPU_FAMILY="$(xx-info arch)" ;;
-    esac
-    cat > "$BUILD_DIR/cross.ini" <<CROSS
-[binaries]
-c = 'xx-clang'
-cpp = 'xx-clang++'
-ar = 'llvm-ar'
-strip = 'llvm-strip'
-pkg-config = '${PKG_CONFIG}'
-
-[properties]
-needs_exe_wrapper = true
-sys_root = '${SYSROOT}'
-pkg_config_libdir = '${SYSROOT}usr/lib/pkgconfig'
-
-[host_machine]
-system = 'linux'
-cpu_family = '${CPU_FAMILY}'
-cpu = '$(xx-info march)'
-endian = 'little'
-CROSS
+    log "Installing required Alpine packages..."
+    apk --no-cache add $HOST_PKGS
+    xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
     build_opus
+    build_nestegg
 
-    # No runtime scanner, loadable plugins, hardware backends, or optional codecs.
-    # Keep this list aligned with the static plugin declarations in microphone.c.
-    build_gstreamer_module gstreamer -Dregistry=false
-    build_gstreamer_module gst-plugins-base \
-        -Daudioconvert=enabled -Daudioresample=enabled -Dplayback=enabled \
-        -Dtypefind=enabled -Dogg=enabled -Dopus=enabled
-    build_gstreamer_module gst-plugins-good -Dmatroska=enabled
-
+    log "Performing cleanup..."
     rm -rf "$BUILD_DIR"
+    # Keep the toolchain and development libraries for the binary build layer.
 }
 
-# Cache library compilation independently of changes to the service's C code.
+#
+# Build the microphone bridge.
+#
+build_microphone() {
+    log "Compiling microphone..."
+    make -C "$SCRIPT_DIR" -j$(nproc)
+}
+
 case "${1:-all}" in
     libraries)
         build_libraries
         ;;
     binary)
-        make -C "$SCRIPT_DIR" -j"$(nproc)"
-        xx-verify --static "$SCRIPT_DIR/microphone"
+        build_microphone
         ;;
     all)
         build_libraries
-        make -C "$SCRIPT_DIR" -j"$(nproc)"
-        xx-verify --static "$SCRIPT_DIR/microphone"
+        build_microphone
         ;;
     *)
         echo "Usage: $0 [libraries|binary|all]" >&2

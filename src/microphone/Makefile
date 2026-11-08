@@ -1,35 +1,29 @@
 TARGET = microphone
 PKG_CONFIG ?= pkg-config
+PACKAGES = glib-2.0 opus nestegg
 
-# These plugin archives are registered explicitly by microphone.c. pkg-config
-# resolves their private target dependencies (GLib, Opus, Ogg, etc.) for static linking.
-GST_PACKAGES = gstreamer-1.0 \
-    gstcoreelements gstplayback \
-    gsttypefindfunctions gstaudioconvert \
-    gstaudioresample gstopus \
-    gstogg gstmatroska
-
-CPPFLAGS += -DMICROPHONE_STATIC_GSTREAMER $(shell $(PKG_CONFIG) --cflags $(GST_PACKAGES))
-CFLAGS = -std=c11 -Wall -Wextra -Werror -Os -fomit-frame-pointer
+CFLAGS = -std=c11 -Wall -Wextra -Werror -Os -fomit-frame-pointer -ffunction-sections -fdata-sections
 LDFLAGS += -static -Wl,--gc-sections -Wl,--strip-all
-LDLIBS = -Wl,--start-group $(shell $(PKG_CONFIG) --static --libs $(GST_PACKAGES)) -Wl,--end-group
 
 NATIVE_TARGET = microphone-native
 NATIVE_CFLAGS ?= -std=c11 -Wall -Wextra -Werror -O0 -g3
+NATIVE_CPPFLAGS ?= $(shell $(PKG_CONFIG) --cflags $(PACKAGES))
 NATIVE_LDFLAGS ?=
+NATIVE_LDLIBS ?= $(shell $(PKG_CONFIG) --libs $(PACKAGES))
 
 all: $(TARGET)
 
 $(TARGET): microphone.c Makefile
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(LDFLAGS) $< $(LDLIBS) -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) $(shell $(PKG_CONFIG) --cflags $(PACKAGES)) \
+		$(LDFLAGS) $< -Wl,--start-group \
+		$(shell $(PKG_CONFIG) --static --libs $(PACKAGES)) -Wl,--end-group -o $@
 
-# Use distro headers and runtime plugins without the production static flags.
 native: $(NATIVE_TARGET)
 
+# Use host headers and libraries without the production static-linking flags.
 $(NATIVE_TARGET): microphone.c Makefile
-	$(CC) $(NATIVE_CFLAGS) \
-		$(shell $(PKG_CONFIG) --cflags gstreamer-1.0 glib-2.0) \
-		$(NATIVE_LDFLAGS) $< $(shell $(PKG_CONFIG) --libs gstreamer-1.0) -o $@
+	$(CC) $(CPPFLAGS) $(NATIVE_CPPFLAGS) $(NATIVE_CFLAGS) $(NATIVE_LDFLAGS) \
+		$< $(NATIVE_LDLIBS) -o $@
 
 clean:
 	$(RM) $(TARGET) $(NATIVE_TARGET)

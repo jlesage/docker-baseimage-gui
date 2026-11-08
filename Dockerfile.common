@@ -197,7 +197,7 @@ RUN xx-verify --static /tmp/build-audiorecorder/audiorecorder
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-audiorecorder/audiorecorder
 
-# Build the microphone bridge and its required static GStreamer plugins.
+# Build the microphone bridge.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS microphone
 ARG TARGETPLATFORM
 COPY --from=xx / /
@@ -205,6 +205,7 @@ COPY src/microphone/build.sh /tmp/build-microphone/build.sh
 RUN /tmp/build-microphone/build.sh libraries
 COPY src/microphone /tmp/build-microphone
 RUN /tmp/build-microphone/build.sh binary
+RUN xx-verify --static /tmp/build-microphone/microphone
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-microphone/microphone
 
