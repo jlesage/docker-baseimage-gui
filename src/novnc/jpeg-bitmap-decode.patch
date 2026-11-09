@@ -1,0 +1,78 @@
+#
+# Decode JPEG and PNG rectangles with createImageBitmap so the
+# browser inflates them off the main thread. The socket buffer is
+# copied first because noVNC reuses that view.
+#
+--- a/core/display.js
++++ b/core/display.js
+@@ -7,7 +7,6 @@
+  */
+ 
+ import * as Log from './util/logging.js';
+-import Base64 from "./base64.js";
+ import { toSigned32bit } from './util/int.js';
+ 
+ export default class Display {
+@@ -367,12 +366,24 @@
+             return;
+         }
+ 
+-        const img = new Image();
+-        img.src = "data: " + mime + ";base64," + Base64.encode(arr);
++        // The socket reuses this view as soon as we return. Copy first,
++        // then let the browser decode the image off the main thread.
++        const bytes = new Uint8Array(arr);
++        let bitmapPromise;
++        try {
++            bitmapPromise = createImageBitmap(new Blob([bytes], { type: mime }));
++        } catch (err) {
++            bitmapPromise = Promise.reject(err);
++        }
+ 
+         this._renderQPush({
+-            'type': 'img',
+-            'img': img,
++            'type': 'bitmap',
++            'promise': bitmapPromise.catch((err) => {
++                Log.Error("Failed to decode " + mime + " rectangle: " + err);
++                return null;
++            }),
++            'bitmap': undefined,
++            'pending': false,
+             'x': x,
+             'y': y,
+             'width': width,
+@@ -512,6 +523,33 @@
+                 case 'blit':
+                     this.blitImage(a.x, a.y, a.width, a.height, a.data, 0, true);
+                     break;
++                case 'bitmap':
++                    if (a.bitmap === undefined && !a.pending) {
++                        a.pending = true;
++                        const display = this;
++                        a.promise.then((bitmap) => {
++                            a.bitmap = bitmap;
++                            display._scanRenderQ();
++                        });
++                        ready = false;
++                    } else if (a.bitmap === undefined) {
++                        ready = false;
++                    } else if (a.bitmap === null) {
++                        // Decode failed. Drop the rectangle so the queue
++                        // does not stall.
++                        break;
++                    } else {
++                        if (a.bitmap.width !== a.width || a.bitmap.height !== a.height) {
++                            Log.Error("Decoded image has incorrect dimensions. Got " +
++                                      a.bitmap.width + "x" + a.bitmap.height + ". Expected " +
++                                      a.width + "x" + a.height + ".");
++                            a.bitmap.close();
++                            return;
++                        }
++                        this.drawImage(a.bitmap, a.x, a.y);
++                        a.bitmap.close();
++                    }
++                    break;
+                 case 'img':
+                     if (a.img.complete) {
+                         if (a.img.width !== a.width || a.img.height !== a.height) {
