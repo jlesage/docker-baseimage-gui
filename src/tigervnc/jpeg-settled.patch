@@ -1,0 +1,46 @@
+#
+# Keep a JPEG that is already at the client's quality level.
+#
+# The JPEG encoders treat level 9 as lossless. That level is JPEG
+# quality 100. startRect records a rectangle as lossy when it was
+# sent below level 9. After the area has been idle, the server sends
+# those pixels again at level 9.
+#
+# That second frame is much larger than the one the client asked for.
+# Encoding it uses more CPU, the client spends more time decoding it,
+# and the next update waits until that refresh has been sent.
+#
+# A client level from 0 to 9 is the finished picture, so the
+# quality-100 copy stays off the refresh list. A client that did not
+# select a level still refreshes at the encoder's lossless level.
+#
+--- a/common/rfb/EncodeManager.cxx
++++ b/common/rfb/EncodeManager.cxx
+@@ -621,6 +621,16 @@
+   return numRects;
+ }
+ 
++// Quality the client asked for. A JPEG already at that level is the
++// settled picture: queuing a second copy at quality 9 (JPEG 100) makes
++// the next click wait on a much larger frame.
++static int settledJpegQuality(int clientQuality, int losslessQuality)
++{
++  if (clientQuality >= 0 && clientQuality <= 9)
++    return clientQuality;
++  return losslessQuality;
++}
++
+ Encoder* EncodeManager::startRect(const core::Rect& rect, int type)
+ {
+   Encoder *encoder;
+@@ -641,7 +651,9 @@
+ 
+   if ((encoder->flags & EncoderLossy) &&
+       ((encoder->losslessQuality == -1) ||
+-       (encoder->getQualityLevel() < encoder->losslessQuality)))
++       (encoder->getQualityLevel() <
++        settledJpegQuality(conn->client.qualityLevel,
++                           encoder->losslessQuality))))
+     lossyRegion.assign_union(rect);
+   else
+     lossyRegion.assign_subtract(rect);
