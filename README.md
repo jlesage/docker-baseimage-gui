@@ -1209,11 +1209,18 @@ web interface settings for their own browser.
 The baseimage supports streaming audio from applications using PulseAudio,
 played through the user's web browser. Audio is not supported for VNC clients.
 
-Audio is streamed with the following specifications:
-  - Raw PCM format
-  - 2 channels
-  - 16-bit sample depth
-  - 44.1kHz sample rate
+Audio is a byte stream on its own WebSocket. The first 12 bytes are a header:
+the ASCII bytes `PCM1`, the sample rate as a little-endian 32-bit integer,
+the channel count, a format byte (`1` is signed 16-bit little-endian), and
+two reserved zero bytes. Records follow. Each record is a type byte, a
+little-endian 32-bit payload length, and the payload. Type `0` is
+interleaved PCM. Type `1` is silence, and its payload is a little-endian
+32-bit count of silent frames. The browser skips that time instead of
+playing zeros.
+
+Capture is stereo, 16-bit, 48000 Hz. Audio that stays near silence for
+100 ms is sent as silence records, so a quiet desktop does not keep the
+full PCM bitrate.
 
 Enable web audio by setting `WEB_AUDIO` to `1`. See the
 [Environment Variables](#environment-variables) section for details on

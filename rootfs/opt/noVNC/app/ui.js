@@ -118,7 +118,6 @@ const UI = {
                 player: new PCMPlayer({
                     encoding: '16bitIntLE',
                     channels: 2,
-                    sampleRate: 44100,
                 }),
             }
             UI.addAudioHandlers();
@@ -1980,6 +1979,7 @@ const UI = {
 
             UI.audioContext.webSocket.onopen = function(e) {
                 Log.Info("WebSocket connection for audio established");
+                UI.audioContext.player.resetStream();
             };
 
             UI.audioContext.webSocket.onclose = function(event) {
