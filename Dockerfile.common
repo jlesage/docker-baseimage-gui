@@ -281,6 +281,7 @@ RUN \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/mac-key-remap.patch && \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/viewer-cursor.patch && \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/jpeg-bitmap-decode.patch && \
+    patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/latest-frame.patch && \
     cp -vr /tmp/noVNC/core /opt/noVNC/ && \
     cp -vr /tmp/noVNC/vendor /opt/noVNC/
 RUN \

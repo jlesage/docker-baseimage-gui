@@ -1,0 +1,133 @@
+#
+# Keep reading framebuffer updates while a frame is still decoding.
+# A later full-screen frame replaces everything before it, so the
+# browser paints the newest picture. H.264 frames are still submitted
+# to the decoder in order.
+#
+--- a/core/rfb.js
++++ b/core/rfb.js
+@@ -2623,20 +2623,8 @@
+             this._sock.rQskipBytes(1);  // Padding
+             this._FBU.rects = this._sock.rQshift16();
+ 
+-            // Make sure the previous frame is fully rendered first
+-            // to avoid building up an excessive queue
+-            if (this._display.pending()) {
+-                this._flushing = true;
+-                this._display.flush()
+-                    .then(() => {
+-                        this._flushing = false;
+-                        // Resume processing
+-                        if (!this._sock.rQwait("message", 1)) {
+-                            this._handleMessage();
+-                        }
+-                    });
+-                return false;
+-            }
++            // Keep reading while a frame is still decoding. The display
++            // paints the newest full-screen frame and drops the older ones.
+         }
+ 
+         while (this._FBU.rects > 0) {
+--- a/core/display.js
++++ b/core/display.js
+@@ -506,9 +506,77 @@
+         this._noVNCDisplay._scanRenderQ();
+     }
+ 
++    // A full-screen frame already in the queue makes every earlier
++    // rectangle obsolete. The H.264 rectangle is cropped to even
++    // sizes, so it may be one pixel short of the framebuffer.
++    _coversFramebuffer(action) {
++        if (this._fbWidth <= 0 || this._fbHeight <= 0) {
++            return false;
++        }
++        if (action.type !== 'frame' && action.type !== 'bitmap') {
++            return false;
++        }
++        return action.x === 0 && action.y === 0 &&
++               action.width >= this._fbWidth - 1 &&
++               action.height >= this._fbHeight - 1;
++    }
++
++    _laterFrameCovers() {
++        for (let i = 1; i < this._renderQ.length; i++) {
++            if (this._coversFramebuffer(this._renderQ[i])) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    _closeVideoFrame(pending) {
++        if (!pending || !pending.frame) {
++            return;
++        }
++        const frame = pending.frame;
++        pending.frame = null;
++        try {
++            frame.close();
++        } catch (err) {
++            // The decoder may already have closed a frame it did not keep.
++        }
++    }
++
++    _closeBitmap(action, bitmap) {
++        if (!bitmap || action.bitmapClosed) {
++            return;
++        }
++        action.bitmapClosed = true;
++        bitmap.close();
++    }
++
++    _dropRenderAction(action) {
++        action.dropped = true;
++        if (action.type === 'frame') {
++            this._closeVideoFrame(action.frame);
++            if (!action.frame.ready) {
++                action.frame.promise.then(() => this._closeVideoFrame(action.frame));
++            }
++        } else if (action.type === 'bitmap') {
++            if (action.bitmap) {
++                this._closeBitmap(action, action.bitmap);
++            } else if (!action.pending) {
++                action.promise.then((bitmap) => this._closeBitmap(action, bitmap));
++            }
++        } else if (action.type === 'img') {
++            action.img.src = '';
++        }
++    }
++
+     _scanRenderQ() {
+         let ready = true;
+         while (ready && this._renderQ.length > 0) {
++            if (this._laterFrameCovers()) {
++                this._dropRenderAction(this._renderQ[0]);
++                this._renderQ.shift();
++                continue;
++            }
+             const a = this._renderQ[0];
+             switch (a.type) {
+                 case 'flip':
+@@ -528,6 +596,10 @@
+                         a.pending = true;
+                         const display = this;
+                         a.promise.then((bitmap) => {
++                            if (a.dropped) {
++                                display._closeBitmap(a, bitmap);
++                                return;
++                            }
+                             a.bitmap = bitmap;
+                             display._scanRenderQ();
+                         });
+@@ -594,6 +666,10 @@
+                     } else {
+                         let display = this;
+                         a.frame.promise.then(() => {
++                            if (a.dropped) {
++                                display._closeVideoFrame(a.frame);
++                                return;
++                            }
+                             display._scanRenderQ();
+                         });
+                         ready = false;
