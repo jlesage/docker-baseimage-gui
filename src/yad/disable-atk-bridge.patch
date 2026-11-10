@@ -1,0 +1,68 @@
+Disable the atk-bridge dependency.
+
+YAD is a static dialog binary and accessibility is already turned off at
+runtime (GTK_A11Y=none, NO_AT_BRIDGE=1). Skipping atk-bridge avoids
+statically linking at-spi2, dbus and libxml2 into the binary.
+
+Based on the gtk3-classic / Buildroot atk_bridge patches.
+
+--- a/meson.build
++++ b/meson.build
+@@ -565,7 +565,12 @@
+   xfixes_dep     = dependency('xfixes', required: false)
+   xcomposite_dep = dependency('xcomposite', required: false)
+   fontconfig_dep = dependency('fontconfig', fallback: ['fontconfig', 'fontconfig_dep'])
+-  atkbridge_dep  = dependency('atk-bridge-2.0', version: at_spi2_atk_req)
++
++  atk_bridge_enabled = get_option('atk_bridge')
++  if atk_bridge_enabled
++    atkbridge_dep  = dependency('atk-bridge-2.0', version: at_spi2_atk_req)
++    cdata.set('HAVE_ATK_BRIDGE', 1)
++  endif
+ 
+   backend_immodules += ['xim']
+ 
+@@ -584,7 +589,9 @@
+     x11_pkgs += ['xdamage']
+   endif
+ 
+-  atk_pkgs += ['atk-bridge-2.0']
++  if atk_bridge_enabled
++    atk_pkgs += ['atk-bridge-2.0']
++  endif
+ 
+   cdata.set('HAVE_XDAMAGE', xdamage_dep.found() ? 1 : false)
+   cdata.set('HAVE_XCURSOR', xcursor_dep.found() ? 1 : false)
+--- a/meson_options.txt
++++ b/meson_options.txt
+@@ -47,3 +47,6 @@
+ # input modules
+ option('builtin_immodules', type: 'string',
+        value: '', description: 'Build specified immodules into GTK so/DLL (comma-separated list), "all", "none" or "backend"')
++
++option('atk_bridge', type: 'boolean', value: true,
++  description : 'Enable atk-bridge support')
+--- a/gtk/a11y/gtkaccessibility.c
++++ b/gtk/a11y/gtkaccessibility.c
+@@ -38,8 +38,10 @@
+ #include <gtk/gtkaccessible.h>
+ 
+ #ifdef GDK_WINDOWING_X11
++#ifdef HAVE_ATK_BRIDGE
+ #include <atk-bridge.h>
+ #endif
++#endif
+ 
+ static gboolean gail_focus_watcher      (GSignalInvocationHint *ihint,
+                                          guint                  n_param_values,
+@@ -987,8 +989,10 @@
+   do_window_event_initialization ();
+ 
+ #ifdef GDK_WINDOWING_X11
++#ifdef HAVE_ATK_BRIDGE
+   atk_bridge_adaptor_init (NULL, NULL);
+ #endif
++#endif
+ 
+   atk_misc_instance = g_object_new (GTK_TYPE_MISC_IMPL, NULL);
+ }

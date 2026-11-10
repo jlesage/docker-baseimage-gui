@@ -9,16 +9,18 @@ set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
 # Define software versions.
-YAD_VERSION=0.42.43
+YAD_VERSION=0.42.90
 
 # Use the same versions has Alpine 3.20.
 PANGO_VERSION=1.52.2
-GTK_VERSION=2.24.33
+GTK_VERSION=3.24.43
 ATK_VERSION=2.38.0
 GDKPIXBUF_VERSION=2.42.11
 CAIRON_VERSION=1.18.0
 PIXMAN_VERSION=0.43.4
 BROTLI_VERSION=1.1.0
+LIBEPOXY_VERSION=1.5.10
+LIBXRANDR_VERSION=1.5.4
 
 # Define software download URLs.
 YAD_URL=https://github.com/step-/yad/archive/refs/tags/${YAD_VERSION}.tar.gz
@@ -29,12 +31,17 @@ GDKPIXBUF_URL=https://download.gnome.org/sources/gdk-pixbuf/${GDKPIXBUF_VERSION%
 CAIRO_URL=https://gitlab.freedesktop.org/cairo/cairo/-/archive/${CAIRON_VERSION}/cairo-${CAIRON_VERSION}.tar.bz2
 PIXMAN_URL=https://www.x.org/releases/individual/lib/pixman-${PIXMAN_VERSION}.tar.xz
 BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
+LIBEPOXY_URL=https://github.com/anholt/libepoxy/archive/refs/tags/${LIBEPOXY_VERSION}.tar.gz
+LIBXRANDR_URL=https://www.x.org/releases/individual/lib/libXrandr-${LIBXRANDR_VERSION}.tar.xz
 
-# Set same default compilation flags as abuild.
-export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
+# Same baseline as abuild, plus flags that shrink the static binary.
+# -Oz is smaller than -Os. Function sections let the final link drop unused
+# code. Thin LTO does the same across compilation units. Unwind tables are
+# omitted; nothing in this binary throws exceptions.
+export CFLAGS="-Oz -fomit-frame-pointer -Wno-expansion-to-defined -ffunction-sections -fdata-sections -fno-unwind-tables -fno-asynchronous-unwind-tables -flto=thin -DG_DISABLE_CAST_CHECKS"
 export CXXFLAGS="$CFLAGS"
 export CPPFLAGS="$CFLAGS"
-export LDFLAGS="-fuse-ld=lld -Wl,--as-needed,-O1,--sort-common"
+export LDFLAGS="-fuse-ld=lld -flto=thin -Wl,--as-needed,-O1,--sort-common"
 
 export CC=xx-clang
 export CXX=xx-clang++
@@ -62,6 +69,7 @@ HOST_PKGS="\
     pkgconfig \
     glib-dev \
     gtk-update-icon-cache \
+    gettext \
 "
 
 TARGET_PKGS="\
@@ -89,7 +97,11 @@ TARGET_PKGS="\
     harfbuzz-static \
     freetype-static \
     libxext-static \
+    libxfixes-dev \
+    libxi-dev \
+    libxi-static \
     libeconf-dev \
+    mesa-dev \
 "
 
 log "Installing required Alpine packages..."
@@ -203,6 +215,62 @@ log "Installing GdkPixbuf..."
 DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/gdkpixbuf/build
 
 #
+# Build libXrandr.
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
+#
+mkdir /tmp/libxrandr
+log "Downloading libXrandr..."
+curl -# -L -f ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
+log "Configuring libXrandr..."
+# Keep this small autotools build off LTO. Libtool drops -flto from the link.
+(
+    cd /tmp/libxrandr && \
+    CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined" \
+    LDFLAGS= \
+    ./configure \
+        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --disable-shared \
+        --enable-static \
+        --enable-malloc0returnsnull \
+)
+log "Compiling libXrandr..."
+make -C /tmp/libxrandr -j$(nproc)
+log "Installing libXrandr..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/libxrandr install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
+
+# mesa-dev installs xdamage.pc, but Alpine has no static libXdamage and YAD
+# does not need the extension. Hide it so GTK does not link XDamage.
+rm -f "$(xx-info sysroot)usr/lib/pkgconfig/xdamage.pc"
+
+#
+# Build libepoxy.
+# The static library is not provided by Alpine repository, so we need to build
+# it ourself.
+#
+mkdir /tmp/libepoxy
+log "Downloading libepoxy..."
+curl -# -L -f ${LIBEPOXY_URL} | tar -xz --strip 1 -C /tmp/libepoxy
+log "Configuring libepoxy..."
+(
+    cd /tmp/libepoxy && abuild-meson \
+        -Ddefault_library=static \
+        -Ddocs=false \
+        -Dtests=false \
+        -Dglx=yes \
+        -Degl=no \
+        --cross-file /tmp/meson-cross.txt \
+        build \
+)
+log "Compiling libepoxy..."
+meson compile -C /tmp/libepoxy/build
+log "Installing libepoxy..."
+DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/libepoxy/build
+
+#
 # Build GTK.
 # The static library is not provided by Alpine repository, so we need to build
 # it ourself.
@@ -211,34 +279,31 @@ mkdir /tmp/gtk
 log "Downloading GTK..."
 curl -# -L -f ${GTK_URL} | tar -xJ --strip 1 -C /tmp/gtk
 log "Patching GTK..."
-patch -p1 -d /tmp/gtk < "$SCRIPT_DIR"/gtk+-2.24.33-Fix-casts.patch
+patch -p1 -d /tmp/gtk < "$SCRIPT_DIR"/disable-atk-bridge.patch
 log "Configuring GTK..."
 (
-    cd /tmp/gtk && ./configure \
-        --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
-        --host=$(xx-clang --print-target-triple) \
-        --prefix=/usr \
-        --enable-static \
-        --disable-shared \
-        --enable-debug=no \
-        --disable-xinerama \
-        --disable-glibtest \
-        --disable-modules \
-        --disable-cups \
-        --disable-papi \
-        --enable-introspection=no \
-        --disable-gtk-doc \
-        --disable-gtk-doc-html \
-        --disable-gtk-doc-pdf \
-        --disable-man \
-        --with-gdktarget=x11 \
-        --with-xinput=no \
+    cd /tmp/gtk && abuild-meson \
+        -Ddefault_library=static \
+        -Dx11_backend=true \
+        -Dwayland_backend=false \
+        -Dxinerama=no \
+        -Dcolord=no \
+        -Dgtk_doc=false \
+        -Dman=false \
+        -Dintrospection=false \
+        -Ddemos=false \
+        -Dexamples=false \
+        -Dtests=false \
+        -Dprint_backends=file \
+        -Dbuiltin_immodules=backend \
+        -Datk_bridge=false \
+        --cross-file /tmp/meson-cross.txt \
+        build \
 )
 log "Compiling GTK..."
-sed 's/^SRC_SUBDIRS = gdk gtk modules demos tests perf/SRC_SUBDIRS = gdk gtk/' -i /tmp/gtk/Makefile
-make -C /tmp/gtk -j$(nproc)
+meson compile -C /tmp/gtk/build
 log "Installing GTK..."
-make DESTDIR=$(xx-info sysroot) -C /tmp/gtk install
+DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/gtk/build
 
 #
 # Build cairo.
@@ -256,6 +321,11 @@ log "Configuring cairo..."
         -Ddefault_library=both \
         -Dtests="disabled" \
         -Dgtk_doc=false \
+        -Dxcb=disabled \
+        -Dxlib-xcb=disabled \
+        -Dtee=disabled \
+        -Dspectre=disabled \
+        -Dsymbol-lookup=disabled \
         --cross-file /tmp/meson-cross.txt \
         build \
 )
@@ -323,24 +393,26 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
 mkdir /tmp/yad
 log "Downloading YAD..."
 curl -# -L -f ${YAD_URL} | tar xz --strip 1 -C /tmp/yad
+log "Patching YAD..."
+patch -p1 -d /tmp/yad < "$SCRIPT_DIR"/show-button-images.patch
 log "Configuring YAD..."
-export LDFLAGS="$LDFLAGS --static -static -Wl,--strip-all" && \
+export LDFLAGS="$LDFLAGS --static -static -Wl,--strip-all,--gc-sections,--icf=safe" && \
 (
     cd /tmp/yad && \
     autoreconf -ivf && \
     intltoolize && \
-    LIBS="-lX11 -lxcb -lXdmcp -lXau -lpcre2-8 -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -leconf -lgmodule-2.0" \
+    LIBS="-lX11 -lxcb -lXdmcp -lXau -lpcre2-8 -lpixman-1 -lffi -lpng -lz -lbz2 -lgraphite2 -lexpat -lXrender -luuid -lbrotlidec -lbrotlicommon -lmount -lblkid -lfreetype -leconf -lgmodule-2.0 -lepoxy -lXi -lXrandr -lXfixes -lXext -lcairo-gobject" \
     ./configure \
         --build=$(TARGETPLATFORM= xx-clang --print-target-triple) \
         --host=$(xx-clang --print-target-triple) \
         --prefix=/usr \
-        --with-gtk=gtk2 \
+        --with-gtk=gtk3 \
         --disable-spell \
         --disable-sourceview \
         --disable-gio \
         --disable-icon-browser \
         --disable-html \
-        --disable-pfd \
+        --disable-tools \
 )
 log "Compiling YAD..."
 make -C /tmp/yad -j$(nproc)

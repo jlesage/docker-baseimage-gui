@@ -1,0 +1,17 @@
+GTK3 hides icons on stock buttons (OK/Cancel/Close) unless
+gtk-button-images is enabled. Restore the GTK2 behaviour for YAD.
+
+--- a/src/main.c
++++ b/src/main.c
+@@ -779,6 +779,11 @@
+ #endif
+ 
+   gtk_init (&argc, &argv);
++  /* GTK3 defaults gtk-button-images to FALSE, so stock OK/Cancel have no
++   * icons.  Force them on to match the GTK2 look. */
++  g_object_set (gtk_settings_get_default (),
++                "gtk-button-images", TRUE,
++                NULL);
+   g_set_application_name ("YAD");
+   read_settings ();
+   yad_options_init ();
