@@ -593,4 +593,10 @@ html[data-bs-theme="dark"] .btn.noVNC_selected {
   transform: translateX(calc(var(--control-bar-handle-width) / -2 + calc(var(--control-bar-handle-dot-size) / 2))) rotate(45deg);
 }
 
+/* A native <select> uses min-width: auto, so a long device name would widen the panel. */
+#noVNC_microphone_device {
+  min-width: 0;
+  width: 0;
+}
+
 

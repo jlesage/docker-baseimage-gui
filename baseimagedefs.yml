@@ -1016,6 +1016,22 @@ container:
         display: advanced
         required: false
         mask: false
+    - name: WEB_MICROPHONE
+      description: >-
+        When set to `1`, enables microphone support, allowing audio captured by
+        the browser to be used by the application. Requires the container to be
+        configured with secure web access (HTTPS). See
+        [Web Microphone](#web-microphone) for details.
+      type: public
+      default: 0
+      unraid_template:
+        title: Web Microphone
+        description: >-
+          When set to `1`, enables microphone support, allowing audio captured
+          by the browser to be used by the application.
+        display: advanced
+        required: false
+        mask: false
     - name: WEB_HOST_CLIPBOARD_SYNC
       description: >-
         When set to `1`, enables support for synchronizing the host system

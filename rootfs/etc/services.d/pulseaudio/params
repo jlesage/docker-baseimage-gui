@@ -7,10 +7,17 @@ printf "%s\n" "--disallow-exit"
 printf "%s\n" "--exit-idle-time=-1"
 printf "%s\n" "--realtime=false"
 printf "%s\n" "-n" # Don't load default script file
-printf "%s\n" "--load=module-null-sink"
+# Web audio records this sink's monitor. A microphone-only daemon has no playback device.
+if is-bool-val-true "${WEB_AUDIO:-0}"; then
+    printf "%s\n" "--load=module-null-sink"
+fi
 printf "%s\n" "--load=module-native-protocol-unix socket=/tmp/pulseaudio.sock auth-anonymous=1 auth-cookie=${PULSE_COOKIE}"
 
 if is-bool-val-true "${CONTAINER_DEBUG:-0}"; then
     printf "%s\n" "--log-level=4"
     printf "%s\n" "--verbose"
+fi
+
+if is-bool-val-true "${WEB_MICROPHONE:-0}"; then
+    printf "%s\n" "--file=/opt/base/etc/pulse-microphone.pa"
 fi

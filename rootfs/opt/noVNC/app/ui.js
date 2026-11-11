@@ -20,6 +20,7 @@ import { PCMPlayer } from "./pcm-player.min.js";
 import FileManager from "./fileManager.js";
 import NotificationService from "./notificationService.js";
 import Terminal from "./terminal.js";
+import Microphone from "./microphone.js";
 
 const UI = {
     webData: null,
@@ -46,6 +47,7 @@ const UI = {
     reconnectPasswordFailures: 0,
 
     audioContext: null,
+    microphone: null,
 
     fileManager: null,
 
@@ -124,6 +126,7 @@ const UI = {
             UI.updateLogging();
             document.getElementById('noVNC_audio_section')
                 .classList.remove("noVNC_hidden");
+            document.getElementById('noVNC_audio_playback').classList.remove('noVNC_hidden');
 
             // Restore the audio volume from saved value.
             let audio_enabled = parseInt(WebUtil.readSetting('audio_enabled', '0'));
@@ -135,6 +138,24 @@ const UI = {
                 if (volume > 0) volume = Math.max(15, volume);
             }
             document.getElementById("noVNC_setting_audio_volume").value = volume.toString();
+        }
+
+        if (UI.webData.microphoneSupport) {
+            UI.microphone = new Microphone(
+                {
+                    button: document.getElementById('noVNC_microphone_button'),
+                    select: document.getElementById('noVNC_microphone_device'),
+                    icon: document.getElementById('noVNC_microphone_icon'),
+                },
+                () => {
+                    const scheme = UI.getSetting('encrypt') ? 'wss' : 'ws';
+                    const host = UI.getSetting('host');
+                    const port = UI.getSetting('port');
+                    return scheme + '://' + host + (port ? ':' + port : '') +
+                        '/' + UI.buildWebSocketPath('websockify-microphone');
+                });
+            document.getElementById('noVNC_microphone_section').classList.remove('noVNC_hidden');
+            document.getElementById('noVNC_audio_section').classList.remove('noVNC_hidden');
         }
 
         // Web authentication support.
@@ -1250,6 +1271,10 @@ const UI = {
             UI.updateAudioVolume();
         }
 
+        if (UI.microphone) {
+            UI.microphone.setConnected(true);
+        }
+
         // Start desktop notification.
         if (UI.notificationService) {
             UI.notificationService.start();
@@ -1287,6 +1312,10 @@ const UI = {
         UI.closeControlbar();
         UI.closeFileManager();
         UI.closeTerminal();
+
+        if (UI.microphone) {
+            UI.microphone.setConnected(false);
+        }
 
         // Make sure audio is also stopped.
         if (UI.audioContext) {

@@ -202,6 +202,16 @@ RUN xx-verify --static /tmp/build-audiorecorder/audiorecorder
 COPY --from=upx /usr/bin/upx /usr/bin/upx
 RUN upx /tmp/build-audiorecorder/audiorecorder
 
+# Build the microphone bridge.
+FROM --platform=$BUILDPLATFORM alpine:3.20 AS microphone
+ARG TARGETPLATFORM
+COPY --from=xx / /
+COPY src/microphone /tmp/build-microphone
+RUN /tmp/build-microphone/build.sh
+RUN xx-verify --static /tmp/build-microphone/microphone
+COPY --from=upx /usr/bin/upx /usr/bin/upx
+RUN upx /tmp/build-microphone/microphone
+
 # Build the web authenticator.
 FROM --platform=$BUILDPLATFORM golang:1.25-alpine AS webauth
 ARG TARGETPLATFORM
@@ -337,6 +347,7 @@ COPY --link --from=yad /tmp/yad-install/usr/bin/yad /opt/base/bin/
 COPY --link --from=nginx /tmp/nginx-install /opt/base/
 COPY --link --from=pulseaudio /tmp/pulseaudio-install/usr/bin/pulseaudio /opt/base/bin/pulseaudio
 COPY --link --from=audiorecorder /tmp/build-audiorecorder/audiorecorder /opt/base/bin/audiorecorder
+COPY --link --from=microphone /tmp/build-microphone/microphone /opt/base/bin/microphone
 COPY --link --from=webauth /tmp/build-webauth/webauth /opt/base/bin/webauth
 COPY --link --from=webservices /tmp/build-webservices/webservices /opt/base/bin/webservices
 COPY --link --from=htpasswd /tmp/httpd-install/usr/bin/htpasswd /opt/base/bin/htpasswd

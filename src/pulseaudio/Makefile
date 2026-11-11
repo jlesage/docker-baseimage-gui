@@ -147,6 +147,7 @@ SOURCES = \
 # PulseAudio modules.
 SOURCES += \
 	src/modules/module-null-sink.c \
+	src/modules/module-pipe-source.c \
 	src/modules/module-protocol-stub.c \
 
 OBJECTS = $(patsubst %.c, %.o, $(SOURCES))

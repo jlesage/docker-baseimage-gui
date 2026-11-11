@@ -3,8 +3,8 @@
 set -e # Exit immediately if a command exits with a non-zero status.
 set -u # Treat unset variables as an error.
 
-# Nothing to do if audio support is disabled.
-if is-bool-val-false "${WEB_AUDIO:-0}"; then
+# Nothing to do unless web audio or the microphone needs PulseAudio.
+if is-bool-val-false "${WEB_AUDIO:-0}" && is-bool-val-false "${WEB_MICROPHONE:-0}"; then
     exit 0
 fi
 

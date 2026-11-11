@@ -1,0 +1,2 @@
+load-module module-pipe-source source_name=web_microphone file=/tmp/vnc-microphone.fifo format=s16le rate=48000 channels=1 channel_map=mono source_properties="device.description='Remote Microphone'"
+set-default-source web_microphone

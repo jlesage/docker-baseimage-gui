@@ -19,6 +19,7 @@ SSL_CONF=/var/tmp/nginx/ssl.conf
 STREAM_CONF=/var/tmp/nginx/stream.conf
 STREAM_LISTEN_CONF=/var/tmp/nginx/stream_listen.conf
 AUDIO_CONF=/var/tmp/nginx/audio.conf
+MICROPHONE_CONF=/var/tmp/nginx/microphone.conf
 AUTH_CONF=/var/tmp/nginx/auth.conf
 FMGR_CONF=/var/tmp/nginx/fmgr.conf
 NOTIF_CONF=/var/tmp/nginx/notif.conf
@@ -87,6 +88,10 @@ fi
 # Handle configuration for audio support.
 if is-bool-val-true "${WEB_AUDIO:-0}"; then
     cp -a /opt/base/etc/nginx/include/audio.conf "${AUDIO_CONF}"
+fi
+
+if is-bool-val-true "${WEB_MICROPHONE:-0}"; then
+    cp -a /opt/base/etc/nginx/include/microphone.conf "${MICROPHONE_CONF}"
 fi
 
 # Handle configuration for web authentication.

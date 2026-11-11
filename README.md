@@ -65,6 +65,7 @@ shell, desktop notifications, and more.
          * [Routing Based on URL Path](#routing-based-on-url-path)
       * [Host Clipboard Sync](#host-clipboard-sync)
       * [Web Audio](#web-audio)
+      * [Web Microphone](#web-microphone)
       * [Web File Manager](#web-file-manager)
       * [Web Notifications](#web-notifications)
       * [Web Terminal](#web-terminal)
@@ -314,6 +315,7 @@ The baseimage provides the following public environment variables:
 |`DISPLAY_HEIGHT`| Height (in pixels) of the application's window. | `1080` |
 |`DARK_MODE`| When set to `1`, enables dark mode for the application. See Dark Mode](#dark-mode) for details. | `0` |
 |`WEB_AUDIO`| When set to `1`, enables audio support, allowing audio produced by the application to play through the browser. See [Web Audio](#web-audio) for details. | `0` |
+|`WEB_MICROPHONE`| When set to `1`, enables microphone support, allowing audio captured by the browser to be used by the application. Requires the container to be configured with secure web access (HTTPS). See [Web Microphone](#web-microphone) for details. | `0` |
 |`WEB_HOST_CLIPBOARD_SYNC`| When set to `1`, enables support for synchronizing the host system clipboard with the application inside the container. Actual availability still depends on the browser. See [Host Clipboard Sync](#host-clipboard-sync) for details. | `1` |
 |`WEB_FILE_MANAGER`| When set to `1`, enables the web file manager, allowing interaction with files inside the container through the web browser, supporting operations like renaming, deleting, uploading, and downloading. See [Web File Manager](#web-file-manager) for details. | `0` |
 |`WEB_FILE_MANAGER_ALLOWED_PATHS`| Comma-separated list of paths within the container that the file manager can access. By default, the container's entire filesystem is not accessible, and this variable specifies allowed paths. If set to `AUTO`, commonly used folders and those mapped to the container are automatically allowed. The value `ALL` allows access to all paths (no restrictions). See [Web File Manager](#web-file-manager) for details. | `AUTO` |
@@ -1228,6 +1230,32 @@ configuring environment variables.
 
 Once enabled, the PulseAudio environment is configured for the application, and
 additional services start to capture and stream audio.
+
+> [!NOTE]
+> This feature is not available to VNC clients.
+
+### Web Microphone
+
+The baseimage supports streaming microphone audio from the user's web browser
+to applications using PulseAudio.
+
+Audio is exposed to applications as signed 16-bit little-endian PCM, one
+channel, at 48000 Hz. The browser sends Opus audio, and the container
+decodes it into that format as it arrives.
+
+Enable web microphone support by setting `WEB_MICROPHONE` to `1`. See the
+[Environment Variables](#environment-variables) section for details on
+configuring environment variables. Microphone support is disabled by default.
+
+Once enabled, the PulseAudio environment is configured for the application.
+A capture source named **Remote Microphone** is created and becomes the
+default source, so an application that opens the default source records it.
+
+> [!IMPORTANT]
+> Web browsers only allow microphone access in secure contexts (HTTPS). This means
+> the container must be configured with secure web access. The browser must also
+> support recording Opus audio in a WebM container. See
+> [Security](#security) for details on configuring secure web access.
 
 > [!NOTE]
 > This feature is not available to VNC clients.
