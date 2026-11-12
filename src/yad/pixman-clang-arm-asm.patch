@@ -1,0 +1,25 @@
+Clang's integrated assembler rejects .func and .endfunc, but pixman's
+configure test still reports them as available. Those directives are
+only used for stabs debug info, so leave them out for Clang. The ELF
+function symbol directives stay.
+
+--- a/pixman/pixman-arm-asm.h
++++ b/pixman/pixman-arm-asm.h
+@@ -29,7 +29,7 @@
+ 
+ /* Supplementary macro for setting function attributes */
+ .macro pixman_asm_function_impl fname
+-#ifdef ASM_HAVE_FUNC_DIRECTIVE
++#if defined(ASM_HAVE_FUNC_DIRECTIVE) && !defined(__clang__)
+ 	.func \fname
+ #endif
+ 	.global \fname
+@@ -54,7 +54,7 @@
+ .endm
+ 
+ .macro pixman_end_asm_function
+-#ifdef ASM_HAVE_FUNC_DIRECTIVE
++#if defined(ASM_HAVE_FUNC_DIRECTIVE) && !defined(__clang__)
+ 	.endfunc
+ #endif
+ .endm

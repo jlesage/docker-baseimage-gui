@@ -342,6 +342,8 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/cairo/build
 mkdir /tmp/pixman
 log "Downloading pixman..."
 curl -# -L -f ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
+log "Patching pixman..."
+patch -p1 -d /tmp/pixman < "$SCRIPT_DIR"/pixman-clang-arm-asm.patch
 log "Configuring pixman..."
 (
     cd /tmp/pixman && \
