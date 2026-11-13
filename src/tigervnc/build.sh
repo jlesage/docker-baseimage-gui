@@ -36,6 +36,7 @@ PIXMAN_VERSION=0.43.4
 BROTLI_VERSION=1.1.0
 MESA_VERSION=24.2.8
 LLVM_VERSION=19.1.4
+X264_VERSION=0480cb05fa188d37ae87e8f4fd8f1aea3711f7ee
 
 # Define software download URLs.
 TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.tar.gz
@@ -54,6 +55,7 @@ PIXMAN_URL=https://www.x.org/releases/individual/lib/pixman-${PIXMAN_VERSION}.ta
 BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
 MESA_URL=https://archive.mesa3d.org/mesa-${MESA_VERSION}.tar.xz
 LLVM_URL=https://github.com/llvm/llvm-project/releases/download/llvmorg-${LLVM_VERSION}/llvm-project-${LLVM_VERSION}.src.tar.xz
+X264_URL=https://code.videolan.org/videolan/x264/-/archive/${X264_VERSION}/x264-${X264_VERSION}.tar.gz
 
 XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.xz
 XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.xz
@@ -132,6 +134,7 @@ HOST_PKGS="\
     file \
     clang \
     mold \
+    nasm \
     llvm \
     cmake \
     autoconf \
@@ -676,6 +679,32 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/mesa/build
 find $(xx-info sysroot)usr/lib -name "*.la" -delete
 
 #
+# Build x264.
+# The library in the Alpine repository is built with LTO, which mold
+# cannot link into the static Xvnc binary, so we build it ourself.
+#
+mkdir /tmp/x264
+log "Downloading x264..."
+curl -# -L -f ${X264_URL} | tar -xz --strip 1 -C /tmp/x264
+log "Configuring x264..."
+(
+    cd /tmp/x264 && ./configure \
+        --host=$(xx-clang --print-target-triple) \
+        --prefix=/usr \
+        --enable-static \
+        --enable-pic \
+        --disable-cli \
+        --disable-opencl \
+        --bit-depth=8 \
+        --chroma-format=420
+)
+log "Compiling x264..."
+make -C /tmp/x264 -j$(nproc)
+log "Installing x264..."
+make DESTDIR=$(xx-info sysroot) -C /tmp/x264 install
+find $(xx-info sysroot)usr/lib -name "*.la" -delete
+
+#
 # Build TigerVNC
 #
 mkdir /tmp/tigervnc
@@ -693,6 +722,7 @@ TIGERVNC_PATCHES="
     "$SCRIPT_DIR"/internal-conn-sec-types.patch:/tmp/tigervnc
     "$SCRIPT_DIR"/viewer-cursor.patch:/tmp/tigervnc
     "$SCRIPT_DIR"/jpeg-settled.patch:/tmp/tigervnc
+    "$SCRIPT_DIR"/h264-encode.patch:/tmp/tigervnc
 "
 for pdef in $TIGERVNC_PATCHES; do
     p="${pdef%:*}"
@@ -832,6 +862,7 @@ log "Relinking Xvnc binary with static libraries..."
         ./.libs/libvnccommon.a \
         ../../../../common/network/libnetwork.a \
         ../../../../common/rfb/librfb.a \
+        $(xx-info sysroot)usr/lib/libx264.a \
         ../../../../common/rdr/librdr.a \
         ../../../../common/core/libcore.a \
         ../../../../unix/common/libunixcommon.a \
@@ -879,6 +910,7 @@ log "Relinking Xvnc binary with static libraries..."
         -lexpat \
         -lz \
         -lglapi \
+        -lm \
 )
 
 log "Installing TigerVNC server..."
@@ -1015,5 +1047,6 @@ rm -rf \
     /tmp/brotli \
     /tmp/llvm \
     /tmp/mesa \
+    /tmp/x264 \
     /tmp/tigervnc \
 

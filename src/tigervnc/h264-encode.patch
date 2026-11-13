@@ -1,0 +1,653 @@
+#
+# H.264 for the web client.
+#
+# The idea of sending video while the screen is moving comes from
+# KasmVNC. The encoder code does not. TigerVNC 1.16 and noVNC 1.7
+# only decode encoding 50 (H264Decoder.cxx and
+# core/decoders/h264.js). Nothing was copied from those decoders or
+# from Kasm. H264Encoder.cxx was written for this server.
+#
+# The on-wire layout matches those decoders as they already are:
+# encoding 50, a uint32 byte length, a uint32 flags word, then
+# Annex-B. Flag bit 0 resets the decoder context for this rectangle.
+#
+# The behaviour around that layout is specific to this server.
+# x264 is software-only, ultrafast, zerolatency, baseline, I420,
+# CRF 18. One even-sized rectangle is sent while the screen is
+# moving. The encoder uses one thread per CPU, up to 4. A still
+# screen uses the client's normal encoders. A client that does not
+# request encoding 50 keeps its own encoder.
+#
+--- a/common/rfb/CMakeLists.txt
++++ b/common/rfb/CMakeLists.txt
+@@ -47,6 +47,7 @@
+   TightDecoder.cxx
+   TightEncoder.cxx
+   TightJPEGEncoder.cxx
++  H264Encoder.cxx
+   UpdateTracker.cxx
+   VNCSConnectionST.cxx
+   VNCServerST.cxx
+@@ -61,6 +62,14 @@
+ target_link_libraries(rfb core rdr network)
+ target_link_libraries(rfb ${JPEG_LIBRARIES} ${PIXMAN_LIBRARIES})
+ 
++find_path(X264_INCLUDE_DIR NAMES x264.h)
++find_library(X264_LIBRARY NAMES x264)
++if(NOT X264_INCLUDE_DIR OR NOT X264_LIBRARY)
++  message(FATAL_ERROR "libx264 is required to encode H.264 for the web client")
++endif()
++target_include_directories(rfb SYSTEM PRIVATE ${X264_INCLUDE_DIR})
++target_link_libraries(rfb ${X264_LIBRARY} m pthread)
++
+ if(ENABLE_H264 AND NOT H264_LIBS STREQUAL "NONE")
+   target_sources(rfb PRIVATE H264Decoder.cxx H264DecoderContext.cxx)
+   if(H264_LIBS STREQUAL "LIBAV")
+--- a/common/rfb/EncodeManager.h
++++ b/common/rfb/EncodeManager.h
+@@ -36,6 +36,7 @@
+   class UpdateInfo;
+   class PixelBuffer;
+   class RenderedCursor;
++  class H264Encoder;
+ 
+   struct RectInfo;
+ 
+@@ -79,6 +80,13 @@
+ 
+     int computeNumRects(const core::Region& changed);
+ 
++    // True when this update should be one full-frame H.264 picture.
++    bool h264Due(const core::Region& changed, const core::Region& copied,
++                 const PixelBuffer* pb);
++    void writeH264Rect(const core::Rect& rect,
++                       const std::vector<uint8_t>& annexb,
++                       uint32_t flags);
++
+     Encoder* startRect(const core::Rect& rect, int type);
+     void endRect();
+ 
+@@ -158,6 +166,10 @@
+ 
+     OffsetPixelBuffer offsetPixelBuffer;
+     ManagedPixelBuffer convertedPixelBuffer;
++
++    H264Encoder* h264;
++    bool h264Active;
++    unsigned long long h264UntilMs;
+   };
+ 
+ }
+--- a/common/rfb/EncodeManager.cxx
++++ b/common/rfb/EncodeManager.cxx
+@@ -24,6 +24,7 @@
+ #endif
+ 
+ #include <stdlib.h>
++#include <sys/time.h>
+ 
+ #include <core/LogWriter.h>
+ #include <core/string.h>
+@@ -32,6 +33,7 @@
+ #include <rfb/EncodeManager.h>
+ #include <rfb/Encoder.h>
+ #include <rfb/Palette.h>
++#include <rdr/OutStream.h>
+ #include <rfb/SConnection.h>
+ #include <rfb/SMsgWriter.h>
+ #include <rfb/UpdateTracker.h>
+@@ -44,6 +46,7 @@
+ #include <rfb/ZRLEEncoder.h>
+ #include <rfb/TightEncoder.h>
+ #include <rfb/TightJPEGEncoder.h>
++#include <rfb/H264Encoder.h>
+ 
+ using namespace rfb;
+ 
+@@ -140,7 +143,8 @@
+ }
+ 
+ EncodeManager::EncodeManager(SConnection* conn_)
+-  : conn(conn_), recentChangeTimer(this)
++  : conn(conn_), recentChangeTimer(this),
++    h264(nullptr), h264Active(false), h264UntilMs(0)
+ {
+   StatsVector::iterator iter;
+ 
+@@ -154,6 +158,7 @@
+   encoders[encoderTightJPEG] = new TightJPEGEncoder(conn);
+   encoders[encoderZRLE] = new ZRLEEncoder(conn);
+   encoders[encoderJPEG] = new JPEGEncoder(conn);
++  h264 = new H264Encoder(conn);
+ 
+   updates = 0;
+   memset(&copyStats, 0, sizeof(copyStats));
+@@ -170,6 +175,8 @@
+ {
+   logStats();
+ 
++  delete h264;
++
+   for (Encoder* encoder : encoders)
+     delete encoder;
+ }
+@@ -255,6 +262,7 @@
+   case encodingJPEG:
+   case encodingZRLE:
+   case encodingTight:
++  case encodingH264:
+     return true;
+   default:
+     return false;
+@@ -325,6 +333,102 @@
+   }
+ }
+ 
++
++static unsigned long regionPixels(const core::Region& region)
++{
++  std::vector<core::Rect> rects;
++  std::vector<core::Rect>::const_iterator rect;
++  unsigned long area;
++
++  area = 0;
++  region.get_rects(&rects);
++  for (rect = rects.begin(); rect != rects.end(); ++rect)
++    area += (unsigned long)rect->width() * (unsigned long)rect->height();
++  return area;
++}
++
++static unsigned long long nowMs()
++{
++  struct timeval tv;
++
++  gettimeofday(&tv, nullptr);
++  return (unsigned long long)tv.tv_sec * 1000ull +
++         (unsigned long long)tv.tv_usec / 1000ull;
++}
++
++// Stay on H.264 briefly after a large change so the frames in one
++// scroll share a decoder context.
++static const unsigned long long H264HoldMs = 500;
++
++bool EncodeManager::h264Due(const core::Region& changed,
++                            const core::Region& copied,
++                            const PixelBuffer* pb)
++{
++  unsigned long motion, fbArea;
++  unsigned long long now;
++  int w, h;
++  bool large;
++
++  if (h264 == nullptr || pb == nullptr || !h264->isSupported()) {
++    h264Active = false;
++    return false;
++  }
++
++  w = pb->width() & ~1;
++  h = pb->height() & ~1;
++  if (w < 16 || h < 16)
++    return false;
++
++  // A cursor blink does not open a video frame. The cursor is drawn
++  // on top of the picture by its own rectangle.
++  if (changed.is_empty() && copied.is_empty())
++    return false;
++
++  motion = regionPixels(changed) + regionPixels(copied);
++  fbArea = (unsigned long)w * (unsigned long)h;
++  // About a fifth of the screen: a scroll or a dragged window.
++  // A menu or a caret stays on JPEG.
++  large = motion >= 64 * 1024 && motion * 5 >= fbArea;
++
++  now = nowMs();
++  if (large) {
++    if (!h264Active)
++      vlog.info("H.264 video for the moving screen");
++    h264Active = true;
++    h264UntilMs = now + H264HoldMs;
++    return true;
++  }
++
++  if (h264Active && now < h264UntilMs)
++    return true;
++
++  if (h264Active) {
++    h264Active = false;
++    vlog.info("H.264 video ended");
++  }
++  return false;
++}
++
++void EncodeManager::writeH264Rect(const core::Rect& rect,
++                                  const std::vector<uint8_t>& annexb,
++                                  uint32_t flags)
++{
++  rdr::OutStream* os;
++
++  os = conn->getOutStream();
++  conn->writer()->startRect(rect, encodingH264);
++  os->writeU32((uint32_t)annexb.size());
++  os->writeU32(flags);
++  if (!annexb.empty())
++    os->writeBytes(annexb.data(), annexb.size());
++  conn->writer()->endRect();
++
++  // The video frame is the settled picture. A JPEG refresh of the
++  // whole screen would stall the next click.
++  lossyRegion.assign_subtract(rect);
++  pendingRefreshRegion.assign_subtract(rect);
++}
++
+ void EncodeManager::doUpdate(bool allowLossy, const
+                              core::Region& changed_,
+                              const core::Region& copied,
+@@ -334,8 +438,14 @@
+ {
+     int nRects;
+     core::Region changed, cursorRegion;
++    std::vector<uint8_t> h264Bytes;
++    uint32_t h264Flags;
++    bool useH264;
++    core::Rect h264Rect;
+ 
+     updates++;
++    useH264 = false;
++    h264Flags = 0;
+ 
+     prepareEncoders(allowLossy);
+ 
+@@ -353,9 +463,24 @@
+       changed.assign_subtract(renderedCursor->getEffectiveRect());
+     }
+ 
++    if (allowLossy && h264Due(changed, copied, pb)) {
++      int hw = pb->width() & ~1;
++      int hh = pb->height() & ~1;
++
++      h264Rect = core::Rect(0, 0, hw, hh);
++      useH264 = h264->encode(pb, h264Rect, &h264Bytes, &h264Flags);
++      if (!useH264) {
++        h264Active = false;
++        vlog.info("H.264 video ended");
++      }
++    }
++
+     if (conn->client.supportsEncoding(pseudoEncodingLastRect))
+       nRects = 0xFFFF;
+-    else {
++    else if (useH264) {
++      nRects = 1;
++      nRects += computeNumRects(cursorRegion);
++    } else {
+       nRects = 0;
+       if (conn->client.supportsEncoding(encodingCopyRect))
+         nRects += copied.numRects();
+@@ -365,6 +490,15 @@
+ 
+     conn->writer()->writeFramebufferUpdateStart(nRects);
+ 
++    if (useH264) {
++      // One screen-sized frame. CopyRect and other rectangles would
++      // be drawn and then covered by this same frame.
++      writeH264Rect(h264Rect, h264Bytes, h264Flags);
++      writeRects(cursorRegion, renderedCursor);
++      conn->writer()->writeFramebufferUpdateEnd();
++      return;
++    }
++
+     if (conn->client.supportsEncoding(encodingCopyRect))
+       writeCopyRects(copied, copyDelta);
+ 
+@@ -420,6 +554,10 @@
+     bitmapRLE = indexedRLE = encoderZRLE;
+     bitmap = indexed = encoderZRLE;
+     break;
++  case encodingH264:
++    // A moving screen is one H.264 frame. A still screen uses the
++    // JPEG encoders.
++    // fall through
+   case encodingJPEG:
+     fullColour = encoderJPEG;
+     break;
+--- a/common/rfb/H264Encoder.h
++++ b/common/rfb/H264Encoder.h
+@@ -0,0 +1,64 @@
++/* Copyright (C) 2026 Jean-Philippe Lesage
++ *
++ * This is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this software; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
++ * USA.
++ */
++#ifndef __RFB_H264ENCODER_H__
++#define __RFB_H264ENCODER_H__
++
++#include <stdint.h>
++#include <vector>
++
++#include <core/Rect.h>
++
++namespace rfb {
++
++  class SConnection;
++  class PixelBuffer;
++
++  // One full-frame H.264 stream for a web client. noVNC keeps a
++  // decoder per rectangle position and size, so every frame uses the
++  // same screen rectangle. The bytes are Annex-B with the 8-byte
++  // header noVNC expects: uint32 length, uint32 flags.
++  class H264Encoder {
++  public:
++    H264Encoder(SConnection* conn);
++    ~H264Encoder();
++
++    bool isSupported() const;
++
++    // Encode rect, which is the even-sized screen. flags receives
++    // resetContext (1) when this frame opens a new decoder context.
++    // Returns false when the update should use another encoding.
++    bool encode(const PixelBuffer* pb, const core::Rect& rect,
++                std::vector<uint8_t>* annexb, uint32_t* flags);
++
++  private:
++    bool openEncoder(int width, int height);
++
++    SConnection* conn;
++    void* encoder;
++    int width;
++    int height;
++    int64_t pts;
++    bool failed;
++    bool sendReset;
++    std::vector<uint8_t> i420;
++    std::vector<uint8_t> packed;
++  };
++
++}
++
++#endif
+--- a/common/rfb/H264Encoder.cxx
++++ b/common/rfb/H264Encoder.cxx
+@@ -0,0 +1,271 @@
++/* Copyright (C) 2026 Jean-Philippe Lesage
++ *
++ * This is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ *
++ * This software is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this software; if not, write to the Free Software
++ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307,
++ * USA.
++ */
++
++#ifdef HAVE_CONFIG_H
++#include <config.h>
++#endif
++
++#include <stdint.h>
++#include <string.h>
++
++#include <thread>
++
++#include <stdexcept>
++
++#include <x264.h>
++
++#include <core/LogWriter.h>
++
++#include <rfb/H264Encoder.h>
++#include <rfb/PixelBuffer.h>
++#include <rfb/SConnection.h>
++#include <rfb/encodings.h>
++
++using namespace rfb;
++
++static core::LogWriter vlog("H264Encoder");
++
++// noVNC resets the decoder context for this rectangle.
++static const uint32_t resetContextFlag = 1;
++
++static int clamp8(int value)
++{
++  if (value < 0)
++    return 0;
++  if (value > 255)
++    return 255;
++  return value;
++}
++
++// Packed little-endian BGRA to full-range BT.709 4:2:0. Width and
++// height are even. Chroma is the average of each 2x2 block.
++static void bgraToI420(const uint8_t* src, int srcStride,
++                       int width, int height,
++                       uint8_t* yPlane, uint8_t* uPlane, uint8_t* vPlane)
++{
++  int row, x;
++
++  for (row = 0; row < height; row += 2) {
++    const uint8_t* s0 = src + (size_t)row * srcStride;
++    const uint8_t* s1 = s0 + srcStride;
++    uint8_t* y0 = yPlane + (size_t)row * width;
++    uint8_t* y1 = y0 + width;
++    uint8_t* uRow = uPlane + (size_t)(row / 2) * (width / 2);
++    uint8_t* vRow = vPlane + (size_t)(row / 2) * (width / 2);
++
++    for (x = 0; x < width; x += 2) {
++      int b00 = s0[0], g00 = s0[1], r00 = s0[2];
++      int b01 = s0[4], g01 = s0[5], r01 = s0[6];
++      int b10 = s1[0], g10 = s1[1], r10 = s1[2];
++      int b11 = s1[4], g11 = s1[5], r11 = s1[6];
++      int r, g, b, cb, cr;
++
++      y0[0] = (54 * r00 + 183 * g00 + 19 * b00) >> 8;
++      y0[1] = (54 * r01 + 183 * g01 + 19 * b01) >> 8;
++      y1[0] = (54 * r10 + 183 * g10 + 19 * b10) >> 8;
++      y1[1] = (54 * r11 + 183 * g11 + 19 * b11) >> 8;
++
++      r = (r00 + r01 + r10 + r11) >> 2;
++      g = (g00 + g01 + g10 + g11) >> 2;
++      b = (b00 + b01 + b10 + b11) >> 2;
++      cb = ((-29 * r - 99 * g + 128 * b) >> 8) + 128;
++      cr = ((128 * r - 116 * g - 12 * b) >> 8) + 128;
++      *uRow++ = clamp8(cb);
++      *vRow++ = clamp8(cr);
++
++      s0 += 8;
++      s1 += 8;
++      y0 += 2;
++      y1 += 2;
++    }
++  }
++}
++
++H264Encoder::H264Encoder(SConnection* conn_)
++  : conn(conn_), encoder(nullptr), width(0), height(0), pts(0),
++    failed(false), sendReset(false)
++{
++}
++
++H264Encoder::~H264Encoder()
++{
++  if (encoder != nullptr)
++    x264_encoder_close((x264_t*)encoder);
++}
++
++bool H264Encoder::isSupported() const
++{
++  if (failed)
++    return false;
++  return conn->client.supportsEncoding(encodingH264);
++}
++
++bool H264Encoder::openEncoder(int frameWidth, int frameHeight)
++{
++  x264_param_t param;
++  x264_t* opened;
++  int threads;
++
++  // One thread per CPU, up to 4. Extra threads are sliced so a frame
++  // is returned immediately. The web client submits every slice of
++  // that picture as one sample.
++  threads = (int)std::thread::hardware_concurrency();
++  if (threads < 2)
++    threads = 1;
++  else if (threads > 4)
++    threads = 4;
++
++  if (x264_param_default_preset(&param, "ultrafast", "zerolatency") < 0) {
++    vlog.error("x264 preset ultrafast/zerolatency was rejected");
++    failed = true;
++    return false;
++  }
++
++  param.i_csp = X264_CSP_I420;
++  param.i_width = frameWidth;
++  param.i_height = frameHeight;
++  param.b_vfr_input = 0;
++  param.b_repeat_headers = 1;
++  param.b_annexb = 1;
++  param.b_aud = 0;
++  param.i_fps_num = 30;
++  param.i_fps_den = 1;
++  // TCP delivers every frame, so a keyframe is only needed to open
++  // the decoder. A keyframe in the middle of a scroll is a large hitch.
++  param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
++  param.i_keyint_min = 1;
++  param.rc.i_rc_method = X264_RC_CRF;
++  param.rc.f_rf_constant = 18;
++  param.i_threads = threads;
++  param.b_sliced_threads = threads > 1;
++  param.b_deblocking_filter = 1;
++  param.vui.b_fullrange = 1;
++  param.vui.i_colorprim = 1;
++  param.vui.i_transfer = 1;
++  param.vui.i_colmatrix = 1;
++  param.i_log_level = X264_LOG_ERROR;
++
++  if (x264_param_apply_profile(&param, "baseline") < 0) {
++    vlog.error("x264 baseline profile was rejected");
++    failed = true;
++    return false;
++  }
++
++  // The profile step can put the rate control and thread count back.
++  param.i_keyint_max = X264_KEYINT_MAX_INFINITE;
++  param.i_keyint_min = 1;
++  param.rc.i_rc_method = X264_RC_CRF;
++  param.rc.f_rf_constant = 18;
++  param.i_threads = threads;
++  param.b_sliced_threads = threads > 1;
++  param.b_deblocking_filter = 1;
++
++  opened = x264_encoder_open(&param);
++  if (opened == nullptr) {
++    vlog.error("x264 could not open a %dx%d encoder", frameWidth, frameHeight);
++    failed = true;
++    return false;
++  }
++
++  if (encoder != nullptr)
++    x264_encoder_close((x264_t*)encoder);
++  encoder = opened;
++  width = frameWidth;
++  height = frameHeight;
++  pts = 0;
++  sendReset = true;
++  vlog.info("H.264 encoder %dx%d, %d thread(s)", frameWidth, frameHeight,
++            threads);
++  return true;
++}
++
++bool H264Encoder::encode(const PixelBuffer* pb, const core::Rect& rect,
++                         std::vector<uint8_t>* annexb, uint32_t* flags)
++{
++  int frameWidth, frameHeight, srcStride, ySize, cSize;
++  const uint8_t* src;
++  const uint8_t* bgra;
++  int bgraStride;
++  uint8_t* yPlane;
++  uint8_t* uPlane;
++  uint8_t* vPlane;
++  x264_picture_t picIn, picOut;
++  x264_nal_t* nals;
++  int nnal, size;
++  PixelFormat bgraPF(32, 24, false, true, 255, 255, 255, 16, 8, 0);
++
++  if (!isSupported())
++    return false;
++
++  frameWidth = rect.width();
++  frameHeight = rect.height();
++  if (frameWidth < 16 || frameHeight < 16 ||
++      (frameWidth & 1) || (frameHeight & 1))
++    return false;
++
++  if (encoder == nullptr || width != frameWidth || height != frameHeight) {
++    if (!openEncoder(frameWidth, frameHeight))
++      return false;
++  }
++
++  src = pb->getBuffer(rect, &srcStride);
++  if (pb->getPF() == bgraPF) {
++    bgra = src;
++    bgraStride = srcStride * (pb->getPF().bpp / 8);
++  } else {
++    packed.resize((size_t)frameWidth * frameHeight * 4);
++    bgraPF.bufferFromBuffer(packed.data(), pb->getPF(), src,
++                            frameWidth, frameHeight,
++                            frameWidth, srcStride);
++    bgra = packed.data();
++    bgraStride = frameWidth * 4;
++  }
++
++  ySize = frameWidth * frameHeight;
++  cSize = ySize / 4;
++  i420.resize((size_t)ySize + cSize + cSize);
++  yPlane = i420.data();
++  uPlane = yPlane + ySize;
++  vPlane = uPlane + cSize;
++  bgraToI420(bgra, bgraStride, frameWidth, frameHeight,
++             yPlane, uPlane, vPlane);
++
++  x264_picture_init(&picIn);
++  picIn.img.i_csp = X264_CSP_I420;
++  picIn.img.i_plane = 3;
++  picIn.img.plane[0] = yPlane;
++  picIn.img.plane[1] = uPlane;
++  picIn.img.plane[2] = vPlane;
++  picIn.img.i_stride[0] = frameWidth;
++  picIn.img.i_stride[1] = frameWidth / 2;
++  picIn.img.i_stride[2] = frameWidth / 2;
++  picIn.i_pts = pts++;
++  picIn.i_type = sendReset ? X264_TYPE_IDR : X264_TYPE_AUTO;
++
++  nals = nullptr;
++  nnal = 0;
++  size = x264_encoder_encode((x264_t*)encoder, &nals, &nnal,
++                             &picIn, &picOut);
++  if (size <= 0 || nals == nullptr)
++    return false;
++
++  annexb->assign(nals[0].p_payload, nals[0].p_payload + size);
++  *flags = sendReset ? resetContextFlag : 0;
++  sendReset = false;
++  return true;
++}

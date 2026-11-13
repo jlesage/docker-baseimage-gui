@@ -1,0 +1,267 @@
+#
+# Safari's H.264 decoder rejects Annex-B samples. Give it one
+# length-prefixed picture and the avcC decoder record. Every slice of
+# that picture stays in the same sample. Chrome accepts this form too.
+#
+--- a/core/decoders/h264.js
++++ b/core/decoders/h264.js
+@@ -45,35 +45,55 @@
+         this.levelIdc = this._data[index + 2];
+     }
+ 
+-    _parseNalUnit(index) {
+-        const firstByte = this._data[index];
+-        if (firstByte & 0x80) {
+-            throw new Error('H264 parsing sanity check failed, forbidden zero bit is set');
+-        }
+-        const unitType = firstByte & 0x1f;
+-
+-        switch (unitType) {
+-            case 1: // coded slice, non-idr
+-                return { slice: true };
+-            case 5: // coded slice, idr
+-                return { slice: true, key: true };
+-            case 6: // sei
+-                return {};
+-            case 7: // sps
+-                this._parseSps(index + 1);
+-                return {};
+-            case 8: // pps
+-                return {};
+-            default:
+-                Log.Warn("Unhandled unit type: ", unitType);
++    // first_mb_in_slice is the first ue(v) of a slice. Zero starts a
++    // picture. A later slice of the same picture is non-zero.
++    _firstMbInSlice(nal) {
++        const rbsp = [];
++        let zeros = 0;
++
++        for (let i = 1; i < nal.length && rbsp.length < 4; i++) {
++            if (zeros >= 2 && nal[i] === 0x03) {
++                zeros = 0;
++                continue;
++            }
++            rbsp.push(nal[i]);
++            zeros = nal[i] === 0 ? zeros + 1 : 0;
++        }
++        if (rbsp.length === 0) {
++            return 0;
++        }
++
++        const bitAt = (bit) => (rbsp[bit >> 3] >> (7 - (bit & 7))) & 1;
++        let bit = 0;
++        let leading = 0;
++        while (bit < rbsp.length * 8 && bitAt(bit) === 0) {
++            leading++;
++            bit++;
++            if (leading > 16) {
++                return 0;
++            }
++        }
++        if (bit >= rbsp.length * 8) {
++            return 0;
++        }
++        bit++;
++        let value = (1 << leading) - 1;
++        for (let i = 0; i < leading; i++) {
++            if (bit >= rbsp.length * 8) {
+                 break;
++            }
++            value = (value << 1) | bitAt(bit);
++            bit++;
+         }
+-        return {};
++        return value;
+     }
+ 
+     parse() {
+         const startIndex = this._index;
+         let isKey = false;
++        let seenSlice = false;
++        let sps = null;
++        let pps = null;
+ 
+         while (this._index < this._data.length) {
+             const startSequenceLen = this._getStartSequenceLen(this._index);
+@@ -81,21 +101,43 @@
+                 throw new Error('Invalid start sequence in bit stream');
+             }
+ 
+-            const { slice, key } = this._parseNalUnit(this._index + startSequenceLen);
+-
+-            let nextIndex = this._indexOfNextNalUnit(this._index + startSequenceLen);
++            const nalStart = this._index + startSequenceLen;
++            let nextIndex = this._indexOfNextNalUnit(nalStart);
+             if (nextIndex == -1) {
+-                this._index = this._data.length;
+-            } else {
+-                this._index = nextIndex;
++                nextIndex = this._data.length;
++            }
++            const nal = this._data.subarray(nalStart, nextIndex);
++            if (nal.length < 1 || (nal[0] & 0x80)) {
++                throw new Error('H264 parsing sanity check failed, forbidden zero bit is set');
++            }
++            const unitType = nal[0] & 0x1f;
++
++            // Keep every slice of this picture in one chunk. The next
++            // picture, or parameter sets that belong to it, stay for
++            // the next call.
++            if (seenSlice) {
++                const samePicture = (unitType === 1 || unitType === 5) &&
++                    this._firstMbInSlice(nal) !== 0;
++                if (!samePicture) {
++                    break;
++                }
+             }
+ 
+-            if (key) {
++            if (unitType === 5) {
+                 isKey = true;
+             }
+-            if (slice) {
+-                break;
++            if (unitType === 1 || unitType === 5) {
++                seenSlice = true;
++            } else if (unitType === 7) {
++                this._parseSps(nalStart + 1);
++                sps = new Uint8Array(nal);
++            } else if (unitType === 8) {
++                pps = new Uint8Array(nal);
++            } else if (unitType !== 6 && unitType !== 9 && unitType !== 12) {
++                Log.Warn("Unhandled unit type: ", unitType);
+             }
++
++            this._index = nextIndex;
+         }
+ 
+         if (startIndex === this._index) {
+@@ -105,10 +147,70 @@
+         return {
+             frame: this._data.subarray(startIndex, this._index),
+             key: isKey,
++            sps: sps,
++            pps: pps,
+         };
+     }
+ }
+ 
++
++// Safari's VideoDecoder wants length-prefixed NALs plus the avcC
++// record. The server sends Annex-B, which Chrome also accepts.
++function lengthPrefixedNals(data) {
++    const parser = new H264Parser(data);
++    const nals = [];
++
++    while (parser._index < data.length) {
++        const startLen = parser._getStartSequenceLen(parser._index);
++        if (startLen === 0) {
++            throw new Error('Invalid start sequence in bit stream');
++        }
++        const nalStart = parser._index + startLen;
++        let next = parser._indexOfNextNalUnit(nalStart);
++        if (next === -1) {
++            next = data.length;
++        }
++        nals.push(data.subarray(nalStart, next));
++        parser._index = next;
++    }
++
++    let size = 0;
++    for (let i = 0; i < nals.length; i++) {
++        size += 4 + nals[i].length;
++    }
++    const out = new Uint8Array(size);
++    let offset = 0;
++    for (let i = 0; i < nals.length; i++) {
++        const len = nals[i].length;
++        out[offset] = (len >>> 24) & 0xff;
++        out[offset + 1] = (len >>> 16) & 0xff;
++        out[offset + 2] = (len >>> 8) & 0xff;
++        out[offset + 3] = len & 0xff;
++        out.set(nals[i], offset + 4);
++        offset += 4 + len;
++    }
++    return out;
++}
++
++function avcDecoderConfigurationRecord(sps, pps) {
++    const record = new Uint8Array(11 + sps.length + pps.length);
++    record[0] = 1;
++    record[1] = sps[1];
++    record[2] = sps[2];
++    record[3] = sps[3];
++    record[4] = 0xff; // 4-byte NAL lengths
++    record[5] = 0xe1; // one SPS
++    record[6] = (sps.length >>> 8) & 0xff;
++    record[7] = sps.length & 0xff;
++    record.set(sps, 8);
++    let i = 8 + sps.length;
++    record[i++] = 1; // one PPS
++    record[i++] = (pps.length >>> 8) & 0xff;
++    record[i++] = pps.length & 0xff;
++    record.set(pps, i);
++    return record;
++}
++
+ export class H264Context {
+     constructor(width, height) {
+         this.lastUsed = 0;
+@@ -118,6 +220,7 @@
+         this._constraintSet = null;
+         this._levelIdc = null;
+         this._decoder = null;
++        this._description = null;
+         this._pendingFrames = [];
+     }
+ 
+@@ -160,6 +263,7 @@
+             codec: codec,
+             codedWidth: this._width,
+             codedHeight: this._height,
++            description: this._description,
+             optimizeForLatency: true,
+         });
+     }
+@@ -195,10 +299,12 @@
+                 break;
+             }
+ 
+-            if (parser.profileIdc !== null) {
+-                self._profileIdc = parser.profileIdc;
+-                self._constraintSet = parser.constraintSet;
+-                self._levelIdc = parser.levelIdc;
++            if (encodedFrame.sps !== null && encodedFrame.pps !== null) {
++                this._profileIdc = encodedFrame.sps[1];
++                this._constraintSet = encodedFrame.sps[2];
++                this._levelIdc = encodedFrame.sps[3];
++                this._description = avcDecoderConfigurationRecord(
++                    encodedFrame.sps, encodedFrame.pps);
+             }
+ 
+             if (this._decoder === null || this._decoder.state !== 'configured') {
+@@ -206,12 +312,12 @@
+                     Log.Warn("Missing key frame. Can't decode until one arrives");
+                     continue;
+                 }
+-                if (self._profileIdc === null) {
++                if (this._description === null) {
+                     Log.Warn('Cannot config decoder. Have not received SPS and PPS yet.');
+                     continue;
+                 }
+-                this._configureDecoder(self._profileIdc, self._constraintSet,
+-                                       self._levelIdc);
++                this._configureDecoder(this._profileIdc, this._constraintSet,
++                                       this._levelIdc);
+             }
+ 
+             result = this._preparePendingFrame(timestamp);
+@@ -219,7 +325,7 @@
+             const chunk = new EncodedVideoChunk({
+                 timestamp: timestamp,
+                 type: encodedFrame.key ? 'key' : 'delta',
+-                data: encodedFrame.frame,
++                data: lengthPrefixedNals(encodedFrame.frame),
+             });
+ 
+             try {
