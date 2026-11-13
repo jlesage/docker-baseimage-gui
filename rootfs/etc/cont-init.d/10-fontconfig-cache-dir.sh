@@ -9,5 +9,8 @@ FONTCONFIG_CACHE_DIR=/config/xdg/cache/fontconfig
 # "Fontconfig error: No writable cache directories" that programs might
 # raise (e.g openbox).
 if [ ! -d "${FONTCONFIG_CACHE_DIR}" ]; then
-    mkdir -p "${FONTCONFIG_CACHE_DIR}"
+    mkdir -p "$(dirname "${FONTCONFIG_CACHE_DIR}")"
+    cp -a /opt/base/share/fontconfig/cache "${FONTCONFIG_CACHE_DIR}"
 fi
+
+# vim:ft=sh:ts=4:sw=4:et:sts=4
