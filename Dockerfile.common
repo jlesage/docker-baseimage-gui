@@ -293,6 +293,7 @@ RUN \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/jpeg-bitmap-decode.patch && \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/latest-frame.patch && \
     patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/h264-avcc.patch && \
+    patch --no-backup-if-mismatch -p1 -d /tmp/noVNC < /build/h264-probe.patch && \
     cp -vr /tmp/noVNC/core /opt/noVNC/ && \
     cp -vr /tmp/noVNC/vendor /opt/noVNC/
 RUN \

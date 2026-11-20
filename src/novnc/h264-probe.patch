@@ -1,0 +1,21 @@
+#
+# Chrome rejects noVNC's canned Annex-B sample even when it can decode
+# the stream, so that sample left Chrome on JPEG. Trust a reported
+# decoder in that case. Keep the real frame test where a browser
+# reports support when decoding does not work, so H.264 is offered
+# only when that frame actually decodes.
+#
+--- a/core/util/browser.js
++++ b/core/util/browser.js
+@@ -91,6 +91,11 @@
+         return false;
+     }
+ 
++    // Chrome rejects the canned sample below even when playback works.
++    if (!isFirefox()) {
++        return true;
++    }
++
+     // Firefox incorrectly reports supports for H.264 under some
+     // circumstances, so we need to actually test a real frame
+     // https://bugzilla.mozilla.org/show_bug.cgi?id=1932392
