@@ -203,7 +203,7 @@
 +  now = nowMs();
 +  if (large) {
 +    if (!h264Active)
-+      vlog.info("H.264 video for the moving screen");
++      vlog.debug("H.264 video for the moving screen");
 +    h264Active = true;
 +    h264UntilMs = now + H264HoldMs;
 +    return true;
@@ -214,7 +214,7 @@
 +
 +  if (h264Active) {
 +    h264Active = false;
-+    vlog.info("H.264 video ended");
++    vlog.debug("H.264 video ended");
 +  }
 +  return false;
 +}
@@ -269,7 +269,7 @@
 +      useH264 = h264->encode(pb, h264Rect, &h264Bytes, &h264Flags);
 +      if (!useH264) {
 +        h264Active = false;
-+        vlog.info("H.264 video ended");
++        vlog.debug("H.264 video ended");
 +      }
 +    }
 +
