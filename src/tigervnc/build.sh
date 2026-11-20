@@ -43,11 +43,14 @@ TIGERVNC_URL=https://github.com/TigerVNC/tigervnc/archive/v${TIGERVNC_VERSION}.t
 XSERVER_URL=https://www.x.org/releases/individual/xserver/xorg-server-${XSERVER_VERSION}.tar.gz
 
 GMP_URL=https://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz
+GMP_MIRROR_URL=https://ftpmirror.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.xz
 NETTLE_URL=https://ftp.gnu.org/gnu/nettle/nettle-${NETTLE_VERSION}.tar.gz
+NETTLE_MIRROR_URL=https://ftpmirror.gnu.org/gnu/nettle/nettle-${NETTLE_VERSION}.tar.gz
 GNUTLS_URL=https://www.gnupg.org/ftp/gcrypt/gnutls/v${GNUTLS_VERSION%.*}/gnutls-${GNUTLS_VERSION}.tar.xz
 LIBXFONT2_URL=https://www.x.org/pub/individual/lib/libXfont2-${LIBXFONT2_VERSION}.tar.gz
 LIBFONTENC_URL=https://www.x.org/releases/individual/lib/libfontenc-${LIBFONTENC_VERSION}.tar.gz
 LIBTASN1_URL=https://ftp.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
+LIBTASN1_MIRROR_URL=https://ftpmirror.gnu.org/gnu/libtasn1/libtasn1-${LIBTASN1_VERSION}.tar.gz
 LIBXSHMFENCE_URL=https://www.x.org/releases/individual/lib/libxshmfence-${LIBXSHMFENCE_VERSION}.tar.gz
 LIBXXF86VM_URL=https://www.x.org/releases/individual/lib/libXxf86vm-${LIBXXF86VM_VERSION}.tar.xz
 LIBDRM_URL=https://dri.freedesktop.org/libdrm/libdrm-${LIBDRM_VERSION}.tar.xz
@@ -248,7 +251,7 @@ endian = 'little'
 #
 mkdir /tmp/gmp
 log "Downloading GMP..."
-download --sha256 ${GMP_SHA256} ${GMP_URL} | tar -xJ --strip 1 -C /tmp/gmp
+download --sha256 ${GMP_SHA256} ${GMP_URL} ${GMP_MIRROR_URL} | tar -xJ --strip 1 -C /tmp/gmp
 log "Configuring GMP..."
 (
     cd /tmp/gmp && ./configure \
@@ -273,7 +276,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libtasn1
 log "Downloading libtasn1..."
-download --sha256 ${LIBTASN1_SHA256} ${LIBTASN1_URL} | tar -xz --strip 1 -C /tmp/libtasn1
+download --sha256 ${LIBTASN1_SHA256} ${LIBTASN1_URL} ${LIBTASN1_MIRROR_URL} | tar -xz --strip 1 -C /tmp/libtasn1
 log "Configuring libtasn1..."
 (
     cd /tmp/libtasn1 && CFLAGS="$CFLAGS -Wno-error=inline" ./configure \
@@ -296,7 +299,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/nettle
 log "Downloading Nettle..."
-download --sha256 ${NETTLE_SHA256} ${NETTLE_URL} | tar -xz --strip 1 -C /tmp/nettle
+download --sha256 ${NETTLE_SHA256} ${NETTLE_URL} ${NETTLE_MIRROR_URL} | tar -xz --strip 1 -C /tmp/nettle
 log "Configuring Nettle..."
 (
     cd /tmp/nettle && ./configure \
