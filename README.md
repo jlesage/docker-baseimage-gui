@@ -41,6 +41,7 @@ shell, desktop notifications, and more.
       * [Helpers](#helpers)
          * [Adding/Removing Packages](#addingremoving-packages)
          * [Modifying Files with Sed](#modifying-files-with-sed)
+         * [Downloading Files](#downloading-files)
          * [Evaluating Boolean Values](#evaluating-boolean-values)
          * [Taking Ownership of a Directory](#taking-ownership-of-a-directory)
          * [Setting Internal Environment Variables](#setting-internal-environment-variables)
@@ -650,6 +651,28 @@ RUN sed-patch 's/Replace this/By this/' /etc/myfile
 
 If the expression does not change `/etc/myfile`, the command fails, halting the
 Docker build.
+
+#### Downloading Files
+
+Use the `download` helper to fetch a file. The payload is written to standard
+output and can be piped. Use `-o` or `--output` to save it to a file. Progress
+and errors are written to standard error.
+
+```shell
+download [--retry COUNT] [-o FILE] [--sha256 CHECKSUM] URL [URL...]
+```
+
+URLs are tried in order until one succeeds. A failed URL is retried `COUNT`
+times (default: 2) before the next one is tried. With `--sha256`, the file is
+written only when its checksum matches. A mismatch counts as a failed attempt.
+
+Example in a `Dockerfile`:
+
+```dockerfile
+RUN \
+    download --sha256 "$MYAPP_SHA256" "$MYAPP_URL" \
+        | tar -xz --strip 1 -C /tmp/myapp
+```
 
 #### Evaluating Boolean Values
 
