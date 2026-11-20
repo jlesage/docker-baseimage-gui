@@ -34,6 +34,18 @@ BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}
 LIBEPOXY_URL=https://github.com/anholt/libepoxy/archive/refs/tags/${LIBEPOXY_VERSION}.tar.gz
 LIBXRANDR_URL=https://www.x.org/releases/individual/lib/libXrandr-${LIBXRANDR_VERSION}.tar.xz
 
+# Define software checksums.
+YAD_SHA256=afcebd8582977f4032a04755bddd28b0d7d60e1425b50f5cc7707377809170f2
+PANGO_SHA256=d0076afe01082814b853deec99f9349ece5f2ce83908b8e58ff736b41f78a96b
+GTK_SHA256=7e04f0648515034b806b74ae5d774d87cffb1a2a96c468cb5be476d51bf2f3c7
+ATK_SHA256=ac4de2a4ef4bd5665052952fe169657e65e895c5057dffb3c2a810f6191a0c36
+GDKPIXBUF_SHA256=49dcb402388708647e8c321d56b6fb30f21e51e515d0c5a942268d23052a2f00
+CAIRO_SHA256=abf8fba4d510086a492783c3e0828e90b32734738fd80906595617d229d02bab
+PIXMAN_SHA256=48d8539f35488d694a2fef3ce17394d1153ed4e71c05d1e621904d574be5df19
+BROTLI_SHA256=e720a6ca29428b803f4ad165371771f5398faba397edf6778837a18599ea13ff
+LIBEPOXY_SHA256=a7ced37f4102b745ac86d6a70a9da399cc139ff168ba6b8002b4d8d43c900c15
+LIBXRANDR_SHA256=1ad5b065375f4a85915aa60611cc6407c060492a214d7f9daf214be752c3b4d3
+
 # Same baseline as abuild, plus flags that shrink the static binary.
 # -Oz is smaller than -Os. Function sections let the final link drop unused
 # code. Thin LTO does the same across compilation units. Unwind tables are
@@ -129,7 +141,7 @@ endian = 'little'
 #
 mkdir /tmp/pango
 log "Downloading pango..."
-curl -# -L -f ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
+download --sha256 ${PANGO_SHA256} ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
 log "Configuring pango..."
 (
     cd /tmp/pango && abuild-meson \
@@ -165,7 +177,7 @@ cp -av /tmp/fontconfig-install/usr $(xx-info sysroot)
 #
 mkdir /tmp/atk
 log "Downloading atk..."
-curl -# -L -f ${ATK_URL} | tar -xJ --strip 1 -C /tmp/atk
+download --sha256 ${ATK_SHA256} ${ATK_URL} | tar -xJ --strip 1 -C /tmp/atk
 log "Configuring atk..."
 (
     cd /tmp/atk && abuild-meson \
@@ -187,7 +199,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/atk/build
 #
 mkdir /tmp/gdkpixbuf
 log "Downloading GdkPixbuf..."
-curl -# -L -f ${GDKPIXBUF_URL} | tar -xJ --strip 1 -C /tmp/gdkpixbuf
+download --sha256 ${GDKPIXBUF_SHA256} ${GDKPIXBUF_URL} | tar -xJ --strip 1 -C /tmp/gdkpixbuf
 log "Configuring GdkPixbuf..."
 (
     cd /tmp/gdkpixbuf && abuild-meson \
@@ -221,7 +233,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/gdkpixbuf/build
 #
 mkdir /tmp/libxrandr
 log "Downloading libXrandr..."
-curl -# -L -f ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
+download --sha256 ${LIBXRANDR_SHA256} ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
 log "Configuring libXrandr..."
 # Keep this small autotools build off LTO. Libtool drops -flto from the link.
 (
@@ -253,7 +265,7 @@ rm -f "$(xx-info sysroot)usr/lib/pkgconfig/xdamage.pc"
 #
 mkdir /tmp/libepoxy
 log "Downloading libepoxy..."
-curl -# -L -f ${LIBEPOXY_URL} | tar -xz --strip 1 -C /tmp/libepoxy
+download --sha256 ${LIBEPOXY_SHA256} ${LIBEPOXY_URL} | tar -xz --strip 1 -C /tmp/libepoxy
 log "Configuring libepoxy..."
 (
     cd /tmp/libepoxy && abuild-meson \
@@ -277,7 +289,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/libepoxy/build
 #
 mkdir /tmp/gtk
 log "Downloading GTK..."
-curl -# -L -f ${GTK_URL} | tar -xJ --strip 1 -C /tmp/gtk
+download --sha256 ${GTK_SHA256} ${GTK_URL} | tar -xJ --strip 1 -C /tmp/gtk
 log "Patching GTK..."
 patch -p1 -d /tmp/gtk < "$SCRIPT_DIR"/disable-atk-bridge.patch
 log "Configuring GTK..."
@@ -312,7 +324,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/gtk/build
 #
 mkdir /tmp/cairo
 log "Downloading cairo..."
-curl -# -L -f ${CAIRO_URL} | tar -xj --strip 1 -C /tmp/cairo
+download --sha256 ${CAIRO_SHA256} ${CAIRO_URL} | tar -xj --strip 1 -C /tmp/cairo
 log "Patching cairo..."
 patch -p1 -d /tmp/cairo < "$SCRIPT_DIR"/cairo-meson-fix.patch
 log "Configuring cairo..."
@@ -341,7 +353,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/cairo/build
 #
 mkdir /tmp/pixman
 log "Downloading pixman..."
-curl -# -L -f ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
+download --sha256 ${PIXMAN_SHA256} ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
 log "Patching pixman..."
 patch -p1 -d /tmp/pixman < "$SCRIPT_DIR"/pixman-clang-arm-asm.patch
 log "Configuring pixman..."
@@ -368,7 +380,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pixman/build
 #
 mkdir /tmp/brotli
 log "Downloading brotli..."
-curl -# -L -f ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
+download --sha256 ${BROTLI_SHA256} ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
 log "Configuring brotli..."
 (
     mkdir /tmp/brotli/build && \
@@ -394,7 +406,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
 #
 mkdir /tmp/yad
 log "Downloading YAD..."
-curl -# -L -f ${YAD_URL} | tar xz --strip 1 -C /tmp/yad
+download --sha256 ${YAD_SHA256} ${YAD_URL} | tar xz --strip 1 -C /tmp/yad
 log "Patching YAD..."
 patch -p1 -d /tmp/yad < "$SCRIPT_DIR"/show-button-images.patch
 log "Configuring YAD..."

@@ -15,6 +15,9 @@ DBUS_VERSION=1.14.10
 # Define software download URLs.
 DBUS_URL=https://dbus.freedesktop.org/releases/dbus/dbus-${DBUS_VERSION}.tar.xz
 
+# Define software checksums.
+DBUS_SHA256=ba1f21d2bd9d339da2d4aa8780c09df32fea87998b73da24f49ab9df1e36a50f
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined -fno-plt"
 export CXXFLAGS="$CFLAGS"
@@ -57,7 +60,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/dbus
 log "Downloading dbus-daemon..."
-curl -# -L -f ${DBUS_URL} | tar xJ --strip 1 -C /tmp/dbus
+download --sha256 ${DBUS_SHA256} ${DBUS_URL} | tar xJ --strip 1 -C /tmp/dbus
 
 log "Patching dbus-daemon..."
 patch -p1 -d /tmp/dbus < "$SCRIPT_DIR"/close-all-fds.patch

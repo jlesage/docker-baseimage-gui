@@ -16,6 +16,10 @@ LIBSNDFILE_VERSION=1.2.2
 PULSEAUDIO_URL=https://www.freedesktop.org/software/pulseaudio/releases/pulseaudio-${PULSEAUDIO_VERSION}.tar.xz
 LIBSNDFILE_URL=https://github.com/libsndfile/libsndfile/releases/download/${LIBSNDFILE_VERSION}/libsndfile-${LIBSNDFILE_VERSION}.tar.xz
 
+# Define software checksums.
+PULSEAUDIO_SHA256=8eef32ce91d47979f95fd9a935e738cd7eb7463430dabc72863251751e504ae4
+LIBSNDFILE_SHA256=3799ca9924d3125038880367bf1468e53a1b7e3686a934f098b7e1d286cdb80e
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -fPIC -ffunction-sections -fdata-sections"
 export CXXFLAGS="$CFLAGS"
@@ -63,7 +67,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/libsndfile
 log "Downloading libsndfile..."
-curl -# -L -f ${LIBSNDFILE_URL} | tar -xJ --strip 1 -C /tmp/libsndfile
+download --sha256 ${LIBSNDFILE_SHA256} ${LIBSNDFILE_URL} | tar -xJ --strip 1 -C /tmp/libsndfile
 
 log "Configuring libsndfile..."
 (
@@ -90,7 +94,7 @@ DESTDIR=$(xx-info sysroot) make -C /tmp/libsndfile install
 #
 mkdir /tmp/pulseaudio
 log "Downloading PulseAudio..."
-curl -# -L -f ${PULSEAUDIO_URL} | tar -xJ --strip 1 -C /tmp/pulseaudio
+download --sha256 ${PULSEAUDIO_SHA256} ${PULSEAUDIO_URL} | tar -xJ --strip 1 -C /tmp/pulseaudio
 
 log "Patching PulseAudio..."
 patch -d /tmp/pulseaudio -p1 < "$SCRIPT_DIR"/pulseaudio.patch

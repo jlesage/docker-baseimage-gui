@@ -20,6 +20,9 @@ XKEYBOARDCONFIG_VERSION=2.41
 # Define software download URLs.
 XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.xz
 
+# Define software checksums.
+XKEYBOARDCONFIG_SHA256=f02cd6b957295e0d50236a3db15825256c92f67ef1f73bf1c77a4b179edf728f
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
@@ -55,7 +58,7 @@ apk --no-cache add $HOST_PKGS
 #
 mkdir /tmp/xkb
 log "Downloading XKeyboardConfig..."
-curl -# -L -f ${XKEYBOARDCONFIG_URL} | tar -xJ --strip 1 -C /tmp/xkb
+download --sha256 ${XKEYBOARDCONFIG_SHA256} ${XKEYBOARDCONFIG_URL} | tar -xJ --strip 1 -C /tmp/xkb
 log "Configuring XKeyboardConfig..."
 (
     cd /tmp/xkb && abuild-meson . build

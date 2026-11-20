@@ -5,6 +5,11 @@
 # https://github.com/jlesage/docker-baseimage-gui
 #
 
+# Baseimage that provides the download helper used by src/*/build.sh.
+ARG BASEIMAGE
+
+FROM ${BASEIMAGE} AS baseimage
+
 # Get Dockerfile cross-compilation helpers.
 FROM --platform=$BUILDPLATFORM tonistiigi/xx AS xx
 
@@ -31,6 +36,7 @@ RUN \
 # Build Intel CLC
 FROM --platform=$BUILDPLATFORM alpine:3.21 AS intel_clc
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/intel_clc /build
 RUN /build/build.sh
@@ -43,6 +49,7 @@ RUN /build/build.sh
 # Build TigerVNC server.
 FROM --platform=$BUILDPLATFORM alpine:3.21 AS tigervnc
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY --from=intel_clc /tmp/intel_clc_install /
 COPY src/tigervnc /build
@@ -58,6 +65,7 @@ RUN upx /tmp/tigervnc-rootfs/opt/base/bin/vncpasswd
 # Build xkeyboard-config.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS xkeyboard-config
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/xkeyboard-config /build
 RUN /build/build.sh
@@ -65,6 +73,7 @@ RUN /build/build.sh
 # Build xkbcomp.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS xkbcomp
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/xkbcomp /build
 RUN /build/build.sh
@@ -75,6 +84,7 @@ RUN upx /tmp/xkbcomp-install/usr/bin/xkbcomp
 # Build Fontconfig.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS fontconfig
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/fontconfig/build.sh /tmp/build-fontconfig.sh
 RUN /tmp/build-fontconfig.sh
@@ -82,6 +92,7 @@ RUN /tmp/build-fontconfig.sh
 # Build Openbox.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS openbox
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
 COPY src/openbox /tmp/build
@@ -96,6 +107,7 @@ RUN upx /tmp/openbox-install/usr/bin/obxprop
 # Build xrdb.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS xrdb
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/xrdb /build
 RUN /build/build.sh
@@ -106,6 +118,7 @@ RUN upx /tmp/xrdb-install/usr/bin/xrdb
 # Build fastcompmgr.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS fastcompmgr
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/fastcompmgr /build
 RUN /build/build.sh
@@ -140,6 +153,7 @@ RUN upx /tmp/xdpyprobe/xdpyprobe
 # Build dbus-daemon.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS dbus
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/dbus-daemon /build
 RUN /build/build.sh
@@ -161,6 +175,7 @@ RUN upx /tmp/build-notify-send/notify-send
 # Build yad.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS yad
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY --from=fontconfig /tmp/fontconfig-install /tmp/fontconfig-install
 COPY src/yad /build
@@ -172,6 +187,7 @@ RUN upx /tmp/yad-install/usr/bin/yad
 # Build Nginx.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS nginx
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/nginx /tmp/build-nginx
 RUN /tmp/build-nginx/build.sh
@@ -185,6 +201,7 @@ RUN apk --no-cache add libcap && setcap cap_net_bind_service=ep /tmp/nginx-insta
 # Build PulseAudio.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS pulseaudio
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/pulseaudio /build-pulseaudio
 RUN /build-pulseaudio/build.sh
@@ -195,6 +212,7 @@ RUN upx /tmp/pulseaudio-install/usr/bin/pulseaudio
 # Build the audio recorder.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS audiorecorder
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/audiorecorder /tmp/build-audiorecorder
 RUN /tmp/build-audiorecorder/build.sh
@@ -205,6 +223,7 @@ RUN upx /tmp/build-audiorecorder/audiorecorder
 # Build the microphone bridge.
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS microphone
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/microphone /tmp/build-microphone
 RUN /tmp/build-microphone/build.sh
@@ -237,6 +256,7 @@ RUN upx /tmp/build-webservices/webservices
 # Build htpasswd
 FROM --platform=$BUILDPLATFORM alpine:3.20 AS htpasswd
 ARG TARGETPLATFORM
+COPY --from=baseimage /opt/base/bin/download /usr/local/bin/download
 COPY --from=xx / /
 COPY src/htpasswd /tmp/build-htpasswd
 RUN /tmp/build-htpasswd/build.sh

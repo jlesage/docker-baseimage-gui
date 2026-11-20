@@ -16,6 +16,9 @@ HTTPD_VERSION=2.4.71
 # Define software download URLs.
 HTTPD_URL=https://dlcdn.apache.org/httpd/httpd-${HTTPD_VERSION}.tar.gz
 
+# Define software checksums.
+HTTPD_SHA256=6b0433674ded858d2ac01e95345935ce127d5d287471762f0a7f10f4969cbfe8
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
@@ -56,7 +59,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/httpd
 log "Downloading httpd..."
-curl -# -L -f ${HTTPD_URL} | tar -xz --strip 1 -C /tmp/httpd
+download --sha256 ${HTTPD_SHA256} ${HTTPD_URL} | tar -xz --strip 1 -C /tmp/httpd
 
 log "Configuring httpd..."
 (

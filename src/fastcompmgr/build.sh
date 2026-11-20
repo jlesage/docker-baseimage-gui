@@ -18,6 +18,10 @@ LIBXDAMAGE_VERSION=1.1.6
 FASTCOMPMGR_URL=https://github.com/tycho-kirchner/fastcompmgr/archive/refs/tags/v${FASTCOMPMGR_VERSION}.tar.gz
 LIBXDAMAGE_URL=https://www.x.org/releases/individual/lib/libXdamage-${LIBXDAMAGE_VERSION}.tar.xz
 
+# Define software checksums.
+FASTCOMPMGR_SHA256=b93b5c6ed6926e7c9419e3e620d2bf26a8f106bd55f59474e0d7d6328003192c
+LIBXDAMAGE_SHA256=52733c1f5262fca35f64e7d5060c6fcd81a880ba8e1e65c9621cf0727afb5d11
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
@@ -66,7 +70,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/libxdamage
 log "Downloading libXdamage..."
-curl -# -L -f ${LIBXDAMAGE_URL} | tar -xJ --strip 1 -C /tmp/libxdamage
+download --sha256 ${LIBXDAMAGE_SHA256} ${LIBXDAMAGE_URL} | tar -xJ --strip 1 -C /tmp/libxdamage
 
 log "Configuring libXdamage..."
 (
@@ -89,7 +93,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/libxdamage install
 #
 mkdir /tmp/fastcompmgr
 log "Downloading fastcompmgr..."
-curl -# -L -f ${FASTCOMPMGR_URL} | tar xz --strip 1 -C /tmp/fastcompmgr
+download --sha256 ${FASTCOMPMGR_SHA256} ${FASTCOMPMGR_URL} | tar xz --strip 1 -C /tmp/fastcompmgr
 log "Patching fastcompmgr..."
 patch -p1 -d /tmp/fastcompmgr < "$SCRIPT_DIR"/fix-compile.patch
 log "Compiling fastcompmgr..."

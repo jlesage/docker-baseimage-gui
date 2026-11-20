@@ -66,6 +66,7 @@ docker buildx build \
     --progress plain \
     --load \
     --platform "${PLATFORM}" \
+    --build-arg BASEIMAGE="${BASEIMAGE}" \
     -f "${BASE_DIR}"/Dockerfile.common \
     -t "${IMAGE}-common" \
     "${BASE_DIR}"

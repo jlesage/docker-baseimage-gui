@@ -14,6 +14,9 @@ XRDB_VERSION=1.2.2
 # Define software download URLs.
 XRDB_URL=https://www.x.org/releases/individual/app/xrdb-${XRDB_VERSION}.tar.xz
 
+# Define software checksums.
+XRDB_SHA256=31f5fcab231b38f255b00b066cf7ea3b496df712c9eb2d0d50c670b63e5033f4
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
@@ -56,7 +59,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/xrdb
 log "Downloading xrdb..."
-curl -# -L -f ${XRDB_URL} | tar xJ --strip 1 -C /tmp/xrdb
+download --sha256 ${XRDB_SHA256} ${XRDB_URL} | tar xJ --strip 1 -C /tmp/xrdb
 
 log "Configuring xrdb..."
 (

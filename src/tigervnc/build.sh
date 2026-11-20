@@ -60,6 +60,24 @@ X264_URL=https://code.videolan.org/videolan/x264/-/archive/${X264_VERSION}/x264-
 XKEYBOARDCONFIG_URL=https://www.x.org/archive/individual/data/xkeyboard-config/xkeyboard-config-${XKEYBOARDCONFIG_VERSION}.tar.xz
 XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.xz
 
+# Define software checksums.
+TIGERVNC_SHA256=b107c0c8b8a962594281690366c24186e95c2ea4a169acbc0076aa62ed01f467
+XSERVER_SHA256=952444a35ce6a720c3e978d3bad2b683bacb648cceedc03e3600f6fb170071d2
+GMP_SHA256=a3c2b80201b89e68616f4ad30bc66aee4927c3ce50e33929ca819d5c43538898
+NETTLE_SHA256=b4c518adb174e484cb4acea54118f02380c7133771e7e9beb98a0787194ee47c
+GNUTLS_SHA256=66269a2cfe0e1c2dabec87bdbbd8ab656f396edd9a40dd006978e003cfa52bfc
+LIBXFONT2_SHA256=90b331c2fd2d0420767c4652e007d054c97a3f03a88c55e3b986bd3acfd7e338
+LIBFONTENC_SHA256=b55039f70959a1b2f02f4ec8db071e5170528d2c9180b30575dccf7510d7fb9f
+LIBTASN1_SHA256=92e0e3bd4c02d4aeee76036b2ddd83f0c732ba4cda5cb71d583272b23587a76c
+LIBXSHMFENCE_SHA256=e93a85099604beb244ee756dcaf70e18b08701c1ca84c4de0126cd71bd6c8181
+LIBXXF86VM_SHA256=247fef48b3e0e7e67129e41f1e789e8d006ba47dba1c0cdce684b9b703f888e7
+LIBDRM_SHA256=a2b98567a149a74b0f50e91e825f9c0315d86e7be9b74394dae8b298caadb79e
+PIXMAN_SHA256=48d8539f35488d694a2fef3ce17394d1153ed4e71c05d1e621904d574be5df19
+BROTLI_SHA256=e720a6ca29428b803f4ad165371771f5398faba397edf6778837a18599ea13ff
+MESA_SHA256=999d0a854f43864fc098266aaf25600ce7961318a1e2e358bff94a7f53580e30
+LLVM_SHA256=3aa2d2d2c7553164ad5c6f3b932b31816e422635e18620c9349a7da95b98d811
+X264_SHA256=d0967a1348c85dfde363bb52610403be898171493100561efa0dd05d5fd1ae50
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -fno-plt"
 export CXXFLAGS="$CFLAGS"
@@ -230,7 +248,7 @@ endian = 'little'
 #
 mkdir /tmp/gmp
 log "Downloading GMP..."
-curl -# -L -f ${GMP_URL} | tar -xJ --strip 1 -C /tmp/gmp
+download --sha256 ${GMP_SHA256} ${GMP_URL} | tar -xJ --strip 1 -C /tmp/gmp
 log "Configuring GMP..."
 (
     cd /tmp/gmp && ./configure \
@@ -255,7 +273,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libtasn1
 log "Downloading libtasn1..."
-curl -# -L -f ${LIBTASN1_URL} | tar -xz --strip 1 -C /tmp/libtasn1
+download --sha256 ${LIBTASN1_SHA256} ${LIBTASN1_URL} | tar -xz --strip 1 -C /tmp/libtasn1
 log "Configuring libtasn1..."
 (
     cd /tmp/libtasn1 && CFLAGS="$CFLAGS -Wno-error=inline" ./configure \
@@ -278,7 +296,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/nettle
 log "Downloading Nettle..."
-curl -# -L -f ${NETTLE_URL} | tar -xz --strip 1 -C /tmp/nettle
+download --sha256 ${NETTLE_SHA256} ${NETTLE_URL} | tar -xz --strip 1 -C /tmp/nettle
 log "Configuring Nettle..."
 (
     cd /tmp/nettle && ./configure \
@@ -305,7 +323,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/gnutls
 log "Downloading GNU TLS..."
-curl -# -L -f ${GNUTLS_URL} | tar -xJ --strip 1 -C /tmp/gnutls
+download --sha256 ${GNUTLS_SHA256} ${GNUTLS_URL} | tar -xJ --strip 1 -C /tmp/gnutls
 log "Configuring GNU TLS..."
 (
     cd /tmp/gnutls && ./configure \
@@ -337,7 +355,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libfontenc
 log "Downloading libfontenc..."
-curl -# -L -f ${LIBFONTENC_URL} | tar -xz --strip 1 -C /tmp/libfontenc
+download --sha256 ${LIBFONTENC_SHA256} ${LIBFONTENC_URL} | tar -xz --strip 1 -C /tmp/libfontenc
 log "Configuring libfontenc..."
 (
     cd /tmp/libfontenc && ./configure \
@@ -361,7 +379,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libxfont2
 log "Downloading libXfont2..."
-curl -# -L -f ${LIBXFONT2_URL} | tar -xz --strip 1 -C /tmp/libxfont2
+download --sha256 ${LIBXFONT2_SHA256} ${LIBXFONT2_URL} | tar -xz --strip 1 -C /tmp/libxfont2
 log "Configuring libXfont2..."
 (
     cd /tmp/libxfont2 && ./configure \
@@ -388,7 +406,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libxshmfence
 log "Downloading libxshmfence..."
-curl -# -L -f ${LIBXSHMFENCE_URL} | tar -xz --strip 1 -C /tmp/libxshmfence
+download --sha256 ${LIBXSHMFENCE_SHA256} ${LIBXSHMFENCE_URL} | tar -xz --strip 1 -C /tmp/libxshmfence
 log "Configuring libxshmfence..."
 (
     cd /tmp/libxshmfence && ./configure \
@@ -412,7 +430,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libxxf86vm
 log "Downloading libxxf86vm..."
-curl -# -L -f ${LIBXXF86VM_URL} | tar -xJ --strip 1 -C /tmp/libxxf86vm
+download --sha256 ${LIBXXF86VM_SHA256} ${LIBXXF86VM_URL} | tar -xJ --strip 1 -C /tmp/libxxf86vm
 log "Configuring libxxf86vm..."
 (
     cd /tmp/libxxf86vm && ./configure \
@@ -436,7 +454,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libdrm
 log "Downloading libdrm..."
-curl -# -L -f ${LIBDRM_URL} | tar -xJ --strip 1 -C /tmp/libdrm
+download --sha256 ${LIBDRM_SHA256} ${LIBDRM_URL} | tar -xJ --strip 1 -C /tmp/libdrm
 log "Configuring libdrm..."
 (
     cd /tmp/libdrm && \
@@ -472,7 +490,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/pixman
 log "Downloading pixman..."
-curl -# -L -f ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
+download --sha256 ${PIXMAN_SHA256} ${PIXMAN_URL} | tar -xJ --strip 1 -C /tmp/pixman
 log "Configuring pixman..."
 (
     cd /tmp/pixman && \
@@ -498,7 +516,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/brotli
 log "Downloading brotli..."
-curl -# -L -f ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
+download --sha256 ${BROTLI_SHA256} ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
 log "Configuring brotli..."
 (
     mkdir /tmp/brotli/build && \
@@ -527,7 +545,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/llvm
 log "Downloading LLVM..."
-curl -# -L -f ${LLVM_URL} | tar -xJ --strip 1 -C /tmp/llvm
+download --sha256 ${LLVM_SHA256} ${LLVM_URL} | tar -xJ --strip 1 -C /tmp/llvm
 log "Patching LLVM..."
 patch -p1 -d /tmp/llvm < "$SCRIPT_DIR"/llvm-fix-memory-mf_exec-on-aarch64.patch
 patch -p1 -d /tmp/llvm < "$SCRIPT_DIR"/llvm-install-prefix.patch
@@ -590,7 +608,7 @@ fi
 #
 mkdir /tmp/mesa
 log "Downloading mesa..."
-curl -# -L -f ${MESA_URL} | tar -xJ --strip 1 -C /tmp/mesa
+download --sha256 ${MESA_SHA256} ${MESA_URL} | tar -xJ --strip 1 -C /tmp/mesa
 log "Patching mesa..."
 patch -p1 -d /tmp/mesa < "$SCRIPT_DIR"/mesa-gl-static-lib.patch
 patch -p1 -d /tmp/mesa < "$SCRIPT_DIR"/mesa-util-format-Check-for-NEON-before-using-it.patch
@@ -685,7 +703,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/x264
 log "Downloading x264..."
-curl -# -L -f ${X264_URL} | tar -xz --strip 1 -C /tmp/x264
+download --sha256 ${X264_SHA256} ${X264_URL} | tar -xz --strip 1 -C /tmp/x264
 log "Configuring x264..."
 (
     cd /tmp/x264 && ./configure \
@@ -709,9 +727,9 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/tigervnc
 log "Downloading TigerVNC..."
-curl -# -L -f ${TIGERVNC_URL} | tar -xz --strip 1 -C /tmp/tigervnc
+download --sha256 ${TIGERVNC_SHA256} ${TIGERVNC_URL} | tar -xz --strip 1 -C /tmp/tigervnc
 log "Downloading Xorg server..."
-curl -# -L -f ${XSERVER_URL} | tar -xz --strip 1 -C /tmp/tigervnc/unix/xserver
+download --sha256 ${XSERVER_SHA256} ${XSERVER_URL} | tar -xz --strip 1 -C /tmp/tigervnc/unix/xserver
 
 log "Patching TigerVNC..."
 TIGERVNC_PATCHES="

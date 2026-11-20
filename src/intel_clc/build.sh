@@ -16,6 +16,9 @@ LLVM_VERSION=19.1.4
 # Define software download URLs.
 MESA_URL=https://archive.mesa3d.org/mesa-${MESA_VERSION}.tar.xz
 
+# Define software checksums.
+MESA_SHA256=999d0a854f43864fc098266aaf25600ce7961318a1e2e358bff94a7f53580e30
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -fno-plt"
 export CXXFLAGS="$CFLAGS"
@@ -76,7 +79,7 @@ apk --no-cache add $HOST_PKGS
 #
 mkdir /tmp/mesa
 log "Downloading mesa..."
-curl -# -L -f ${MESA_URL} | tar -xJ --strip 1 -C /tmp/mesa
+download --sha256 ${MESA_SHA256} ${MESA_URL} | tar -xJ --strip 1 -C /tmp/mesa
 
 log "Configuring mesa..."
 (

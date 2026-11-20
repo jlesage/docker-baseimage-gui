@@ -26,6 +26,14 @@ LIBXFIXES_URL=https://www.x.org/releases/individual/lib/libXfixes-${LIBXFIXES_VE
 LIBXCURSOR_URL=https://www.x.org/releases/individual/lib/libXcursor-${LIBXCURSOR_VERSION}.tar.xz
 BROTLI_URL=https://github.com/google/brotli/archive/refs/tags/v${BROTLI_VERSION}.tar.gz
 
+# Define software checksums.
+OPENBOX_SHA256=abe75855cc5616554ffd47134ad15291fe37ebbebf1a80b69cbde9d670f0e26d
+PANGO_SHA256=45c403b89910a121ad8eb6d57b5be1d8f19499d39b686435dc6f29b106d2be93
+LIBXRANDR_SHA256=1ad5b065375f4a85915aa60611cc6407c060492a214d7f9daf214be752c3b4d3
+LIBXFIXES_SHA256=b695f93cd2499421ab02d22744458e650ccc88c1d4c8130d60200213abc02d58
+LIBXCURSOR_SHA256=fde9402dd4cfe79da71e2d96bb980afc5e6ff4f8a7d74c159e1966afb2b2c2c0
+BROTLI_SHA256=e720a6ca29428b803f4ad165371771f5398faba397edf6778837a18599ea13ff
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
@@ -114,7 +122,7 @@ endian = 'little'
 #
 mkdir /tmp/pango
 log "Downloading pango..."
-curl -# -L -f ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
+download --sha256 ${PANGO_SHA256} ${PANGO_URL} | tar -xJ --strip 1 -C /tmp/pango
 
 log "Configuring pango..."
 (
@@ -139,7 +147,7 @@ DESTDIR=$(xx-info sysroot) meson install --no-rebuild -C /tmp/pango/build
 #
 mkdir /tmp/libxrandr
 log "Downloading libXrandr..."
-curl -# -L -f ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
+download --sha256 ${LIBXRANDR_SHA256} ${LIBXRANDR_URL} | tar -xJ --strip 1 -C /tmp/libxrandr
 
 log "Configuring libXrandr..."
 (
@@ -165,7 +173,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/libxrandr install
 #
 mkdir /tmp/libxfixes
 log "Downloading libXfixes..."
-curl -# -L -f ${LIBXFIXES_URL} | tar -xJ --strip 1 -C /tmp/libxfixes
+download --sha256 ${LIBXFIXES_SHA256} ${LIBXFIXES_URL} | tar -xJ --strip 1 -C /tmp/libxfixes
 
 log "Configuring libXfixes..."
 (
@@ -192,7 +200,7 @@ find $(xx-info sysroot)usr/lib -name "*.la" -delete
 #
 mkdir /tmp/libxcursor
 log "Downloading libXcursor..."
-curl -# -L -f ${LIBXCURSOR_URL} | tar -xJ --strip 1 -C /tmp/libxcursor
+download --sha256 ${LIBXCURSOR_SHA256} ${LIBXCURSOR_URL} | tar -xJ --strip 1 -C /tmp/libxcursor
 
 log "Configuring libXcursor..."
 (
@@ -233,7 +241,7 @@ cp -av /tmp/fontconfig-install/usr $(xx-info sysroot)
 #
 mkdir /tmp/brotli
 log "Downloading brotli..."
-curl -# -L -f ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
+download --sha256 ${BROTLI_SHA256} ${BROTLI_URL} | tar -xz --strip 1 -C /tmp/brotli
 log "Configuring brotli..."
 (
     mkdir /tmp/brotli/build && \
@@ -258,7 +266,7 @@ make DESTDIR=$(xx-info sysroot) -C /tmp/brotli/build install
 #
 mkdir /tmp/openbox
 log "Downloading Openbox..."
-curl -# -L -f ${OPENBOX_URL} | tar -xJ --strip 1 -C /tmp/openbox
+download --sha256 ${OPENBOX_SHA256} ${OPENBOX_URL} | tar -xJ --strip 1 -C /tmp/openbox
 
 log "Patching Openbox..."
 patch -p1 -d /tmp/openbox < "$SCRIPT_DIR"/disable-x-locale.patch

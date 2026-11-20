@@ -16,6 +16,10 @@ NESTEGG_COMMIT=767aab25013acefbdcc6d68a2a7a2c9081303e3f
 OPUS_URL=https://github.com/xiph/opus/releases/download/v${OPUS_VERSION}/opus-${OPUS_VERSION}.tar.gz
 NESTEGG_URL=https://github.com/mozilla/nestegg/archive/${NESTEGG_COMMIT}.tar.gz
 
+# Define software checksums.
+OPUS_SHA256=65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1
+NESTEGG_SHA256=bd597e86e5a7c00171aa56d914501e3f597ea46dbc7d432324e97da94a8a4b5e
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -fPIC -ffunction-sections -fdata-sections"
 export CXXFLAGS="$CFLAGS"
@@ -54,7 +58,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/opus
 log "Downloading Opus..."
-curl -# -L -f ${OPUS_URL} | tar -xz --strip 1 -C /tmp/opus
+download --sha256 ${OPUS_SHA256} ${OPUS_URL} | tar -xz --strip 1 -C /tmp/opus
 
 # Assembly is disabled so every target architecture builds the same portable decoder.
 log "Configuring Opus..."
@@ -83,7 +87,7 @@ DESTDIR=$(xx-info sysroot) make -C /tmp/opus install
 #
 mkdir /tmp/nestegg
 log "Downloading nestegg..."
-curl -# -L -f ${NESTEGG_URL} | tar -xz --strip 1 -C /tmp/nestegg
+download --sha256 ${NESTEGG_SHA256} ${NESTEGG_URL} | tar -xz --strip 1 -C /tmp/nestegg
 
 #
 # Build the microphone bridge.

@@ -17,6 +17,9 @@ XKBCOMP_VERSION=1.4.7
 # Define software download URLs.
 XKBCOMP_URL=https://www.x.org/releases/individual/app/xkbcomp-${XKBCOMP_VERSION}.tar.xz
 
+# Define software checksums.
+XKBCOMP_SHA256=0a288114e5f44e31987042c79aecff1ffad53a8154b8ec971c24a69a80f81f77
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer -Wno-expansion-to-defined"
 export CXXFLAGS="$CFLAGS"
@@ -59,7 +62,7 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 #
 mkdir /tmp/xkbcomp
 log "Downloading xkbcomp..."
-curl -# -L -f ${XKBCOMP_URL} | tar xJ --strip 1 -C /tmp/xkbcomp
+download --sha256 ${XKBCOMP_SHA256} ${XKBCOMP_URL} | tar xJ --strip 1 -C /tmp/xkbcomp
 
 log "Configuring xkbcomp..."
 (

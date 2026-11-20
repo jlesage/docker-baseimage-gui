@@ -18,6 +18,9 @@ FONTCONFIG_VERSION=2.15.0
 # Define software download URLs.
 FONTCONFIG_URL=https://www.freedesktop.org/software/fontconfig/release/fontconfig-${FONTCONFIG_VERSION}.tar.gz
 
+# Define software checksums.
+FONTCONFIG_SHA256=f5f359d6332861bd497570848fcb42520964a9e83d5e3abe397b6b6db9bcaaf4
+
 # Set same default compilation flags as abuild.
 export CFLAGS="-Os -fomit-frame-pointer"
 export CXXFLAGS="$CFLAGS"
@@ -93,7 +96,7 @@ done
 #
 mkdir /tmp/fontconfig
 log "Downloading fontconfig..."
-curl -# -L -f ${FONTCONFIG_URL} | tar -xz --strip 1 -C /tmp/fontconfig
+download --sha256 ${FONTCONFIG_SHA256} ${FONTCONFIG_URL} | tar -xz --strip 1 -C /tmp/fontconfig
 
 log "Configuring fontconfig..."
 (

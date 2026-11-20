@@ -18,6 +18,10 @@ NGINXWEBSOCKIFYMOD_VERSION=0.0.3
 NGINX_URL=https://nginx.org/download/nginx-${NGINX_VERSION}.tar.gz
 NGINXWEBSOCKIFYMOD_URL=https://github.com/tg123/websockify-nginx-module/archive/v${NGINXWEBSOCKIFYMOD_VERSION}.tar.gz
 
+# Define software checksums.
+NGINX_SHA256=4261dc90e9e47c1c4041276e9aaa3d48ebe2e664f728e14fa95ae6c67d57a08b
+NGINXWEBSOCKIFYMOD_SHA256=35494258f9db0b113d739f9262bae5a61808e117662fe788d1422282d1ce5672
+
 log() {
     echo ">>> $*"
 }
@@ -50,11 +54,11 @@ xx-apk --no-cache --no-scripts add $TARGET_PKGS
 
 mkdir /tmp/nginx
 log "Downloading Nginx..."
-curl -# -L -f ${NGINX_URL} | tar -xz --strip 1 -C /tmp/nginx
+download --sha256 ${NGINX_SHA256} ${NGINX_URL} | tar -xz --strip 1 -C /tmp/nginx
 
 log "Downloading WebSockify Nginx module..."
 mkdir /tmp/websockify-nginx-module
-curl -# -L -f ${NGINXWEBSOCKIFYMOD_URL} | tar xz --strip 1 -C /tmp/websockify-nginx-module
+download --sha256 ${NGINXWEBSOCKIFYMOD_SHA256} ${NGINXWEBSOCKIFYMOD_URL} | tar xz --strip 1 -C /tmp/websockify-nginx-module
 
 # Cross-compile patches from the OpenEmbedded nginx 1.30.4 recipe:
 # https://github.com/openembedded/meta-openembedded/tree/5f231b197c182048cb4d79bbeffc04a8ecac027a/meta-webserver/recipes-httpd/nginx
