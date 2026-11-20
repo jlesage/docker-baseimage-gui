@@ -65,6 +65,7 @@ shell, desktop notifications, and more.
          * [Routing Based on Hostname](#routing-based-on-hostname)
          * [Routing Based on URL Path](#routing-based-on-url-path)
       * [Host Clipboard Sync](#host-clipboard-sync)
+      * [Web H.264 Encoding](#web-h264-encoding)
       * [Web Audio](#web-audio)
       * [Web Microphone](#web-microphone)
       * [Web File Manager](#web-file-manager)
@@ -1228,6 +1229,19 @@ web interface settings for their own browser.
 
 > [!NOTE]
 > This feature is not available to VNC clients.
+
+### Web H.264 Encoding
+
+While the screen is moving, the web interface sends the picture with
+H.264 encoding, the same kind of compression used for video. Each update
+is much smaller than a JPEG image of the screen, so bandwidth use drops
+and scrolling stays smoother on a slow connection. A still screen is sent
+as a JPEG image. VNC clients do not use H.264 encoding.
+
+> [!NOTE]
+> Chrome and Firefox require a secure connection (HTTPS) to use H.264
+> encoding. See [Security](#security) for details on configuring secure
+> web access.
 
 ### Web Audio
 
