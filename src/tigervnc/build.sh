@@ -847,10 +847,21 @@ log "Relinking vncpasswd as static binary..."
 )
 
 log "Relinking Xvnc binary with static libraries..."
+# i386 x264 assembly contains absolute addresses. In a PIE, musl would have
+# to patch those instructions while loading Xvnc, and it does not do that for
+# the main executable. Link i386 without PIE so the linker fills in the
+# addresses instead. -z text fails the link if a text relocation remains.
+XVNC_LINK_OPTS="-Wl,-z,text"
+case "$(xx-info march)" in
+    386|i386)
+        XVNC_LINK_OPTS="$XVNC_LINK_OPTS -no-pie"
+        ;;
+esac
 (
     cd /tmp/tigervnc/unix/xserver/hw/vnc
     xx-clang++ $CXXFLAGS $LDFLAGS \
         '-Wl,-rpath,$ORIGIN/../lib' \
+        $XVNC_LINK_OPTS \
         -o Xvnc \
         Xvnc-xvnc.o \
         Xvnc-stubs.o \
