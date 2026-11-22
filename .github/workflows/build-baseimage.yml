@@ -213,7 +213,7 @@ jobs:
             export DOCKER_IMAGE=localhost:5000/${{ env.DOCKER_IMAGE_NAME }}:github-ci@$SHA
             docker pull $DOCKER_IMAGE
             docker run --rm $DOCKER_IMAGE sh -c 'echo Testing image on $(uname -m)...'
-            bats tests
+            bats -j $(nproc) tests
           done
 
       - name: Login to DockerHub
