@@ -23,6 +23,29 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.15.0
+      date: 2026-11-23
+      changes:
+        added:
+          - 'Web microphone support, allowing audio captured by the browser to be used by the application.'
+          - 'H.264 encoding support for a moving screen in the web interface.'
+          - 'Added by the update of jlesage/baseimage to version 3.11.13:'
+          - '2:`download` helper to fetch a file, with retries, alternate URLs, and optional SHA256 verification.'
+        changed:
+          - 'Web audio sample rate is now 48000 Hz.'
+          - 'Web audio now skips near-silence.'
+          - 'The web interface now shows the browser''s own mouse pointer.'
+          - 'Improved responsiveness of screen updates in the web interface.'
+          - 'Improved Openbox startup time.'
+          - 'Updated YAD to version 0.42.90, built against GTK3.'
+          - 'Changed by the update of jlesage/baseimage to version 3.11.13:'
+          - '2:Updated shadow-rs to version 0.6.0.'
+          - '2:The underlying distro packages are updated to get all security updates.'
+        fixed:
+          - 'One-pixel border showing above a maximized window when window decorations are turned off.'
+          - 'Main window un-maximizing on Alt+drag.'
+          - 'Web audio staying off after the web interface reconnects.'
+          - 'Idle JPEG refresh delaying the next interaction.'
     - version: 4.14.0
       date: 2026-09-17
       changes:
