@@ -1,0 +1,14 @@
+--- a/openbox/client.c
++++ b/openbox/client.c
+@@ -2908,7 +2908,10 @@
+        not, so this needs to be called even if we have fullscreened/maxed
+     */
+     self->area = oldarea;
+-    client_configure(self, x, y, w, h, FALSE, TRUE, FALSE);
++    /* Always send a ConfigureNotify after managing: the client may already
++       have this geometry from before the reparent (_NET_REQUEST_FRAME_EXTENTS),
++       and Java ignores ConfigureNotify received before ReparentNotify. */
++    client_configure(self, x, y, w, h, FALSE, TRUE, TRUE);
+ 
+     /* nothing to do for the other states:
+        skip_taskbar

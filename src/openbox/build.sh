@@ -272,6 +272,7 @@ log "Patching Openbox..."
 patch -p1 -d /tmp/openbox < "$SCRIPT_DIR"/disable-x-locale.patch
 patch -p1 -d /tmp/openbox < "$SCRIPT_DIR"/menu-file-order.patch
 patch -p1 -d /tmp/openbox < "$SCRIPT_DIR"/intern-atoms.patch
+patch -p1 -d /tmp/openbox < "$SCRIPT_DIR"/send-client-configure.patch
 
 # The config.sub provided with Openbox is too old.  Get a recent one from
 # https://github.com/gcc-mirror/gcc/blob/master/config.sub
