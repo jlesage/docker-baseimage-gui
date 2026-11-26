@@ -23,6 +23,12 @@ baseimage:
     shell, desktop notifications, and more.
   gui: true
   history:
+    - version: 4.15.1
+      date: 2026-11-26
+      changes:
+        fixed:
+          - 'Some applications showing a gray window at startup.'
+          - 'Qt-based applications not using the X cursor theme.'
     - version: 4.15.0
       date: 2026-11-23
       changes:
