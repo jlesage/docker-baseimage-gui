@@ -68,7 +68,7 @@ jobs:
   build:
     name: Build image
     needs: [ build-common ]
-    runs-on: ubuntu-22.04
+    runs-on: ubicloud-standard-16-ubuntu-2204
 
     services:
       registry:
